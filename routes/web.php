@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
 use App\Models\Asset;
 use Illuminate\Support\Facades\Route;
@@ -35,8 +36,11 @@ Route::middleware('auth')->group(function () {
             ]);
         })->name('dashboard');
 
-        // Placeholder named routes for sidebar navigation in Module 1; replaced in Modules 2-7
-        Route::get('/assets', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('assets.index');
+        Route::resource('assets', AssetController::class);
+
+        // Placeholder named routes for Modules 3-7
+        Route::get('/tags/print', fn () => redirect()->route('assets.index'))->name('tags.print');
+        Route::get('/assets/{asset}/move', fn (Asset $asset) => redirect()->route('assets.show', $asset))->name('assets.move.create');
         Route::get('/scan', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('scan.index');
         Route::get('/reports', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('reports.index');
         Route::get('/settings', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('settings.index');
