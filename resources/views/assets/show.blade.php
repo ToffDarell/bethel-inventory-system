@@ -93,10 +93,16 @@
         <div class="lg:col-span-5 p-6 bg-slate-50 border-2 border-slate-200 rounded-xl">
             <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-200">
                 <h3 class="text-xl font-bold text-slate-900">Property Tag Preview</h3>
-                <a href="{{ route('tags.print', ['ids' => [$asset->id]]) }}"
-                   class="text-sm font-bold text-blue-700 hover:underline">
-                    Open Print Sheet &rarr;
-                </a>
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('tags.pdf', ['ids' => [$asset->id]]) }}"
+                       class="text-sm font-bold text-slate-700 hover:text-blue-700 hover:underline">
+                        Download PDF
+                    </a>
+                    <a href="{{ route('tags.print', ['ids' => [$asset->id]]) }}"
+                       class="text-sm font-bold text-blue-700 hover:underline">
+                        Open Print Sheet &rarr;
+                    </a>
+                </div>
             </div>
 
             @if (view()->exists('tags.partials.tag-card'))

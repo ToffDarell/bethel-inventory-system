@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\TagController;
 use App\Models\Asset;
 use Illuminate\Support\Facades\Route;
 
@@ -38,8 +39,10 @@ Route::middleware('auth')->group(function () {
 
         Route::resource('assets', AssetController::class);
 
-        // Placeholder named routes for Modules 3-7
-        Route::get('/tags/print', fn () => redirect()->route('assets.index'))->name('tags.print');
+        Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');
+        Route::get('/tags/pdf', [TagController::class, 'pdf'])->name('tags.pdf');
+
+        // Placeholder named routes for Modules 4-7
         Route::get('/assets/{asset}/move', fn (Asset $asset) => redirect()->route('assets.show', $asset))->name('assets.move.create');
         Route::get('/scan', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('scan.index');
         Route::get('/reports', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('reports.index');
