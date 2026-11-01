@@ -7,10 +7,10 @@
         </a>
     </div>
 
-    <div class="flex flex-wrap items-start justify-between gap-4 mb-6 pb-6 border-b border-neutral-200">
+    <div class="flex flex-wrap items-start justify-between gap-4 mb-6 pb-6 border-b border-red-100">
         <div>
             <div class="flex flex-wrap items-center gap-3">
-                <h2 class="text-3xl font-extrabold tracking-tight text-neutral-950">{{ $asset->asset_name }}</h2>
+                <h2 class="text-3xl font-extrabold tracking-tight text-red-600">{{ $asset->asset_name }}</h2>
                 @include('assets.partials.status-badge', ['status' => $asset->status])
             </div>
             <div class="flex items-center gap-2 mt-2">
@@ -27,7 +27,7 @@
 
         <div class="flex flex-wrap items-center gap-3">
             <a href="{{ route('tags.print', ['ids' => [$asset->id]]) }}"
-               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:translate-y-[1px] text-white font-bold text-base shadow-sm transition">
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:translate-y-[1px] text-white font-bold text-base shadow-xs transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
@@ -35,15 +35,15 @@
             </a>
 
             <a href="{{ route('assets.move.create', $asset) }}"
-               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-neutral-950 bg-neutral-950 hover:bg-neutral-800 active:translate-y-[1px] text-white font-bold text-base transition">
-                <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+               class="inline-flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-red-600 bg-white hover:bg-red-50 active:translate-y-[1px] text-red-600 font-bold text-base transition">
+                <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
                 </svg>
                 <span>Move Asset</span>
             </a>
 
             <a href="{{ route('assets.edit', $asset) }}"
-               class="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-neutral-300 bg-white hover:bg-neutral-100 active:translate-y-[1px] text-neutral-900 font-bold text-base transition">
+               class="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-red-200 bg-white hover:bg-red-50 active:translate-y-[1px] text-red-700 font-bold text-base transition">
                 <span>Edit Asset</span>
             </a>
 
@@ -53,7 +53,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit"
-                        class="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-red-300 bg-white hover:bg-red-50 active:translate-y-[1px] text-red-700 font-bold text-base transition cursor-pointer">
+                        class="inline-flex items-center gap-2 px-4 py-3 rounded-xl border-2 border-red-300 bg-red-50 hover:bg-red-100 active:translate-y-[1px] text-red-700 font-bold text-base transition cursor-pointer">
                     <span>Delete</span>
                 </button>
             </form>
@@ -62,16 +62,16 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
         <!-- Asset Information -->
-        <div class="lg:col-span-6 p-6 bg-white border-2 border-neutral-200 rounded-2xl shadow-xs">
-            <h3 class="text-xl font-extrabold text-neutral-950 mb-4 pb-3 border-b border-neutral-200">Asset Information</h3>
-            <dl class="divide-y divide-neutral-200 text-base">
+        <div class="lg:col-span-6 p-6 bg-white border-2 border-red-100 rounded-2xl shadow-xs">
+            <h3 class="text-xl font-extrabold text-red-600 mb-4 pb-3 border-b border-red-100">Asset Information</h3>
+            <dl class="divide-y divide-red-100 text-base">
                 <div class="py-3.5 grid grid-cols-3 gap-4">
                     <dt class="font-bold text-neutral-600">Asset No.</dt>
-                    <dd class="col-span-2 font-mono font-bold text-neutral-950">{{ $asset->asset_no }}</dd>
+                    <dd class="col-span-2 font-mono font-bold text-red-600">{{ $asset->asset_no }}</dd>
                 </div>
                 <div class="py-3.5 grid grid-cols-3 gap-4">
                     <dt class="font-bold text-neutral-600">Asset Name</dt>
-                    <dd class="col-span-2 font-bold text-neutral-950">{{ $asset->asset_name }}</dd>
+                    <dd class="col-span-2 font-bold text-neutral-900">{{ $asset->asset_name }}</dd>
                 </div>
                 <div class="py-3.5 grid grid-cols-3 gap-4">
                     <dt class="font-bold text-neutral-600">Model</dt>
@@ -91,7 +91,7 @@
                 </div>
                 <div class="py-3.5 grid grid-cols-3 gap-4">
                     <dt class="font-bold text-neutral-600">Location</dt>
-                    <dd class="col-span-2 font-bold text-neutral-950">{{ $asset->location ?: '—' }}</dd>
+                    <dd class="col-span-2 font-bold text-neutral-900">{{ $asset->location ?: '—' }}</dd>
                 </div>
                 <div class="py-3.5 grid grid-cols-3 gap-4">
                     <dt class="font-bold text-neutral-600">Status</dt>
@@ -105,18 +105,18 @@
         </div>
 
         <!-- Property Tag Preview -->
-        <div class="lg:col-span-6 p-6 bg-neutral-50 border-2 border-neutral-200 rounded-2xl shadow-xs flex flex-col justify-between">
+        <div class="lg:col-span-6 p-6 bg-red-50 border-2 border-red-100 rounded-2xl shadow-xs flex flex-col justify-between">
             <div>
-                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-neutral-200">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-red-200">
                     <div>
-                        <h3 class="text-xl font-extrabold text-neutral-950">Property Tag Preview</h3>
-                        <p class="text-xs text-neutral-500 mt-0.5">
+                        <h3 class="text-xl font-extrabold text-red-600">Property Tag Preview</h3>
+                        <p class="text-xs text-neutral-600 mt-0.5">
                             Configured size: {{ \App\Models\Setting::get('tag_width_cm', '10') }} cm &times; {{ \App\Models\Setting::get('tag_height_cm', '6') }} cm
                         </p>
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="{{ route('tags.pdf', ['ids' => [$asset->id]]) }}"
-                           class="px-3 py-1.5 rounded-lg border border-neutral-300 bg-white text-xs font-bold text-neutral-900 hover:bg-neutral-100 transition">
+                           class="px-3 py-1.5 rounded-lg border border-red-300 bg-white text-xs font-bold text-red-700 hover:bg-red-50 transition">
                             Download PDF
                         </a>
                         <a href="{{ route('tags.print', ['ids' => [$asset->id]]) }}"
@@ -126,24 +126,24 @@
                     </div>
                 </div>
 
-                <div class="overflow-x-auto bg-clinical-grid p-5 rounded-xl border border-neutral-300 flex items-center justify-center">
+                <div class="overflow-x-auto bg-white p-5 rounded-xl border border-red-200 flex items-center justify-center">
                     <div class="shadow-md">
                         @include('tags.partials.tag-card', ['asset' => $asset, 'preview' => true])
                     </div>
                 </div>
             </div>
 
-            <p class="text-xs text-neutral-500 mt-4 text-center">
+            <p class="text-xs text-neutral-600 mt-4 text-center">
                 Matches Bethel Baptist Hospital's paper tag format with embedded base64 logo and scannable QR code.
             </p>
         </div>
     </div>
 
     <!-- Transfer History -->
-    <div class="p-6 bg-white border-2 border-neutral-200 rounded-2xl shadow-xs">
-        <div class="flex items-center justify-between mb-4 pb-3 border-b border-neutral-200">
+    <div class="p-6 bg-white border-2 border-red-100 rounded-2xl shadow-xs">
+        <div class="flex items-center justify-between mb-4 pb-3 border-b border-red-100">
             <div>
-                <h3 class="text-xl font-extrabold text-neutral-950">Location Transfer History</h3>
+                <h3 class="text-xl font-extrabold text-red-600">Location Transfer History</h3>
                 <p class="text-xs text-neutral-500 mt-0.5">Complete audit log of where this asset has been stationed</p>
             </div>
             <a href="{{ route('assets.move.create', $asset) }}"
@@ -155,7 +155,7 @@
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
-                    <tr class="bg-neutral-950 text-white text-xs font-extrabold uppercase tracking-wider">
+                    <tr class="bg-red-600 text-white text-xs font-extrabold uppercase tracking-wider">
                         <th class="p-3.5">Date &amp; Time</th>
                         <th class="p-3.5">From Location</th>
                         <th class="p-3.5">To Location</th>
@@ -163,14 +163,14 @@
                         <th class="p-3.5">Notes</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-neutral-200 text-base">
+                <tbody class="divide-y divide-red-100 text-base">
                     @forelse ($asset->transfers as $transfer)
-                        <tr class="hover:bg-neutral-50 transition">
+                        <tr class="hover:bg-red-50 transition">
                             <td class="p-3.5 whitespace-nowrap text-sm font-medium text-neutral-700 tabular-nums">
                                 {{ $transfer->moved_at?->format('M d, Y h:i A') }}
                             </td>
                             <td class="p-3.5 text-neutral-600">{{ $transfer->from_location ?: 'Initial Registration' }}</td>
-                            <td class="p-3.5 font-bold text-neutral-950">{{ $transfer->to_location }}</td>
+                            <td class="p-3.5 font-bold text-red-700">{{ $transfer->to_location }}</td>
                             <td class="p-3.5 font-semibold text-neutral-800">{{ $transfer->mover?->name ?? 'System' }}</td>
                             <td class="p-3.5 text-neutral-700">{{ $transfer->notes ?: '—' }}</td>
                         </tr>

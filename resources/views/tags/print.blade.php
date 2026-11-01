@@ -19,15 +19,15 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #f5f5f5;
+            background-color: #fff5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: #0a0a0a;
+            color: #171717;
         }
 
         .toolbar {
-            background-color: #000000;
+            background-color: #ffffff;
             border-bottom: 3px solid #e60000;
-            color: #ffffff;
+            color: #171717;
             padding: 14px 24px;
             display: flex;
             align-items: center;
@@ -36,7 +36,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 2px 8px rgba(230, 0, 0, 0.08);
         }
 
         .toolbar-left {
@@ -47,9 +47,10 @@
 
         .toolbar-logo {
             background: #ffffff;
+            border: 1px solid #fecaca;
             border-radius: 6px;
             padding: 4px 8px;
-            height: 36px;
+            height: 38px;
             width: auto;
             object-fit: contain;
         }
@@ -57,12 +58,13 @@
         .toolbar-title {
             font-size: 15px;
             font-weight: 800;
+            color: #e60000;
             letter-spacing: -0.01em;
         }
 
         .toolbar-subtitle {
             font-size: 12px;
-            color: #a3a3a3;
+            color: #525252;
         }
 
         .toolbar-actions {
@@ -94,13 +96,13 @@
         }
 
         .btn-secondary {
-            background-color: #262626;
-            color: #ffffff;
-            border: 1px solid #404040;
+            background-color: #ffffff;
+            color: #e60000;
+            border: 2px solid #e60000;
         }
 
         .btn-secondary:hover {
-            background-color: #404040;
+            background-color: #fef2f2;
         }
 
         .sheet-wrapper {
