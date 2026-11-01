@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ImportExportController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransferController;
@@ -50,8 +51,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/assets/{asset}/move', [TransferController::class, 'create'])->name('assets.move.create');
         Route::post('/assets/{asset}/move', [TransferController::class, 'store'])->name('assets.move.store');
 
-        // Placeholder named routes for Modules 5-7
-        Route::get('/reports', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('reports.index');
+        Route::get('/reports', [ImportExportController::class, 'index'])->name('reports.index');
+        Route::get('/reports/template', [ImportExportController::class, 'template'])->name('reports.template');
+        Route::get('/reports/export', [ImportExportController::class, 'export'])->name('reports.export');
+        Route::post('/reports/import/preview', [ImportExportController::class, 'preview'])->name('reports.import.preview');
+        Route::post('/reports/import/commit', [ImportExportController::class, 'commit'])->name('reports.import.commit');
+
+        // Placeholder named route for Module 7
         Route::get('/settings', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('settings.index');
     });
 });
