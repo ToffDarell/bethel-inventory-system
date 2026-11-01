@@ -19,6 +19,15 @@
             <p class="text-base text-slate-600 mt-1">{{ \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.') }}</p>
         </div>
 
+        @if (! empty($showInitialCredentialsHint))
+            <div class="mb-6 p-4 rounded-lg bg-blue-50 border-2 border-blue-300 text-blue-950 text-sm">
+                <p class="font-bold text-base mb-1">First-Time Setup Login</p>
+                <p>Email: <code class="font-mono font-bold">admin@hospital.local</code></p>
+                <p>Temporary Password: <code class="font-mono font-bold">password123</code></p>
+                <p class="text-xs text-blue-800 mt-1">You will be asked to choose a new password after signing in.</p>
+            </div>
+        @endif
+
         @if ($errors->any())
             <div class="mb-6 p-4 rounded-lg bg-red-50 border-2 border-red-400 text-red-900">
                 <p class="font-semibold text-base">{{ $errors->first() }}</p>

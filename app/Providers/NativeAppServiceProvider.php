@@ -2,11 +2,7 @@
 
 namespace App\Providers;
 
-use App\Models\User;
-use App\Services\BackupService;
-use Database\Seeders\DatabaseSeeder;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Schema;
+use App\Services\DesktopBootstrapService;
 use Native\Desktop\Contracts\ProvidesPhpIni;
 use Native\Desktop\Facades\Window;
 
@@ -18,20 +14,7 @@ class NativeAppServiceProvider implements ProvidesPhpIni
      */
     public function boot(): void
     {
-        try {
-            Artisan::call('migrate', ['--force' => true]);
-
-            if (Schema::hasTable('users') && User::count() === 0) {
-                Artisan::call('db:seed', [
-                    '--class' => DatabaseSeeder::class,
-                    '--force' => true,
-                ]);
-            }
-
-            app(BackupService::class)->runStartupBackupIfDue();
-        } catch (\Throwable $e) {
-            report($e);
-        }
+        app(DesktopBootstrapService::class)->boot();
 
         Window::open()
             ->title('Bethel Asset Tracker')

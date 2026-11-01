@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -16,11 +19,19 @@ class AuthController extends Controller
             return redirect()->route('dashboard');
         }
 
-        return view('auth.login');
+        $this->ensureInitialAdminSeeded();
+
+        $defaultAdmin = User::where('email', 'admin@hospital.local')->first();
+
+        return view('auth.login', [
+            'showInitialCredentialsHint' => $defaultAdmin && $defaultAdmin->must_change_password,
+        ]);
     }
 
     public function login(Request $request): RedirectResponse
     {
+        $this->ensureInitialAdminSeeded();
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
@@ -103,5 +114,20 @@ class AuthController extends Controller
         return redirect()
             ->route('dashboard')
             ->with('success', 'Your password has been updated successfully.');
+    }
+
+    protected function ensureInitialAdminSeeded(): void
+    {
+        if (app()->runningUnitTests()) {
+            return;
+        }
+
+        try {
+            if (Schema::hasTable('users') && User::count() === 0) {
+                app(DatabaseSeeder::class)->run();
+            }
+        } catch (\Throwable) {
+            // Ignore if database is not yet migrated
+        }
     }
 }
