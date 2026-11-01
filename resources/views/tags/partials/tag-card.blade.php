@@ -12,24 +12,24 @@
 
 <div class="property-tag-card" style="width: {{ $tagWidthCm }}cm; height: {{ $tagHeightCm }}cm; box-sizing: border-box; background: #ffffff; color: #000000; page-break-inside: avoid; break-inside: avoid; overflow: hidden; font-family: Arial, Helvetica, sans-serif;">
     <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000000; table-layout: fixed;">
-        <!-- Header Row: Logo + Hospital Name & Address -->
+        <!-- Header Row: Official BHB Logo + Hospital Name & Address -->
         <tr>
-            <td colspan="3" style="border: 1px solid #000000; padding: 3px 6px; background-color: #f8fafc;">
+            <td colspan="3" style="border: 1px solid #000000; border-bottom: 2px solid #dc2626; padding: 3px 6px; background-color: #ffffff;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
-                        <td style="width: 34px; vertical-align: middle; padding-right: 6px;">
-                            <img src="{{ $logoDataUri }}" alt="Hospital Logo" style="width: 30px; height: 30px; object-fit: contain; display: block;">
+                        <td style="width: 52px; vertical-align: middle; padding-right: 6px;">
+                            <img src="{{ $logoDataUri }}" alt="Hospital Logo" style="width: 48px; height: 32px; object-fit: contain; display: block;">
                         </td>
                         <td style="vertical-align: middle; text-align: left;">
-                            <div style="font-size: 10pt; font-weight: 700; line-height: 1.15; color: #000000; text-transform: uppercase;">
+                            <div style="font-size: 9.5pt; font-weight: 700; line-height: 1.15; color: #000000; text-transform: uppercase;">
                                 {{ $hospitalName }}
                             </div>
-                            <div style="font-size: 6.5pt; line-height: 1.15; color: #1f2937;">
+                            <div style="font-size: 6.5pt; line-height: 1.15; color: #171717;">
                                 {{ $hospitalAddress }}
                             </div>
                         </td>
                         <td style="width: 68px; vertical-align: middle; text-align: right;">
-                            <span style="display: inline-block; border: 1px solid #000000; padding: 1px 4px; font-size: 6.5pt; font-weight: 700; letter-spacing: 0.04em; background: #ffffff;">
+                            <span style="display: inline-block; border: 1px solid #000000; background: #0a0a0a; color: #ffffff; padding: 1px 4px; font-size: 6.2pt; font-weight: 700; letter-spacing: 0.04em;">
                                 PROPERTY TAG
                             </span>
                         </td>
@@ -40,7 +40,7 @@
 
         <!-- Row 1: Date Acquired + QR Code (rowspan 6) -->
         <tr>
-            <td style="width: 26%; border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="width: 26%; border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Date Acquired
             </td>
             <td style="width: 46%; border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -56,7 +56,7 @@
                         </div>
                     @endif
                 </div>
-                <div style="font-size: 5.8pt; font-weight: 700; margin-top: 2px; letter-spacing: 0.02em; color: #111827; word-break: break-all;">
+                <div style="font-size: 5.8pt; font-weight: 700; margin-top: 2px; letter-spacing: 0.02em; color: #0a0a0a; word-break: break-all;">
                     SCAN QR
                 </div>
             </td>
@@ -64,7 +64,7 @@
 
         <!-- Row 2: Asset Name -->
         <tr>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset Name
             </td>
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -74,7 +74,7 @@
 
         <!-- Row 3: Model -->
         <tr>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Model
             </td>
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -84,7 +84,7 @@
 
         <!-- Row 4: Serial No. -->
         <tr>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Serial No.
             </td>
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; font-family: Consolas, monospace; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -94,7 +94,7 @@
 
         <!-- Row 5: Location -->
         <tr>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Location
             </td>
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
@@ -104,10 +104,10 @@
 
         <!-- Row 6: Asset No. -->
         <tr>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #f9fafb; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset No.
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8.5pt; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8.5pt; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.02em; color: #b91c1c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 {{ $asset->asset_no }}
             </td>
         </tr>

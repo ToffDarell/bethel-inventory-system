@@ -19,13 +19,14 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #f1f5f9;
+            background-color: #f5f5f5;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: #0f172a;
+            color: #0a0a0a;
         }
 
         .toolbar {
-            background-color: #1e293b;
+            background-color: #0a0a0a;
+            border-bottom: 3px solid #dc2626;
             color: #ffffff;
             padding: 14px 24px;
             display: flex;
@@ -35,7 +36,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
         }
 
         .toolbar-left {
@@ -44,14 +45,24 @@
             gap: 14px;
         }
 
+        .toolbar-logo {
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 4px 8px;
+            height: 36px;
+            width: auto;
+            object-fit: contain;
+        }
+
         .toolbar-title {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 800;
+            letter-spacing: -0.01em;
         }
 
         .toolbar-subtitle {
-            font-size: 13px;
-            color: #cbd5e1;
+            font-size: 12px;
+            color: #a3a3a3;
         }
 
         .toolbar-actions {
@@ -64,9 +75,9 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 18px;
+            padding: 9px 16px;
             border-radius: 8px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             text-decoration: none;
             cursor: pointer;
@@ -74,22 +85,22 @@
         }
 
         .btn-primary {
-            background-color: #2563eb;
+            background-color: #dc2626;
             color: #ffffff;
         }
 
         .btn-primary:hover {
-            background-color: #1d4ed8;
+            background-color: #b91c1c;
         }
 
         .btn-secondary {
-            background-color: #334155;
+            background-color: #262626;
             color: #ffffff;
-            border: 1px solid #475569;
+            border: 1px solid #404040;
         }
 
         .btn-secondary:hover {
-            background-color: #475569;
+            background-color: #404040;
         }
 
         .sheet-wrapper {
@@ -106,7 +117,7 @@
             align-content: flex-start;
             background: #ffffff;
             padding: 0.6cm;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             min-height: 27cm;
             width: 21cm;
         }
@@ -148,6 +159,7 @@
 
     <div class="toolbar no-print">
         <div class="toolbar-left">
+            <img src="{{ $logoDataUri }}" alt="Bethel Baptist Hospital, Inc." class="toolbar-logo">
             <div>
                 <div class="toolbar-title">
                     Property Tag Print Preview ({{ $assets->count() }} {{ Str::plural('tag', $assets->count()) }})

@@ -26,7 +26,7 @@ class DatabaseSeeder extends Seeder
         $defaults = [
             'hospital_name' => 'Bethel Baptist Hospital, Inc.',
             'hospital_address' => 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700',
-            'logo_path' => null,
+            'logo_path' => 'images/bethel-logo.png',
             'asset_no_prefix' => 'BBH',
             'tag_width_cm' => '10',
             'tag_height_cm' => '6',

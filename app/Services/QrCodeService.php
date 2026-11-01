@@ -66,33 +66,37 @@ class QrCodeService
 
     /**
      * Return the hospital logo as a base64 data URI (Adjustment #6).
-     * Uses the uploaded logo in storage/app/public if available, or a clean default SVG medical cross emblem encoded as base64.
+     * Uses the uploaded logo in storage/app/public if available, or the official Bethel Baptist Hospital logo in public/images/bethel-logo.png.
      */
     public function hospitalLogoBase64(): string
     {
         $logoPath = Setting::get('logo_path');
 
+        $candidates = [];
+
         if (! empty($logoPath)) {
-            $candidates = [
-                storage_path('app/public/' . ltrim($logoPath, '/\\')),
-                public_path('storage/' . ltrim($logoPath, '/\\')),
-                public_path(ltrim($logoPath, '/\\')),
-            ];
+            $candidates[] = storage_path('app/public/' . ltrim($logoPath, '/\\'));
+            $candidates[] = public_path('storage/' . ltrim($logoPath, '/\\'));
+            $candidates[] = public_path(ltrim($logoPath, '/\\'));
+        }
 
-            foreach ($candidates as $fullPath) {
-                if (File::exists($fullPath) && File::isFile($fullPath)) {
-                    $mime = File::mimeType($fullPath) ?: 'image/png';
-                    $contents = File::get($fullPath);
+        // Official Bethel Baptist Hospital, Inc. logo
+        $candidates[] = public_path('images/bethel-logo.png');
+        $candidates[] = storage_path('app/public/logos/bethel-logo.png');
 
-                    return 'data:' . $mime . ';base64,' . base64_encode($contents);
-                }
+        foreach ($candidates as $fullPath) {
+            if (File::exists($fullPath) && File::isFile($fullPath)) {
+                $mime = File::mimeType($fullPath) ?: 'image/png';
+                $contents = File::get($fullPath);
+
+                return 'data:' . $mime . ';base64,' . base64_encode($contents);
             }
         }
 
-        // Default medical cross emblem SVG as base64 data URI
+        // Fallback SVG in Black & Red if file is ever removed
         $defaultSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">'
-            . '<rect x="2" y="2" width="60" height="60" rx="10" fill="#1e40af" stroke="#1e3a8a" stroke-width="2"/>'
-            . '<path d="M26 14h12v12h12v12H38v12H26V38H14V26h12V14z" fill="#ffffff"/>'
+            . '<rect x="2" y="2" width="60" height="60" rx="10" fill="#111111" stroke="#dc2626" stroke-width="3"/>'
+            . '<path d="M26 14h12v12h12v12H38v12H26V38H14V26h12V14z" fill="#dc2626"/>'
             . '</svg>';
 
         return 'data:image/svg+xml;base64,' . base64_encode($defaultSvg);
