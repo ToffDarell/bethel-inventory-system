@@ -81,7 +81,7 @@
 
     <div class="space-y-6">
         <!-- SECTION 1: Database Backup & Restore -->
-        <div class="p-6 bg-white border border-neutral-200/90 rounded-xl shadow-xs">
+        <div class="p-6 bg-white border-2 border-neutral-200 rounded-xl shadow-xs">
             <div class="flex flex-wrap items-center justify-between gap-4 pb-4 mb-5 border-b border-neutral-200">
                 <div>
                     <h3 class="text-lg font-extrabold text-neutral-950">Database Backup &amp; Restore</h3>
@@ -139,7 +139,7 @@
                     </thead>
                     <tbody class="divide-y divide-neutral-200 text-sm">
                         @forelse (array_slice($backups, 0, 10) as $backup)
-                            <tr class="hover:bg-red-50/30 transition-colors">
+                            <tr class="hover:bg-neutral-50 transition-colors">
                                 <td class="py-2.5 px-3.5 font-mono font-bold text-xs text-neutral-900">{{ $backup['filename'] }}</td>
                                 <td class="py-2.5 px-3.5 text-xs text-neutral-700">{{ $backup['modified_at']->format('M d, Y h:i:s A') }}</td>
                                 <td class="py-2.5 px-3.5 text-xs text-neutral-600 font-mono">{{ number_format($backup['size_kb'], 1) }} KB</td>
@@ -196,7 +196,7 @@
         </div>
 
         <!-- SECTION 2: Hospital & Property Tag Configuration -->
-        <div class="p-6 bg-white border border-neutral-200/90 rounded-xl shadow-xs max-w-3xl">
+        <div class="p-6 bg-white border-2 border-neutral-200 rounded-xl shadow-xs max-w-3xl">
             <h3 class="text-lg font-extrabold text-neutral-950 mb-1">Hospital &amp; Property Tag Settings</h3>
             <p class="text-xs text-neutral-600 mb-5 pb-3.5 border-b border-neutral-200">
                 These details and the official Bethel Baptist Hospital logo are printed at the top of every property tag.
@@ -317,7 +317,7 @@
 
         <!-- SECTION 3: Admin User Accounts Management -->
         @if (auth()->user()?->isAdmin())
-            <div class="p-6 bg-white border border-neutral-200/90 rounded-xl shadow-xs max-w-3xl">
+            <div class="p-6 bg-white border-2 border-neutral-200 rounded-xl shadow-xs max-w-3xl">
                 <h3 class="text-lg font-extrabold text-neutral-950 mb-1">User Accounts (Admin Only)</h3>
                 <p class="text-xs text-neutral-600 mb-5 pb-3.5 border-b border-neutral-200">
                     Manage Admin and Staff login accounts for this PC.

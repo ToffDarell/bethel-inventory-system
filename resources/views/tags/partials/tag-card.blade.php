@@ -14,7 +14,7 @@
     <table style="width: 100%; height: 100%; border-collapse: collapse; border: 2px solid #000000; table-layout: fixed;">
         <!-- Header Row: Official BHB Logo + Hospital Name & Address -->
         <tr>
-            <td colspan="3" style="border: 1px solid #000000; border-bottom: 2px solid #dc2626; padding: 3px 6px; background-color: #ffffff;">
+            <td colspan="3" style="border: 1px solid #000000; border-bottom: 2px solid #e60000; padding: 3px 6px; background-color: #ffffff;">
                 <table style="width: 100%; border-collapse: collapse;">
                     <tr>
                         <td style="width: 52px; vertical-align: middle; padding-right: 6px;">
@@ -24,12 +24,12 @@
                             <div style="font-size: 9.5pt; font-weight: 700; line-height: 1.15; color: #000000; text-transform: uppercase;">
                                 {{ $hospitalName }}
                             </div>
-                            <div style="font-size: 6.5pt; line-height: 1.15; color: #171717;">
+                            <div style="font-size: 6.5pt; line-height: 1.15; color: #000000;">
                                 {{ $hospitalAddress }}
                             </div>
                         </td>
                         <td style="width: 68px; vertical-align: middle; text-align: right;">
-                            <span style="display: inline-block; border: 1px solid #000000; background: #0a0a0a; color: #ffffff; padding: 1px 4px; font-size: 6.2pt; font-weight: 700; letter-spacing: 0.04em;">
+                            <span style="display: inline-block; border: 1px solid #000000; background: #000000; color: #ffffff; padding: 1px 4px; font-size: 6.2pt; font-weight: 700; letter-spacing: 0.04em;">
                                 PROPERTY TAG
                             </span>
                         </td>
@@ -107,7 +107,7 @@
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset No.
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8.5pt; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.02em; color: #b91c1c; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8.5pt; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.02em; color: #e60000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 {{ $asset->asset_no }}
             </td>
         </tr>

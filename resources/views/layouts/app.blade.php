@@ -103,7 +103,7 @@
 
         <!-- User Account Footer -->
         @auth
-            <div class="p-4 border-t border-neutral-800 bg-neutral-900/70">
+            <div class="p-4 border-t border-neutral-800 bg-neutral-950">
                 <div class="flex items-center gap-3 mb-3.5">
                     <div class="w-10 h-10 rounded-full bg-red-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
@@ -111,7 +111,7 @@
                     <div class="min-w-0 flex-1">
                         <div class="flex items-center gap-2">
                             <p class="text-sm font-bold text-white truncate">{{ auth()->user()->name }}</p>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-red-600/20 text-red-400 border border-red-500/30">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-red-600 text-white">
                                 {{ ucfirst(auth()->user()->role) }}
                             </span>
                         </div>

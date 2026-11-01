@@ -25,8 +25,8 @@
         }
 
         .toolbar {
-            background-color: #0a0a0a;
-            border-bottom: 3px solid #dc2626;
+            background-color: #000000;
+            border-bottom: 3px solid #e60000;
             color: #ffffff;
             padding: 14px 24px;
             display: flex;
@@ -85,12 +85,12 @@
         }
 
         .btn-primary {
-            background-color: #dc2626;
+            background-color: #e60000;
             color: #ffffff;
         }
 
         .btn-primary:hover {
-            background-color: #b91c1c;
+            background-color: #cc0000;
         }
 
         .btn-secondary {

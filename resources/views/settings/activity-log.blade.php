@@ -13,7 +13,7 @@
         </div>
     </div>
 
-    <div class="bg-white border border-neutral-200/90 rounded-xl shadow-xs overflow-hidden">
+    <div class="bg-white border-2 border-neutral-200 rounded-xl shadow-xs overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
                 <thead>
@@ -25,13 +25,13 @@
                         <th class="py-3 px-4">Details</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-neutral-200/80 text-sm">
+                <tbody class="divide-y divide-neutral-200 text-sm">
                     @forelse ($activities as $activity)
                         @php
                             $subject = $activity->subject;
                             $attributes = $activity->properties['attributes'] ?? [];
                         @endphp
-                        <tr class="hover:bg-red-50/30 transition-colors">
+                        <tr class="hover:bg-neutral-50 transition-colors">
                             <td class="py-3 px-4 whitespace-nowrap text-xs text-neutral-700">
                                 {{ $activity->created_at?->format('M d, Y h:i A') }}
                             </td>
