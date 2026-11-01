@@ -15,7 +15,7 @@ return [
      * usually in the form of a reverse domain name.
      * For example: com.nativephp.app
      */
-    'app_id' => env('NATIVEPHP_APP_ID', 'com.nativephp.app'),
+    'app_id' => env('NATIVEPHP_APP_ID', 'com.bethelhospital.assettracker'),
 
     /**
      * If your application allows deep linking, you can specify the scheme
@@ -88,6 +88,10 @@ return [
         'content',
         'node_modules',
         '*/tests',
+        'database/*.sqlite',
+        'database/*.sqlite-shm',
+        'database/*.sqlite-wal',
+        '.superpowers',
     ],
 
     /**
@@ -99,7 +103,7 @@ return [
          * updater will only work when your application is bundled
          * for production.
          */
-        'enabled' => env('NATIVEPHP_UPDATER_ENABLED', true),
+        'enabled' => env('NATIVEPHP_UPDATER_ENABLED', false),
 
         /**
          * The updater provider to use.

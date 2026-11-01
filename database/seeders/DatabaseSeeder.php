@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -10,16 +11,33 @@ class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
 
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        User::firstOrCreate(
+            ['email' => 'admin@hospital.local'],
+            [
+                'name' => 'Hospital Administrator',
+                'password' => 'password123',
+                'role' => 'admin',
+                'must_change_password' => true,
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        $defaults = [
+            'hospital_name' => 'Bethel Baptist Hospital, Inc.',
+            'hospital_address' => 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700',
+            'logo_path' => null,
+            'asset_no_prefix' => 'BBH',
+            'tag_width_cm' => '10',
+            'tag_height_cm' => '6',
+            'backup_folder' => Setting::defaultBackupFolder(),
+        ];
+
+        foreach ($defaults as $key => $value) {
+            Setting::firstOrCreate(
+                ['key' => $key],
+                ['value' => $value]
+            );
+        }
     }
 }

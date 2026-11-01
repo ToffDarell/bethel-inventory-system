@@ -24,6 +24,16 @@
 5. **Roles (`users.role`):**
    - Plain string column on `users` (`'admin'` or `'staff'`), no `spatie/laravel-permission`.
 
+## User Adjustments (2026-11-01, binding — override anything below that conflicts)
+
+1. `spatie/laravel-activitylog` pinned to `^4.12` (not v5).
+2. After Module 1: run `php artisan native:build win` once, install the produced setup `.exe` to a clean path, verify it launches, then continue.
+3. Default backup folder = `<Documents>\BethelBackups` when `backup_folder` setting is empty. Settings page shows a warning when the newest backup is older than 7 days (or none exists).
+4. Restore flow: (a) auto-backup the current DB, (b) validate the chosen file (SQLite header + `PRAGMA integrity_check` on the file), (c) copy it in, (d) show "Restart required" and relaunch the app (`App::relaunch()` under NativePHP).
+5. `assets` uses soft deletes (`deleted_at`, `SoftDeletes` trait). Soft-deleted `asset_no` values still count as taken for uniqueness.
+6. Hospital logo is always embedded in tags as a base64 data URI (print view and PDF).
+7. Production SQLite lives in `%APPDATA%\<app>\database\database.sqlite` (Electron `userData`), outside the install folder; verified after the Module 1 build.
+
 ## Global Constraints
 
 - **Framework & UI:** Laravel 13, Blade + Tailwind CSS v4 bundled locally via Vite. No CDNs, no external fonts (system font stack only in `resources/css/app.css`), no external icon libraries (inline SVG only).
