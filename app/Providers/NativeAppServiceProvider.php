@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Services\BackupService;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schema;
@@ -26,6 +27,8 @@ class NativeAppServiceProvider implements ProvidesPhpIni
                     '--force' => true,
                 ]);
             }
+
+            app(BackupService::class)->runStartupBackupIfDue();
         } catch (\Throwable $e) {
             report($e);
         }

@@ -6,9 +6,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportExportController;
 use App\Http\Controllers\ScanController;
+use App\Http\Controllers\SettingController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TransferController;
-use App\Models\Asset;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -47,11 +47,16 @@ Route::middleware('auth')->group(function () {
         Route::post('/reports/import/preview', [ImportExportController::class, 'preview'])->name('reports.import.preview');
         Route::post('/reports/import/commit', [ImportExportController::class, 'commit'])->name('reports.import.commit');
 
+        Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
+        Route::post('/settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::post('/settings/pick-folder', [SettingController::class, 'pickFolder'])->name('settings.pick-folder');
+        Route::post('/settings/backup', [SettingController::class, 'backup'])->name('settings.backup');
+
         Route::middleware('admin')->group(function () {
             Route::get('/settings/activity-log', [ActivityLogController::class, 'index'])->name('settings.activity-log');
+            Route::post('/settings/restore', [SettingController::class, 'restore'])->name('settings.restore');
+            Route::post('/settings/relaunch', [SettingController::class, 'relaunch'])->name('settings.relaunch');
+            Route::post('/settings/users', [SettingController::class, 'storeUser'])->name('settings.users.store');
         });
-
-        // Placeholder named route for Module 7
-        Route::get('/settings', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('settings.index');
     });
 });
