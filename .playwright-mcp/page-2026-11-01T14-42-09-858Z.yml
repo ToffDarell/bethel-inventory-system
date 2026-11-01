@@ -1,0 +1,19 @@
+- generic [ref=e1]:
+  - generic [ref=e2]:
+    - generic [ref=e4]:
+      - img "Bethel Baptist Hospital, Inc. Logo" [ref=e5]
+      - heading "Bethel Asset Tracker" [level=1] [ref=e6]
+      - paragraph [ref=e7]: Bethel Baptist Hospital, Inc.
+      - paragraph [ref=e8]: Fortich St., Sumpong, Malaybalay City, Bukidnon 8700
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - generic [ref=e12]: Email Address *
+        - textbox "Email Address *" [active] [ref=e13]: admin@hospital.local
+      - generic [ref=e14]:
+        - generic [ref=e15]: Password *
+        - generic [ref=e16]:
+          - textbox "Password *" [ref=e17]:
+            - /placeholder: Enter your password
+          - button "Toggle password visibility" [ref=e18] [cursor=pointer]: Show
+      - button "Sign In" [ref=e20] [cursor=pointer]
+  - paragraph [ref=e24]: Bethel Baptist Hospital, Inc. • Offline Desktop Property Register

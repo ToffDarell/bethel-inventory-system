@@ -7,47 +7,47 @@
     <title>{{ $title ?? 'Bethel Asset Tracker' }} - {{ \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-white text-neutral-900 font-sans antialiased text-base min-h-screen flex selection:bg-red-100 selection:text-red-900">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased text-base min-h-screen flex selection:bg-sky-100 selection:text-[#0f5d8c]">
     @php
         $hospitalName = \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.');
         $hospitalAddress = \App\Models\Setting::get('hospital_address', 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700');
         $logoDataUri = app(\App\Services\QrCodeService::class)->hospitalLogoBase64();
     @endphp
 
-    <!-- Left Sidebar (Clean White & Red Palette) -->
-    <aside class="no-print w-72 bg-white text-neutral-900 border-r-2 border-red-100 flex flex-col justify-between shrink-0 min-h-screen select-none">
+    <!-- Left Sidebar (Clean Clinical White Palette) -->
+    <aside class="no-print w-72 bg-white text-slate-800 border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen select-none">
         <div>
-            <!-- Top Red Brand Stripe -->
-            <div class="h-2 w-full bg-red-600"></div>
+            <!-- Top Hospital Red Accent Line (3px) -->
+            <div class="h-[3px] w-full bg-[#dc2626]"></div>
 
-            <!-- Official Hospital Logo & Title Header -->
-            <div class="p-5 bg-white border-b border-red-100">
-                <div class="bg-white rounded-xl p-2 mb-3 flex items-center justify-center">
+            <!-- Official Hospital Logo & Branding Area -->
+            <div class="p-5 border-b border-slate-200">
+                <div class="flex items-center justify-center p-2 mb-3 bg-white">
                     <img src="{{ $logoDataUri }}"
                          alt="{{ $hospitalName }} Logo"
-                         class="h-20 w-auto object-contain">
+                         class="h-16 w-auto object-contain">
                 </div>
 
                 <div class="text-center">
-                    <h1 class="text-base font-extrabold tracking-tight text-red-600 uppercase leading-snug">Bethel Asset Tracker</h1>
-                    <p class="text-xs text-neutral-600 font-semibold truncate mt-0.5" title="{{ $hospitalName }}">{{ $hospitalName }}</p>
+                    <h1 class="text-base font-bold text-slate-900 tracking-tight leading-snug">Bethel Asset Tracker</h1>
+                    <p class="text-xs text-slate-500 font-medium truncate mt-0.5" title="{{ $hospitalName }}">{{ $hospitalName }}</p>
                 </div>
 
-                <div class="mt-3.5 pt-3 border-t border-red-100 flex items-center justify-between text-xs">
-                    <span class="inline-flex items-center gap-1.5 font-bold text-red-600">
-                        <span class="w-2 h-2 rounded-full bg-red-600"></span>
+                <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
                         Offline SQLite
                     </span>
-                    <span class="font-mono text-[11px] bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded font-bold">
+                    <span class="font-mono text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-semibold">
                         v{{ config('nativephp.version', '1.0.0') }}
                     </span>
                 </div>
             </div>
 
             <!-- Primary Navigation (Strictly 5 items per specification) -->
-            <div class="px-4 pt-5 pb-2">
-                <p class="px-3 text-[11px] font-extrabold uppercase tracking-widest text-red-600 mb-2.5">Navigation</p>
-                <nav class="space-y-1.5" aria-label="Main Navigation">
+            <div class="px-3 pt-5 pb-2">
+                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Navigation</p>
+                <nav class="space-y-1" aria-label="Main Navigation">
                     @php
                         $navItems = [
                             [
@@ -84,18 +84,33 @@
                     @endphp
 
                     @foreach ($navItems as $item)
-                        <a href="{{ route($item['route']) }}"
-                           class="group flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-base font-bold transition duration-150 {{ $item['active'] ? 'bg-red-600 text-white shadow-xs' : 'text-neutral-700 hover:bg-red-50 hover:text-red-600' }}">
-                            <svg class="w-6 h-6 shrink-0 {{ $item['active'] ? 'text-white' : 'text-red-600 group-hover:text-red-600' }}"
-                                 fill="none"
-                                 stroke="currentColor"
-                                 stroke-width="2"
-                                 viewBox="0 0 24 24"
-                                 aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
-                            </svg>
-                            <span>{{ $item['label'] }}</span>
-                        </a>
+                        @if ($item['active'])
+                            <a href="{{ route($item['route']) }}"
+                               class="flex items-center gap-3 px-3.5 py-3 rounded-r-lg bg-sky-50 text-[#0f5d8c] font-bold border-l-4 border-[#0f5d8c] shadow-2xs transition-colors">
+                                <svg class="w-5 h-5 shrink-0 text-[#0f5d8c]"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="2"
+                                     viewBox="0 0 24 24"
+                                     aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
+                                </svg>
+                                <span>{{ $item['label'] }}</span>
+                            </a>
+                        @else
+                            <a href="{{ route($item['route']) }}"
+                               class="group flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium transition-colors">
+                                <svg class="w-5 h-5 shrink-0 text-slate-400 group-hover:text-slate-600 transition-colors"
+                                     fill="none"
+                                     stroke="currentColor"
+                                     stroke-width="1.75"
+                                     viewBox="0 0 24 24"
+                                     aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
+                                </svg>
+                                <span>{{ $item['label'] }}</span>
+                            </a>
+                        @endif
                     @endforeach
                 </nav>
             </div>
@@ -103,27 +118,27 @@
 
         <!-- User Account Footer -->
         @auth
-            <div class="p-4 border-t border-red-100 bg-red-50">
-                <div class="flex items-center gap-3 mb-3.5">
-                    <div class="w-10 h-10 rounded-full bg-red-600 text-white font-extrabold text-sm flex items-center justify-center shrink-0">
+            <div class="p-4 border-t border-slate-200 bg-slate-50/70">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-9 h-9 rounded-full bg-[#0f5d8c] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2">
-                            <p class="text-sm font-bold text-neutral-900 truncate">{{ auth()->user()->name }}</p>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider bg-red-600 text-white">
+                        <div class="flex items-center gap-1.5">
+                            <p class="text-sm font-semibold text-slate-900 truncate">{{ auth()->user()->name }}</p>
+                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">
                                 {{ ucfirst(auth()->user()->role) }}
                             </span>
                         </div>
-                        <p class="text-xs text-neutral-600 truncate">{{ auth()->user()->email }} ({{ ucfirst(auth()->user()->role) }})</p>
+                        <p class="text-xs text-slate-500 truncate">{{ auth()->user()->email }}</p>
                     </div>
                 </div>
 
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border-2 border-red-600 bg-white text-red-600 font-bold text-sm hover:bg-red-600 hover:text-white active:translate-y-[1px] transition cursor-pointer">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
                         <span>Sign Out</span>
@@ -134,63 +149,37 @@
     </aside>
 
     <!-- Main Workspace -->
-    <div class="flex-1 flex flex-col min-w-0 bg-white">
+    <div class="flex-1 flex flex-col min-w-0 bg-slate-50">
         <!-- Top Hospital Context Bar -->
-        <header class="no-print px-8 py-3.5 bg-white border-b-2 border-red-100 flex flex-wrap items-center justify-between gap-4">
-            <div class="flex items-center gap-2.5 text-sm text-neutral-700 truncate">
-                <span class="w-2.5 h-2.5 rounded-full bg-red-600 shrink-0"></span>
-                <span class="font-extrabold text-red-600">{{ $hospitalName }}</span>
-                <span class="text-red-300">&bull;</span>
-                <span class="truncate text-neutral-600">{{ $hospitalAddress }}</span>
+        <header class="no-print px-8 py-3.5 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-2.5 text-sm text-slate-700 truncate">
+                <span class="w-2.5 h-2.5 rounded-full bg-[#0f5d8c] shrink-0"></span>
+                <span class="font-bold text-slate-900">{{ $hospitalName }}</span>
+                <span class="text-slate-300">&bull;</span>
+                <span class="truncate text-slate-500">{{ $hospitalAddress }}</span>
             </div>
 
-            <div class="flex items-center gap-3 text-xs font-bold text-neutral-700">
-                <span class="italic text-red-600 hidden sm:inline">&ldquo;Preach the Word, Heal the Sick&rdquo;</span>
-                <span class="px-2.5 py-1 rounded-md bg-red-50 border border-red-200 text-red-700">
+            <div class="flex items-center gap-3 text-xs">
+                <span class="italic text-slate-500 hidden sm:inline">&ldquo;Preach the Word, Heal the Sick&rdquo;</span>
+                <span class="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-medium">
                     {{ now()->format('l, M d, Y') }}
                 </span>
             </div>
         </header>
 
         <!-- Main Page Content -->
-        <main class="flex-1 p-8 overflow-y-auto bg-white">
-            <div class="max-w-6xl mx-auto">
+        <main class="flex-1 p-8 overflow-y-auto">
+            <div class="max-w-6xl mx-auto space-y-6">
                 @if (session('success'))
-                    <div class="mb-6 p-4 rounded-xl bg-red-50 border-l-4 border-red-600 text-red-900 flex items-center justify-between gap-3 shadow-xs" role="alert">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-6 h-6 text-red-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span class="font-bold text-base">{{ session('success') }}</span>
-                        </div>
-                        <button type="button"
-                                onclick="this.closest('[role=alert]').remove()"
-                                aria-label="Dismiss notification"
-                                class="p-1.5 rounded-lg text-red-600 hover:bg-red-100 cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <x-alert type="success" :dismissible="true">
+                        {{ session('success') }}
+                    </x-alert>
                 @endif
 
                 @if (session('error'))
-                    <div class="mb-6 p-4 rounded-xl bg-red-50 border-2 border-red-600 text-red-900 flex items-center justify-between gap-3 shadow-xs" role="alert">
-                        <div class="flex items-center gap-3">
-                            <svg class="w-6 h-6 text-red-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span class="font-bold text-base">{{ session('error') }}</span>
-                        </div>
-                        <button type="button"
-                                onclick="this.closest('[role=alert]').remove()"
-                                aria-label="Dismiss error"
-                                class="p-1.5 rounded-lg text-red-800 hover:bg-red-100 cursor-pointer">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <x-alert type="error" :dismissible="true">
+                        {{ session('error') }}
+                    </x-alert>
                 @endif
 
                 @yield('content')

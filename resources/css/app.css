@@ -6,13 +6,24 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Segoe UI Variable Text', 'Segoe UI', 'Aptos', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif;
+    --font-sans: 'Segoe UI Variable Text', 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, system-ui, sans-serif;
     --font-mono: 'Cascadia Mono', 'Consolas', 'Courier New', ui-monospace, monospace;
-    --color-red-500: #ff0000;
-    --color-red-600: #e60000;
-    --color-red-700: #cc0000;
-    --color-neutral-950: #000000;
-    --color-neutral-900: #111111;
+
+    /* Medical Slate Blue Primary Tokens */
+    --color-primary-50: #f0f9ff;
+    --color-primary-100: #e0f2fe;
+    --color-primary-200: #bae6fd;
+    --color-primary-300: #7dd3fc;
+    --color-primary-400: #38bdf8;
+    --color-primary-500: #0ea5e9;
+    --color-primary-600: #0284c7;
+    --color-primary-700: #0f5d8c;
+    --color-primary-800: #0c4a6e;
+    --color-primary-900: #082f49;
+
+    /* Brand Logo Red Accent */
+    --color-brand-red: #dc2626;
+    --color-brand-red-hover: #b91c1c;
 }
 
 @layer base {
@@ -22,18 +33,19 @@
     }
 
     body {
-        background-color: #ffffff;
-        color: #000000;
+        background-color: #f8fafc;
+        color: #0f172a;
+        font-size: 1rem;
         line-height: 1.5;
     }
 
-    /* Solid red keyboard focus ring matching the BHB logo */
+    /* Accessible Clinical Focus Ring (WCAG 2.2 AA) */
     a:focus-visible,
     button:focus-visible,
     input:focus-visible,
     select:focus-visible,
     textarea:focus-visible {
-        outline: 2px solid #e60000;
+        outline: 2px solid #0f5d8c;
         outline-offset: 2px;
     }
 }
@@ -42,8 +54,21 @@
     font-variant-numeric: tabular-nums;
 }
 
-.bg-clinical-grid {
-    background-color: #f5f5f5;
+/* Custom medical blue background helper for non-tailwind utility edge cases */
+.bg-medical-primary {
+    background-color: #0f5d8c;
+}
+
+.bg-medical-primary:hover {
+    background-color: #0c4a6e;
+}
+
+.text-medical-primary {
+    color: #0f5d8c;
+}
+
+.border-medical-primary {
+    border-color: #0f5d8c;
 }
 
 @media print {
