@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ScanController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\TransferController;
 use App\Models\Asset;
 use Illuminate\Support\Facades\Route;
 
@@ -42,9 +44,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');
         Route::get('/tags/pdf', [TagController::class, 'pdf'])->name('tags.pdf');
 
-        // Placeholder named routes for Modules 4-7
-        Route::get('/assets/{asset}/move', fn (Asset $asset) => redirect()->route('assets.show', $asset))->name('assets.move.create');
-        Route::get('/scan', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('scan.index');
+        Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
+        Route::get('/scan/lookup', [ScanController::class, 'lookup'])->name('scan.lookup');
+
+        Route::get('/assets/{asset}/move', [TransferController::class, 'create'])->name('assets.move.create');
+        Route::post('/assets/{asset}/move', [TransferController::class, 'store'])->name('assets.move.store');
+
+        // Placeholder named routes for Modules 5-7
         Route::get('/reports', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('reports.index');
         Route::get('/settings', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('settings.index');
     });

@@ -24,7 +24,7 @@
         <input id="asset_no"
                name="asset_no"
                type="text"
-               value="{{ old('asset_no', $asset->asset_no ?? '') }}"
+               value="{{ old('asset_no', $asset->asset_no ?? request('asset_no', '')) }}"
                placeholder="{{ $suggestedAssetNo ?? 'Auto-generate (e.g. BBH-000001)' }}"
                class="w-full px-4 py-3 text-lg font-mono border-2 border-slate-300 rounded-lg focus:outline-none focus:border-blue-700">
         @error('asset_no')
