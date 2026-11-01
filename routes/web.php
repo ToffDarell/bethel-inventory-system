@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportExportController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\TagController;
@@ -26,19 +28,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/password/change', [AuthController::class, 'updatePassword'])->name('password.change.update');
 
     Route::middleware('force.password')->group(function () {
-        Route::get('/dashboard', function () {
-            $totalAssets = Asset::count();
-            $statusCounts = Asset::query()
-                ->selectRaw('status, COUNT(*) as aggregate')
-                ->groupBy('status')
-                ->pluck('aggregate', 'status')
-                ->all();
-
-            return view('dashboard', [
-                'totalAssets' => $totalAssets,
-                'statusCounts' => $statusCounts,
-            ]);
-        })->name('dashboard');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
         Route::resource('assets', AssetController::class);
 
@@ -56,6 +46,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/reports/export', [ImportExportController::class, 'export'])->name('reports.export');
         Route::post('/reports/import/preview', [ImportExportController::class, 'preview'])->name('reports.import.preview');
         Route::post('/reports/import/commit', [ImportExportController::class, 'commit'])->name('reports.import.commit');
+
+        Route::middleware('admin')->group(function () {
+            Route::get('/settings/activity-log', [ActivityLogController::class, 'index'])->name('settings.activity-log');
+        });
 
         // Placeholder named route for Module 7
         Route::get('/settings', fn () => view('dashboard', ['totalAssets' => Asset::count(), 'statusCounts' => []]))->name('settings.index');
