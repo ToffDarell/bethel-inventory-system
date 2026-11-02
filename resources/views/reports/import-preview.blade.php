@@ -1,121 +1,218 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
-        <div>
-            <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-1.5 text-base font-bold text-red-600 hover:underline mb-2">
-                &larr; Back to Reports &amp; Import
-            </a>
-            <h2 class="text-3xl font-extrabold text-red-600">Import Preview</h2>
-            <p class="text-base text-neutral-600 mt-1">
-                Review the parsed spreadsheet rows below before saving them to the database.
-            </p>
+    <div class="space-y-6">
+        <!-- Header with Back & Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-200">
+            <div>
+                <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:underline mb-1.5 transition-colors">
+                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    <span>Back to Reports &amp; Import</span>
+                </a>
+                <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">Import Preview</h1>
+                <p class="text-sm text-slate-500 mt-0.5">
+                    Review parsed spreadsheet rows and duplicate checks before committing to the inventory register
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <x-button variant="secondary" :href="route('reports.index')">
+                    Cancel
+                </x-button>
+
+                @if ($valid_count > 0)
+                    <form method="POST" action="{{ route('reports.import.commit') }}">
+                        @csrf
+                        <x-button variant="primary" type="submit">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            <span>Confirm &amp; Import {{ $valid_count }} {{ Str::plural('Asset', $valid_count) }}</span>
+                        </x-button>
+                    </form>
+                @endif
+            </div>
         </div>
 
-        <div class="flex items-center gap-3">
-            <a href="{{ route('reports.index') }}"
-               class="px-5 py-3 rounded-xl border-2 border-red-200 bg-white hover:bg-red-50 text-red-700 font-bold text-base transition">
-                Cancel
-            </a>
+        <!-- 4-Step Stepper (Step 3 Active, Step 4 Ready) -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-2xs">
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 text-xs">
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-200 text-emerald-950">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <div>
+                        <p class="font-medium text-slate-900">1. Download Template</p>
+                        <p class="text-[11px] text-emerald-700">Completed</p>
+                    </div>
+                </div>
 
-            @if ($valid_count > 0)
-                <form method="POST" action="{{ route('reports.import.commit') }}">
-                    @csrf
-                    <button type="submit"
-                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-red-600 hover:bg-red-700 active:translate-y-[1px] text-white font-bold text-base shadow-xs transition cursor-pointer">
-                        <span>Confirm &amp; Import {{ $valid_count }} {{ Str::plural('Asset', $valid_count) }}</span>
-                    </button>
-                </form>
-            @endif
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-emerald-50/60 border border-emerald-200 text-emerald-950">
+                    <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <div>
+                        <p class="font-medium text-slate-900">2. Upload File</p>
+                        <p class="text-[11px] text-emerald-700">Parsed successfully</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-red-50/60 border border-red-200 text-slate-900">
+                    <span class="w-6 h-6 rounded-full bg-[#b91c1c] text-white font-semibold flex items-center justify-center shrink-0">3</span>
+                    <div>
+                        <p class="font-medium text-slate-900">3. Review Preview</p>
+                        <p class="text-[11px] text-slate-600">Active inspection</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-semibold flex items-center justify-center shrink-0">4</span>
+                    <div>
+                        <p class="font-medium text-slate-900">4. Confirm &amp; Import</p>
+                        <p class="text-[11px] text-slate-500">Ready to save</p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="p-5 rounded-2xl border-2 border-red-600 bg-red-600 text-white">
-            <p class="text-xs font-extrabold uppercase tracking-wider text-white">Ready to Import</p>
-            <p class="text-3xl font-extrabold text-white tabular-nums mt-1">{{ $valid_count }}</p>
+        <!-- Metric Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Ready to Import -->
+            <div class="p-5 rounded-xl border border-emerald-200 bg-emerald-50/60 shadow-2xs">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-medium text-emerald-800">Ready to Import</p>
+                    <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                </div>
+                <p class="text-3xl font-semibold text-emerald-950 tabular-nums mt-2">{{ $valid_count }}</p>
+                <p class="text-xs text-emerald-700 mt-2">Valid equipment rows ready to register</p>
+            </div>
+
+            <!-- Duplicate Asset No. (Skipped) -->
+            <div class="p-5 rounded-xl border border-amber-200 bg-amber-50/60 shadow-2xs">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-medium text-amber-800">Duplicate (Skipped)</p>
+                    <span class="w-2 h-2 rounded-full bg-amber-600"></span>
+                </div>
+                <p class="text-3xl font-semibold text-amber-950 tabular-nums mt-2">{{ $duplicate_count }}</p>
+                <p class="text-xs text-amber-700 mt-2">Asset numbers already present in database</p>
+            </div>
+
+            <!-- Incomplete Rows (Skipped) -->
+            <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 shadow-2xs">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="text-xs font-medium text-slate-600">Incomplete Rows (Skipped)</p>
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                </div>
+                <p class="text-3xl font-semibold text-slate-900 tabular-nums mt-2">{{ $invalid_count }}</p>
+                <p class="text-xs text-slate-500 mt-2">Missing mandatory asset name or status</p>
+            </div>
         </div>
 
-        <div class="p-5 rounded-2xl border-2 border-red-300 bg-red-50">
-            <p class="text-xs font-extrabold uppercase tracking-wider text-red-900">Duplicate Asset No. (Skipped)</p>
-            <p class="text-3xl font-extrabold text-red-700 tabular-nums mt-1">{{ $duplicate_count }}</p>
-        </div>
+        <!-- Preview Table with Green, Amber, and Gray Row States -->
+        <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-base font-semibold text-slate-900">Parsed Spreadsheet Rows</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Green indicates valid rows to import; amber and gray indicate rows that will be skipped</p>
+                </div>
+                <span class="text-xs font-mono text-slate-500 tabular-nums">
+                    Total {{ count($rows) }} {{ Str::plural('row', count($rows)) }}
+                </span>
+            </div>
 
-        <div class="p-5 rounded-2xl border-2 border-red-200 bg-white">
-            <p class="text-xs font-extrabold uppercase tracking-wider text-neutral-600">Incomplete Rows (Skipped)</p>
-            <p class="text-3xl font-extrabold text-red-600 tabular-nums mt-1">{{ $invalid_count }}</p>
-        </div>
-    </div>
-
-    <div class="bg-white border-2 border-red-100 rounded-2xl overflow-hidden shadow-xs">
-        <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="bg-red-600 text-white text-xs font-extrabold uppercase tracking-wider">
-                        <th class="p-3.5">Row</th>
-                        <th class="p-3.5">Import Action</th>
-                        <th class="p-3.5">Asset No.</th>
-                        <th class="p-3.5">Asset Name</th>
-                        <th class="p-3.5">Model</th>
-                        <th class="p-3.5">Serial No.</th>
-                        <th class="p-3.5">Date Acquired</th>
-                        <th class="p-3.5">Department / Location</th>
-                        <th class="p-3.5">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-red-100 text-base">
-                    @forelse ($rows as $row)
-                        <tr class="{{ $row['is_valid'] ? 'bg-white' : 'bg-red-50 text-neutral-600' }}">
-                            <td class="p-3.5 font-mono text-sm">{{ $row['row_number'] }}</td>
-                            <td class="p-3.5">
-                                @if ($row['is_valid'])
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-red-600 text-white">
-                                        {{ $row['status_label'] }}
-                                    </span>
-                                @elseif ($row['is_duplicate'])
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-white text-red-700 border border-red-300">
-                                        {{ $row['status_label'] }}
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-white text-red-700 border border-red-400">
-                                        {{ $row['status_label'] }}
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="p-3.5 font-mono font-bold">
-                                @if ($row['asset_no'] !== '')
-                                    {{ $row['asset_no'] }}
-                                @else
-                                    <span class="text-xs font-sans font-bold text-red-700 bg-red-50 px-2 py-0.5 rounded border border-red-200">
-                                        Auto-generate
-                                    </span>
-                                @endif
-                            </td>
-                            <td class="p-3.5 font-bold text-neutral-900">{{ $row['asset_name'] ?: '—' }}</td>
-                            <td class="p-3.5">{{ $row['model'] ?: '—' }}</td>
-                            <td class="p-3.5 font-mono text-sm">{{ $row['serial_no'] ?: '—' }}</td>
-                            <td class="p-3.5">{{ $row['date_acquired'] ?: '—' }}</td>
-                            <td class="p-3.5">
-                                @if ($row['department'] || $row['location'])
-                                    <div class="font-semibold">{{ $row['location'] ?: '—' }}</div>
-                                    @if ($row['department'])
-                                        <div class="text-xs text-neutral-500">{{ $row['department'] }}</div>
-                                    @endif
-                                @else
-                                    —
-                                @endif
-                            </td>
-                            <td class="p-3.5">{{ $row['status'] }}</td>
-                        </tr>
-                    @empty
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-[15px]">
+                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
                         <tr>
-                            <td colspan="9" class="p-8 text-center text-neutral-600">
-                                No data rows were found in the uploaded file.
-                            </td>
+                            <th class="py-3 px-4 w-14 text-center">Row</th>
+                            <th class="py-3 px-4">Validation State</th>
+                            <th class="py-3 px-4">Asset No.</th>
+                            <th class="py-3 px-4">Asset Name</th>
+                            <th class="py-3 px-4">Model</th>
+                            <th class="py-3 px-4">Serial No.</th>
+                            <th class="py-3 px-4">Date Acquired</th>
+                            <th class="py-3 px-4">Department &amp; Location</th>
+                            <th class="py-3 px-4">Status</th>
                         </tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse ($rows as $row)
+                            @php
+                                $rowClass = $row['is_valid']
+                                    ? 'bg-emerald-50/40 hover:bg-emerald-50/70 text-slate-900'
+                                    : ($row['is_duplicate']
+                                        ? 'bg-amber-50/40 hover:bg-amber-50/70 text-slate-700'
+                                        : 'bg-slate-50/60 hover:bg-slate-100/60 text-slate-500');
+                            @endphp
+                            <tr class="{{ $rowClass }} transition-colors">
+                                <td class="py-3 px-4 text-center font-mono text-xs text-slate-500 tabular-nums">
+                                    {{ $row['row_number'] }}
+                                </td>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    @if ($row['is_valid'])
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                                            <span>{{ $row['status_label'] }}</span>
+                                        </span>
+                                    @elseif ($row['is_duplicate'])
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
+                                            <span>{{ $row['status_label'] }}</span>
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-200 text-slate-700 border border-slate-300">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                            <span>{{ $row['status_label'] }}</span>
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 font-mono text-xs whitespace-nowrap">
+                                    @if ($row['asset_no'] !== '')
+                                        <span class="font-medium text-slate-900">{{ $row['asset_no'] }}</span>
+                                    @else
+                                        <span class="text-xs font-sans text-slate-500 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                                            Auto-generate
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 font-medium text-slate-900">
+                                    {{ $row['asset_name'] ?: '—' }}
+                                </td>
+                                <td class="py-3 px-4 text-slate-600 text-sm">
+                                    {{ $row['model'] ?: '—' }}
+                                </td>
+                                <td class="py-3 px-4 font-mono text-xs text-slate-600">
+                                    {{ $row['serial_no'] ?: '—' }}
+                                </td>
+                                <td class="py-3 px-4 text-sm text-slate-600 tabular-nums">
+                                    {{ $row['date_acquired'] ?: '—' }}
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    @if ($row['department'] || $row['location'])
+                                        <div class="font-medium text-slate-900">{{ $row['location'] ?: '—' }}</div>
+                                        @if ($row['department'])
+                                            <div class="text-xs text-slate-500 mt-0.5">{{ $row['department'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-slate-400">—</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    <x-badge :status="$row['status'] ?: 'In Use'" />
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="p-8 text-center text-slate-500">
+                                    No data rows were found in the uploaded spreadsheet file.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 @endsection
