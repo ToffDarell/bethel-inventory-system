@@ -2,20 +2,17 @@
 
 @section('content')
     <div class="max-w-2xl">
-        <div class="mb-6">
-            <a href="{{ route('assets.show', $asset) }}" class="inline-flex items-center gap-1.5 text-base font-bold text-red-600 hover:underline mb-2">
-                &larr; Back to {{ $asset->asset_no }}
-            </a>
-            <h2 class="text-3xl font-extrabold text-red-600">Move Asset</h2>
-            <p class="text-base text-neutral-600 mt-1">
-                Update the location of <strong>{{ $asset->asset_name }}</strong> (<span class="font-mono font-bold text-red-600">{{ $asset->asset_no }}</span>) and record the transfer in its history.
-            </p>
-        </div>
+        <x-page-header
+            title="Move Asset"
+            :subtitle="'Update the room or department of ' . $asset->asset_name . ' (' . $asset->asset_no . ') and log the transfer'"
+            :backUrl="route('assets.show', $asset)"
+            :backLabel="'Back to ' . $asset->asset_no"
+        />
 
         @if ($errors->any())
-            <div class="mb-6 p-4 rounded-xl bg-red-50 border-2 border-red-600 text-red-900" role="alert">
-                <p class="font-bold text-base mb-1">Please check the form below:</p>
-                <ul class="list-disc list-inside text-base space-y-1">
+            <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-950" role="alert" tabindex="-1">
+                <p class="text-sm font-semibold text-red-900 mb-1">Please check the form below</p>
+                <ul class="list-disc list-inside text-xs text-red-800 space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
@@ -23,73 +20,80 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('assets.move.store', $asset) }}" class="p-6 bg-white border-2 border-red-100 rounded-2xl space-y-6 shadow-xs">
+        <form method="POST" action="{{ route('assets.move.store', $asset) }}" class="space-y-6">
             @csrf
 
-            <div class="p-4 rounded-xl bg-red-50 text-red-900 border-l-4 border-red-600">
-                <p class="text-xs font-extrabold uppercase tracking-wider text-red-600">Current Location</p>
-                <p class="text-lg font-bold text-red-900 mt-1">
-                    {{ $asset->location ?: 'Not assigned yet' }}
+            <x-card title="Transfer Details" subtitle="Record where this equipment is being stationed">
+                <div class="space-y-5">
+                    <!-- Current Assignment Summary -->
+                    <div class="p-4 rounded-lg bg-slate-50 border border-slate-200 flex items-start justify-between gap-4">
+                        <div>
+                            <p class="text-xs font-medium text-slate-500">Current Location</p>
+                            <p class="text-base font-semibold text-slate-900 mt-0.5">
+                                {{ $asset->location ?: 'Not assigned yet' }}
+                            </p>
+                            @if ($asset->department)
+                                <p class="text-xs text-slate-600 mt-0.5">
+                                    Department: <span class="font-medium text-slate-800">{{ $asset->department }}</span>
+                                </p>
+                            @endif
+                        </div>
+                        <span class="font-mono text-xs font-medium text-slate-800 bg-white border border-slate-200 px-2.5 py-1 rounded">
+                            {{ $asset->asset_no }}
+                        </span>
+                    </div>
+
+                    <x-form-field
+                        label="New Location"
+                        name="to_location"
+                        :required="true"
+                        :autofocus="true"
+                        placeholder="ND-Station 3 Room 39"
+                        help="Enter the ward, station, or room where the asset is now located"
+                    />
+
+                    <div>
+                        <x-form-field
+                            label="Department"
+                            name="department"
+                            list="move-department-options"
+                            :value="$asset->department"
+                            placeholder="Nursing Station 3, ER, ICU, Pharmacy"
+                            help="Update the responsible hospital unit if the asset changed departments"
+                        />
+                        <datalist id="move-department-options">
+                            @foreach ($departments ?? [] as $dept)
+                                <option value="{{ $dept }}"></option>
+                            @endforeach
+                        </datalist>
+                    </div>
+
+                    <x-form-field
+                        label="Reason / Notes"
+                        name="notes"
+                        type="textarea"
+                        placeholder="Transferred for patient admission in Room 39"
+                        help="Optional reason or handover note recorded in the transfer audit log"
+                    />
+                </div>
+            </x-card>
+
+            <!-- Sticky Save & Cancel Bar -->
+            <div class="sticky bottom-0 z-20 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4">
+                <p class="text-xs text-slate-500">
+                    Transfer timestamp and your user account will be logged automatically
                 </p>
-                @if ($asset->department)
-                    <p class="text-sm text-red-800 mt-0.5">
-                        Current Department: <strong class="text-red-900">{{ $asset->department }}</strong>
-                    </p>
-                @endif
-            </div>
-
-            <div>
-                <label for="to_location" class="block text-base font-bold text-neutral-900 mb-2">
-                    New Location <span class="text-red-600">*</span>
-                </label>
-                <input id="to_location"
-                       name="to_location"
-                       type="text"
-                       required
-                       autofocus
-                       value="{{ old('to_location') }}"
-                       placeholder="e.g. ND-Station 3 Room 39"
-                       class="w-full px-4 py-3 text-lg border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 transition">
-            </div>
-
-            <div>
-                <label for="department" class="block text-base font-bold text-neutral-900 mb-2">
-                    Department (Optional)
-                </label>
-                <input id="department"
-                       name="department"
-                       type="text"
-                       list="move-department-options"
-                       value="{{ old('department', $asset->department) }}"
-                       placeholder="e.g. Nursing Station 3, ER, ICU, Pharmacy"
-                       class="w-full px-4 py-3 text-lg border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 transition">
-                <datalist id="move-department-options">
-                    @foreach ($departments ?? [] as $dept)
-                        <option value="{{ $dept }}"></option>
-                    @endforeach
-                </datalist>
-            </div>
-
-            <div>
-                <label for="notes" class="block text-base font-bold text-neutral-900 mb-2">
-                    Reason / Notes (Optional)
-                </label>
-                <textarea id="notes"
-                          name="notes"
-                          rows="3"
-                          placeholder="e.g. Transferred for patient admission in Room 39"
-                          class="w-full px-4 py-3 text-lg border-2 border-red-200 rounded-xl focus:outline-none focus:border-red-600 transition">{{ old('notes') }}</textarea>
-            </div>
-
-            <div class="pt-4 border-t border-red-100 flex items-center gap-4">
-                <button type="submit"
-                        class="px-6 py-3.5 rounded-xl bg-red-600 hover:bg-red-700 active:translate-y-[1px] text-white font-bold text-lg shadow-xs transition cursor-pointer">
-                    Confirm Move Asset
-                </button>
-                <a href="{{ route('assets.show', $asset) }}"
-                   class="px-5 py-3.5 rounded-xl border-2 border-red-200 bg-white hover:bg-red-50 text-red-700 font-bold text-base transition">
-                    Cancel
-                </a>
+                <div class="flex items-center gap-3">
+                    <x-button variant="secondary" :href="route('assets.show', $asset)">
+                        Cancel
+                    </x-button>
+                    <x-button variant="primary" type="submit">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        <span>Confirm Move Asset</span>
+                    </x-button>
+                </div>
             </div>
         </form>
     </div>

@@ -7,46 +7,46 @@
     <title>{{ $title ?? 'Bethel Asset Tracker' }} - {{ \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans antialiased text-base min-h-screen flex selection:bg-sky-100 selection:text-[#0f5d8c]">
+<body class="bg-slate-50 text-slate-900 font-sans antialiased text-base min-h-screen flex selection:bg-slate-200 selection:text-slate-900">
     @php
         $hospitalName = \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.');
         $hospitalAddress = \App\Models\Setting::get('hospital_address', 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700');
         $logoDataUri = app(\App\Services\QrCodeService::class)->hospitalLogoBase64();
     @endphp
 
-    <!-- Left Sidebar (Clean Clinical White Palette) -->
-    <aside class="no-print w-72 bg-white text-slate-800 border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen select-none">
+    <!-- Left Sidebar (Pure White, Calm Swiss-Clinical Surface) -->
+    <aside class="no-print w-68 bg-white text-slate-800 border-r border-slate-200 flex flex-col justify-between shrink-0 min-h-screen select-none">
         <div>
-            <!-- Top Hospital Red Accent Line (3px) -->
-            <div class="h-[3px] w-full bg-[#dc2626]"></div>
+            <!-- Top Hospital Crimson Accent Line (3px) -->
+            <div class="h-[3px] w-full bg-[#b91c1c]"></div>
 
             <!-- Official Hospital Logo & Branding Area -->
             <div class="p-5 border-b border-slate-200">
-                <div class="flex items-center justify-center p-2 mb-3 bg-white">
+                <div class="flex items-center justify-center p-1 mb-3 bg-white">
                     <img src="{{ $logoDataUri }}"
                          alt="{{ $hospitalName }} Logo"
-                         class="h-16 w-auto object-contain">
+                         class="h-14 w-auto object-contain">
                 </div>
 
                 <div class="text-center">
-                    <h1 class="text-base font-bold text-slate-900 tracking-tight leading-snug">Bethel Asset Tracker</h1>
-                    <p class="text-xs text-slate-500 font-medium truncate mt-0.5" title="{{ $hospitalName }}">{{ $hospitalName }}</p>
+                    <h1 class="text-base font-semibold text-slate-900 tracking-tight leading-snug">Bethel Asset Tracker</h1>
+                    <p class="text-xs text-slate-500 truncate mt-0.5" title="{{ $hospitalName }}">{{ $hospitalName }}</p>
                 </div>
 
-                <div class="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-                    <span class="inline-flex items-center gap-1.5 font-medium text-slate-600">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        Offline SQLite
+                <div class="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="inline-flex items-center gap-1.5 text-slate-600">
+                        <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
+                        <span>Offline SQLite</span>
                     </span>
-                    <span class="font-mono text-[11px] bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded font-semibold">
+                    <span class="font-mono text-xs text-slate-500 tabular-nums">
                         v{{ config('nativephp.version', '1.0.0') }}
                     </span>
                 </div>
             </div>
 
-            <!-- Primary Navigation (Strictly 5 items per specification) -->
-            <div class="px-3 pt-5 pb-2">
-                <p class="px-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Navigation</p>
+            <!-- Primary Navigation (Strictly 5 items, Pure White Sidebar, Subtle Active Indicator) -->
+            <div class="px-3 pt-6 pb-2">
+                <p class="px-3 text-xs font-medium text-slate-400 mb-2">Navigation</p>
                 <nav class="space-y-1" aria-label="Main Navigation">
                     @php
                         $navItems = [
@@ -86,11 +86,11 @@
                     @foreach ($navItems as $item)
                         @if ($item['active'])
                             <a href="{{ route($item['route']) }}"
-                               class="flex items-center gap-3 px-3.5 py-3 rounded-r-lg bg-sky-50 text-[#0f5d8c] font-bold border-l-4 border-[#0f5d8c] shadow-2xs transition-colors">
-                                <svg class="w-5 h-5 shrink-0 text-[#0f5d8c]"
+                               class="flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-r-lg bg-slate-100/90 text-slate-900 font-semibold border-l-[3px] border-[#b91c1c] transition-colors">
+                                <svg class="w-[18px] h-[18px] shrink-0 text-[#b91c1c]"
                                      fill="none"
                                      stroke="currentColor"
-                                     stroke-width="2"
+                                     stroke-width="1.5"
                                      viewBox="0 0 24 24"
                                      aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
@@ -99,11 +99,11 @@
                             </a>
                         @else
                             <a href="{{ route($item['route']) }}"
-                               class="group flex items-center gap-3 px-3.5 py-3 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium transition-colors">
-                                <svg class="w-5 h-5 shrink-0 text-slate-400 group-hover:text-slate-600 transition-colors"
+                               class="group flex items-center gap-2.5 min-h-[44px] px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium transition-colors">
+                                <svg class="w-[18px] h-[18px] shrink-0 text-slate-400 group-hover:text-slate-700 transition-colors"
                                      fill="none"
                                      stroke="currentColor"
-                                     stroke-width="1.75"
+                                     stroke-width="1.5"
                                      viewBox="0 0 24 24"
                                      aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
@@ -118,15 +118,15 @@
 
         <!-- User Account Footer -->
         @auth
-            <div class="p-4 border-t border-slate-200 bg-slate-50/70">
+            <div class="p-4 border-t border-slate-200 bg-white">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-9 h-9 rounded-full bg-[#0f5d8c] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
+                    <div class="w-9 h-9 rounded-full bg-slate-900 text-white font-semibold text-xs flex items-center justify-center shrink-0">
                         {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                     </div>
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-1.5">
-                            <p class="text-sm font-semibold text-slate-900 truncate">{{ auth()->user()->name }}</p>
-                            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-slate-200 text-slate-700">
+                        <div class="flex items-center justify-between gap-1.5">
+                            <p class="text-sm font-medium text-slate-900 truncate">{{ auth()->user()->name }}</p>
+                            <span class="text-xs font-mono text-slate-500 shrink-0">
                                 {{ ucfirst(auth()->user()->role) }}
                             </span>
                         </div>
@@ -137,11 +137,11 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit"
-                            class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 shadow-2xs transition cursor-pointer">
-                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            class="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
                         </svg>
-                        <span>Sign Out</span>
+                        <span>Sign out</span>
                     </button>
                 </form>
             </div>
@@ -151,18 +151,18 @@
     <!-- Main Workspace -->
     <div class="flex-1 flex flex-col min-w-0 bg-slate-50">
         <!-- Top Hospital Context Bar -->
-        <header class="no-print px-8 py-3.5 bg-white border-b border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <header class="no-print px-8 h-14 bg-white border-b border-slate-200 flex items-center justify-between gap-4">
             <div class="flex items-center gap-2.5 text-sm text-slate-700 truncate">
-                <span class="w-2.5 h-2.5 rounded-full bg-[#0f5d8c] shrink-0"></span>
-                <span class="font-bold text-slate-900">{{ $hospitalName }}</span>
+                <span class="w-2 h-2 rounded-full bg-[#b91c1c] shrink-0"></span>
+                <span class="font-semibold text-slate-900">{{ $hospitalName }}</span>
                 <span class="text-slate-300">&bull;</span>
                 <span class="truncate text-slate-500">{{ $hospitalAddress }}</span>
             </div>
 
-            <div class="flex items-center gap-3 text-xs">
-                <span class="italic text-slate-500 hidden sm:inline">&ldquo;Preach the Word, Heal the Sick&rdquo;</span>
-                <span class="px-2.5 py-1 rounded-md bg-slate-100 border border-slate-200 text-slate-700 font-medium">
-                    {{ now()->format('l, M d, Y') }}
+            <div class="flex items-center gap-4 text-xs">
+                <span class="text-slate-500 hidden sm:inline">Preach the Word, Heal the Sick</span>
+                <span class="font-mono text-slate-600 tabular-nums">
+                    {{ now()->format('D, M d, Y') }}
                 </span>
             </div>
         </header>
