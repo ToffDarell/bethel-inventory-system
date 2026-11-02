@@ -19,16 +19,17 @@
         body {
             margin: 0;
             padding: 0;
-            background-color: #fff5f5;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            color: #171717;
+            background-color: #f1f5f9;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Segoe UI Variable Text", Arial, sans-serif;
+            color: #0f172a;
         }
 
         .toolbar {
             background-color: #ffffff;
-            border-bottom: 3px solid #e60000;
-            color: #171717;
-            padding: 14px 24px;
+            border-top: 3px solid #b91c1c;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f172a;
+            padding: 12px 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -36,7 +37,7 @@
             position: sticky;
             top: 0;
             z-index: 50;
-            box-shadow: 0 2px 8px rgba(230, 0, 0, 0.08);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .toolbar-left {
@@ -47,7 +48,7 @@
 
         .toolbar-logo {
             background: #ffffff;
-            border: 1px solid #fecaca;
+            border: 1px solid #e2e8f0;
             border-radius: 6px;
             padding: 4px 8px;
             height: 38px;
@@ -57,14 +58,15 @@
 
         .toolbar-title {
             font-size: 15px;
-            font-weight: 800;
-            color: #e60000;
+            font-weight: 700;
+            color: #0f172a;
             letter-spacing: -0.01em;
         }
 
         .toolbar-subtitle {
             font-size: 12px;
-            color: #525252;
+            color: #64748b;
+            margin-top: 2px;
         }
 
         .toolbar-actions {
@@ -76,33 +78,41 @@
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 9px 16px;
+            min-height: 44px;
+            padding: 8px 18px;
             border-radius: 8px;
             font-size: 13px;
-            font-weight: 700;
+            font-weight: 600;
             text-decoration: none;
             cursor: pointer;
-            border: none;
+            transition: all 0.15s ease;
         }
 
         .btn-primary {
-            background-color: #e60000;
+            background-color: #b91c1c;
             color: #ffffff;
+            border: 1px solid #b91c1c;
+            box-shadow: 0 1px 2px rgba(185, 28, 28, 0.2);
         }
 
         .btn-primary:hover {
-            background-color: #cc0000;
+            background-color: #991b1b;
+            border-color: #991b1b;
         }
 
         .btn-secondary {
             background-color: #ffffff;
-            color: #e60000;
-            border: 2px solid #e60000;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
 
         .btn-secondary:hover {
-            background-color: #fef2f2;
+            background-color: #f8fafc;
+            color: #0f172a;
+            border-color: #94a3b8;
         }
 
         .sheet-wrapper {
@@ -167,7 +177,7 @@
                     Property Tag Print Preview ({{ $assets->count() }} {{ Str::plural('tag', $assets->count()) }})
                 </div>
                 <div class="toolbar-subtitle">
-                    Tag size: {{ $tagWidthCm }} cm &times; {{ $tagHeightCm }} cm &bull; Click "Print Now" to open the printer dialog
+                    Tag size: {{ $tagWidthCm }} cm &times; {{ $tagHeightCm }} cm &bull; Click "Print Now" to open printer dialog
                 </div>
             </div>
         </div>
