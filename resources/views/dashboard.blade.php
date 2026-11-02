@@ -103,33 +103,33 @@
                 'count' => $totalCount,
                 'caption' => 'Registered equipment',
                 'href' => route('assets.index'),
-                'dot' => 'bg-[#b91c1c]',
+                'dot' => 'bg-slate-900',
             ],
             [
                 'label' => 'In Use',
                 'count' => (int) ($statusCounts['In Use'] ?? 0),
-                'caption' => 'Active on hospital floors',
+                'caption' => 'Active in service',
                 'href' => route('assets.index', ['status' => 'In Use']),
                 'dot' => 'bg-emerald-600',
             ],
             [
                 'label' => 'Under Repair',
                 'count' => (int) ($statusCounts['Under Repair'] ?? 0),
-                'caption' => 'In maintenance or biomed',
+                'caption' => 'In maintenance',
                 'href' => route('assets.index', ['status' => 'Under Repair']),
                 'dot' => 'bg-amber-500',
             ],
             [
                 'label' => 'Stored',
                 'count' => (int) ($statusCounts['Stored'] ?? 0),
-                'caption' => 'Standby in storage room',
+                'caption' => 'Standby storage',
                 'href' => route('assets.index', ['status' => 'Stored']),
                 'dot' => 'bg-slate-500',
             ],
             [
                 'label' => 'Disposed',
                 'count' => (int) ($statusCounts['Disposed'] ?? 0),
-                'caption' => 'Decommissioned items',
+                'caption' => 'Decommissioned',
                 'href' => route('assets.index', ['status' => 'Disposed']),
                 'dot' => 'bg-neutral-400',
             ],
@@ -139,28 +139,32 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         @foreach ($summaryCards as $card)
             <a href="{{ $card['href'] }}"
-               class="group p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 shadow-2xs transition-colors flex flex-col justify-between">
+               class="group p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs shadow-2xs transition-all flex flex-col justify-between">
                 <div>
-                    <div class="flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full shrink-0 {{ $card['dot'] }}"></span>
-                        <p class="text-xs font-medium text-slate-600 group-hover:text-slate-900 transition-colors">
-                            {{ $card['label'] }}
-                        </p>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full shrink-0 {{ $card['dot'] }}"></span>
+                            <p class="text-xs font-semibold text-slate-600 group-hover:text-slate-900 transition-colors">
+                                {{ $card['label'] }}
+                            </p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-600 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
                     </div>
-                    <p class="text-3xl font-semibold text-slate-900 tabular-nums mt-3">
+                    <p class="text-3xl font-bold text-slate-900 tabular-nums mt-3 mb-1">
                         {{ number_format($card['count']) }}
                     </p>
                 </div>
-                <p class="text-xs text-slate-500 mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                    <span>{{ $card['caption'] }}</span>
-                    <span class="text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">&rarr;</span>
-                </p>
+                <div class="mt-3.5 pt-2.5 border-t border-slate-100 text-xs text-slate-500 font-medium">
+                    {{ $card['caption'] }}
+                </div>
             </a>
         @endforeach
     </div>
 
     <!-- Main Lower Grid: Department Breakdown + Recently Added Assets -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         <!-- Assets by Department -->
         <div class="lg:col-span-4">
             <x-card>
@@ -178,13 +182,11 @@
 
                 @if (! empty($departmentCounts) && count($departmentCounts) > 0)
                     <ul class="space-y-4">
-                        @foreach ($departmentCounts as $index => $deptRow)
+                        @foreach ($departmentCounts as $deptRow)
                             @php
                                 $barWidth = $totalCount > 0 ? max(6, round(($deptRow->total / $totalCount) * 100)) : 0;
                                 $isUnassigned = $deptRow->dept_name === 'Unassigned';
-                                $barColor = $isUnassigned
-                                    ? 'bg-slate-400'
-                                    : ($index === 0 ? 'bg-[#b91c1c]' : 'bg-slate-700');
+                                $barColor = $isUnassigned ? 'bg-slate-300' : 'bg-slate-700';
                             @endphp
                             <li>
                                 <div class="flex items-center justify-between text-sm mb-1.5">
@@ -206,6 +208,13 @@
                             </li>
                         @endforeach
                     </ul>
+
+                    <div class="mt-5 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span class="font-medium">Total Registered Departments</span>
+                        <span class="font-mono font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                            {{ count($departmentCounts) }}
+                        </span>
+                    </div>
                 @else
                     <div class="py-8 text-center">
                         <p class="text-sm text-slate-500">No departments recorded yet</p>
@@ -223,8 +232,11 @@
                             <h3 class="text-base font-semibold text-slate-900">Recently Added Assets</h3>
                             <p class="text-xs text-slate-500 mt-0.5">Latest equipment recorded in the hospital register</p>
                         </div>
-                        <a href="{{ route('assets.create') }}" class="text-xs font-medium text-[#b91c1c] hover:text-[#991b1b] hover:underline">
-                            + Add Asset
+                        <a href="{{ route('assets.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs">
+                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                            </svg>
+                            <span>Add Asset</span>
                         </a>
                     </div>
                 </x-slot:header>
