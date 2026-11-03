@@ -31,5 +31,6 @@ Thumbs.db
 /.playwright-mcp/
 /public/screenshots/
 /public/*.png
+!/public/icon.png
 /public/Downloads/
 /design-system/

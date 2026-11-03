@@ -92,6 +92,8 @@ return [
         'database/*.sqlite-shm',
         'database/*.sqlite-wal',
         '.superpowers',
+        'nativephp',
+        'public/screenshots',
     ],
 
     /**
