@@ -45,6 +45,28 @@ Route::middleware('auth')->group(function () {
             return response()->json($assets);
         })->name('assets.quick-search');
 
+        Route::get('/api/audit/locations', function () {
+            $locations = \App\Models\Asset::query()
+                ->whereNotNull('location')
+                ->where('location', '!=', '')
+                ->distinct()
+                ->orderBy('location')
+                ->pluck('location');
+            return response()->json($locations);
+        })->name('audit.locations');
+
+        Route::get('/api/audit/location-assets', function (\Illuminate\Http\Request $request) {
+            $loc = trim((string) $request->query('location', ''));
+            if ($loc === '') {
+                return response()->json([]);
+            }
+            $assets = \App\Models\Asset::query()
+                ->where('location', $loc)
+                ->orderBy('asset_no')
+                ->get(['id', 'asset_no', 'asset_name', 'department', 'location', 'status', 'model', 'serial_no']);
+            return response()->json($assets);
+        })->name('audit.location-assets');
+
         Route::resource('assets', AssetController::class);
 
         Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');
