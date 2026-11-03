@@ -30,7 +30,7 @@
                 :value="$asset->asset_no ?? request('asset_no', '')"
                 :placeholder="$suggestedAssetNo ?? 'Auto-generate (e.g. BBH-000001)'"
                 :help="isset($asset)
-                    ? 'Current property tag code: ' . $asset->asset_no . ' — encoded directly into the printed QR code'
+                    ? 'Current property tag code: ' . $asset->asset_no . ' (encoded directly into the printed QR code)'
                     : 'Leave blank to assign ' . ($suggestedAssetNo ?? 'BBH-000001') . ' automatically, or enter an existing hospital paper tag code (e.g. BBHIND-S300002315)'"
                 :mono="true"
             >

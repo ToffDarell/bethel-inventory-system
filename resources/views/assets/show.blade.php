@@ -78,43 +78,59 @@
         <div class="lg:col-span-6">
             <x-card title="Asset Information" subtitle="Registered identification, location, and condition details">
                 <dl class="divide-y divide-slate-100 text-[15px]">
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Asset No.</dt>
                         <dd class="col-span-2 font-mono font-medium text-slate-900">{{ $asset->asset_no }}</dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Asset Name</dt>
                         <dd class="col-span-2 font-medium text-slate-900">{{ $asset->asset_name }}</dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Model / Brand</dt>
-                        <dd class="col-span-2 text-slate-900">{{ $asset->model ?: '—' }}</dd>
+                        <dd class="col-span-2 text-slate-900">
+                            {{ $asset->model ?: 'Not specified' }}
+                        </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Serial No.</dt>
-                        <dd class="col-span-2 font-mono text-slate-800">{{ $asset->serial_no ?: '—' }}</dd>
+                        <dd class="col-span-2 text-slate-900">
+                            @if ($asset->serial_no)
+                                <span class="font-mono text-slate-800">{{ $asset->serial_no }}</span>
+                            @else
+                                <span class="text-slate-400">None</span>
+                            @endif
+                        </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Date Acquired</dt>
-                        <dd class="col-span-2 text-slate-900 tabular-nums">{{ $asset->date_acquired ? $asset->date_acquired->format('M d, Y') : '—' }}</dd>
+                        <dd class="col-span-2 text-slate-900 tabular-nums">
+                            {{ $asset->date_acquired ? $asset->date_acquired->format('M d, Y') : 'Not recorded' }}
+                        </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Department</dt>
-                        <dd class="col-span-2 text-slate-900">{{ $asset->department ?: '—' }}</dd>
+                        <dd class="col-span-2 text-slate-900">
+                            {{ $asset->department ?: 'Unassigned' }}
+                        </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Location</dt>
-                        <dd class="col-span-2 font-medium text-slate-900">{{ $asset->location ?: '—' }}</dd>
+                        <dd class="col-span-2 font-medium text-slate-900">
+                            {{ $asset->location ?: 'Unassigned' }}
+                        </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4 items-center">
+                    <div class="py-3.5 grid grid-cols-3 gap-4 items-center">
                         <dt class="text-slate-500 font-medium">Status</dt>
                         <dd class="col-span-2">
                             <x-badge :status="$asset->status" />
                         </dd>
                     </div>
-                    <div class="py-3 grid grid-cols-3 gap-4">
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-500 font-medium">Notes</dt>
-                        <dd class="col-span-2 text-slate-700 whitespace-pre-line">{{ $asset->notes ?: '—' }}</dd>
+                        <dd class="col-span-2 text-slate-700 whitespace-pre-line">
+                            {{ $asset->notes ?: 'None' }}
+                        </dd>
                     </div>
                 </dl>
             </x-card>
@@ -147,22 +163,21 @@
                     </div>
                 </x-slot:header>
 
-                <!-- Tactile Physical Tag Stage (The Unslop Moment) -->
-                <div class="overflow-x-auto bg-slate-100/80 p-6 rounded-lg border border-slate-200 flex items-center justify-center">
+                <div class="overflow-x-auto bg-slate-100/80 p-3.5 sm:p-4 rounded-lg border border-slate-200 flex items-center justify-center">
                     <div class="bg-white shadow-sm">
                         @include('tags.partials.tag-card', ['asset' => $asset, 'preview' => true])
                     </div>
                 </div>
 
                 <p class="text-xs text-slate-500 mt-4 text-center">
-                    Matches Bethel Baptist Hospital's physical property tag layout with embedded base64 logo and scannable QR code
+                    Matches Bethel Baptist Hospital physical property tag layout with embedded logo and scannable QR code
                 </p>
             </x-card>
         </div>
     </div>
 
-    <!-- Location Transfer History -->
-    <x-card padding="p-0">
+    <!-- Location Transfer History as a Timeline -->
+    <x-card>
         <x-slot:header>
             <div class="flex flex-wrap items-center justify-between gap-3 w-full">
                 <div>
@@ -179,45 +194,76 @@
         </x-slot:header>
 
         @if ($asset->transfers->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-[15px]">
-                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-600">
-                        <tr>
-                            <th class="py-3.5 px-4">Date &amp; Time</th>
-                            <th class="py-3.5 px-4">From Location</th>
-                            <th class="py-3.5 px-4">To Location</th>
-                            <th class="py-3.5 px-4">Moved By</th>
-                            <th class="py-3.5 px-4">Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100 [&>tr:hover]:bg-slate-50/90 transition-colors">
-                        @foreach ($asset->transfers as $transfer)
-                            <tr>
-                                <td class="py-3.5 px-4 whitespace-nowrap font-mono text-xs text-slate-600 tabular-nums">
-                                    {{ $transfer->moved_at?->format('M d, Y h:i A') }}
-                                </td>
-                                <td class="py-3.5 px-4 text-slate-600">
-                                    {{ $transfer->from_location ?: 'Initial registration' }}
-                                </td>
-                                <td class="py-3.5 px-4 font-medium text-slate-900">
-                                    <span class="inline-flex items-center gap-1.5">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-[#b91c1c]"></span>
-                                        <span>{{ $transfer->to_location }}</span>
+            <div class="relative pl-6 sm:pl-8 before:absolute before:left-[11px] sm:before:left-[15px] before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 space-y-6 pt-2">
+                @foreach ($asset->transfers as $index => $transfer)
+                    <div class="relative flex items-start gap-4">
+                        <!-- Node indicator: Deep Medical Blue for current location, muted border for past -->
+                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full flex items-center justify-center {{ $index === 0 ? 'bg-[#0f5d8c] text-white ring-4 ring-sky-50' : 'bg-white border-2 border-slate-300 text-slate-500' }}">
+                            @if ($index === 0)
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                </svg>
+                            @else
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                            @endif
+                        </div>
+
+                        <!-- Transfer Content Card -->
+                        <div class="flex-1 bg-slate-50/70 border border-slate-200/80 rounded-xl p-4 hover:border-slate-300 transition-colors">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 text-xs">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium text-slate-900 tabular-nums">
+                                        {{ $transfer->moved_at?->format('M d, Y') }}
                                     </span>
-                                </td>
-                                <td class="py-3.5 px-4 text-slate-700">
-                                    {{ $transfer->mover?->name ?? 'System' }}
-                                </td>
-                                <td class="py-3.5 px-4 text-slate-600">
-                                    {{ $transfer->notes ?: '—' }}
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                                    <span class="text-slate-300">&bull;</span>
+                                    <span class="text-slate-600 tabular-nums">
+                                        {{ $transfer->moved_at?->format('h:i A') }}
+                                    </span>
+                                    @if ($index === 0)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-sky-50 text-[#0f5d8c] border border-sky-200">
+                                            Current Assignment
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-slate-600">
+                                    Moved by <strong class="font-medium text-slate-800">{{ $transfer->mover?->name ?? 'System' }}</strong>
+                                </span>
+                            </div>
+
+                            <div class="mt-3 flex flex-wrap items-center gap-2.5 text-sm">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[11px] text-slate-600 font-semibold uppercase tracking-wider">From</span>
+                                    <span class="font-medium text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-md">
+                                        {{ $transfer->from_location ?: 'Initial registration' }}
+                                    </span>
+                                </div>
+
+                                <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-[11px] text-[#0f5d8c] font-semibold uppercase tracking-wider">To</span>
+                                    <span class="font-semibold text-slate-900 bg-white border border-[#0f5d8c]/30 shadow-2xs px-2.5 py-1 rounded-md">
+                                        {{ $transfer->to_location }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if ($transfer->notes)
+                                <div class="mt-3 pt-2.5 border-t border-slate-200/60 text-xs text-slate-600 flex items-start gap-2">
+                                    <svg class="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"/>
+                                    </svg>
+                                    <span>{{ $transfer->notes }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @else
-            <div class="p-6">
+            <div class="py-6">
                 <x-empty-state
                     title="No location transfers recorded yet"
                     description="When this equipment is moved to another ward, station, or room, each transfer will be logged here"

@@ -4,7 +4,7 @@
     <div class="max-w-3xl">
         <x-page-header
             title="Edit Asset"
-            :subtitle="'Updating ' . $asset->asset_no . ' — ' . $asset->asset_name"
+            :subtitle="'Updating ' . $asset->asset_no . ': ' . $asset->asset_name"
             :backUrl="route('assets.show', $asset)"
             backLabel="Back to Asset"
         />
