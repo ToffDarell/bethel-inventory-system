@@ -3,8 +3,8 @@
 @section('content')
     <div class="max-w-4xl mx-auto space-y-6">
         <x-page-header
-            title="Scan Property Tag"
-            subtitle="Quick barcode and QR tag lookup for equipment on hospital floors"
+            title="Find Asset"
+            subtitle="Type an Asset No. or equipment name for instant lookup (USB barcode scanners can scan directly into this box)"
         />
 
         <!-- Scan / Audit Mode Switcher -->
@@ -12,16 +12,16 @@
             <button type="button"
                     id="mode-quick-btn"
                     onclick="switchScanMode('quick')"
-                    class="flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer">
-                <svg class="w-4 h-4 text-[#0f5d8c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    class="flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs font-semibold bg-white text-slate-900 shadow-2xs transition-colors flex items-center justify-center gap-2 cursor-pointer">
+                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <span>Single Tag Scan</span>
+                <span>Quick Find</span>
             </button>
             <button type="button"
                     id="mode-audit-btn"
                     onclick="switchScanMode('audit')"
-                    class="flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-all flex items-center justify-center gap-2 cursor-pointer">
+                    class="flex-1 min-h-[40px] px-4 py-2 rounded-lg text-xs font-medium text-slate-600 hover:text-slate-900 transition-colors flex items-center justify-center gap-2 cursor-pointer">
                 <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                 </svg>
@@ -79,7 +79,7 @@
                             Please check the scanned tag or register this equipment into the hospital database.
                         </p>
                         <div class="mt-3 flex flex-wrap items-center gap-2.5">
-                            <a id="register-new-btn" href="#" class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white text-xs font-medium shadow-2xs transition-colors">
+                            <a id="register-new-btn" href="#" class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-2xs transition-colors">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                                 </svg>
@@ -95,18 +95,18 @@
 
             <!-- Compact Scanner Card (Smaller Hero) -->
             <x-card padding="p-5 sm:p-6">
-                <form id="scan-form" method="GET" action="{{ route('scan.lookup') }}" class="space-y-4">
+                <form id="scan-form" method="GET" action="{{ route('assets.find.lookup') }}" class="space-y-4">
                     <div class="flex items-center justify-between gap-3">
                         <label for="scan-input" class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-[#0f5d8c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                            <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
-                            <span>Tag Code or Asset No.</span>
+                            <span>Asset No. or Equipment Name</span>
                         </label>
 
                         <div class="flex items-center gap-1.5 text-xs text-slate-600">
                             <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                            <span>Scanner ready</span>
+                            <span>Lookup ready</span>
                         </div>
                     </div>
 
@@ -118,13 +118,13 @@
                                    autofocus
                                    autocomplete="off"
                                    value="{{ old('q', $notFoundCode ?? '') }}"
-                                   placeholder="Scan QR tag or type code (e.g. BBH-000001)"
-                                   class="w-full min-h-[46px] px-3.5 py-2 text-base font-mono font-medium text-slate-900 bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                                   placeholder="Type Asset No. or name (e.g. BBH-000001)"
+                                   class="w-full min-h-[46px] px-3.5 py-2 text-base font-mono font-medium text-slate-900 bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                         </div>
 
                         <button type="submit"
                                 id="scan-submit-btn"
-                                class="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0">
+                                class="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                             </svg>
@@ -133,7 +133,7 @@
                     </div>
 
                     <p class="text-xs text-slate-600 pt-1">
-                        USB handheld scanners will enter the property code and find the asset automatically.
+                        USB barcode scanners or manual typing will find the matching equipment automatically.
                     </p>
                 </form>
             </x-card>
@@ -172,7 +172,7 @@
                                 </svg>
                                 <span>Print Tag</span>
                             </a>
-                            <a id="preview-view-btn" href="#" class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white text-xs font-medium shadow-2xs transition-colors">
+                            <a id="preview-view-btn" href="#" class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-medium shadow-2xs transition-colors">
                                 <span>View Details &rarr;</span>
                             </a>
                         </div>
@@ -248,8 +248,8 @@
                                 Select a hospital room or ward to perform a physical inventory audit sweep.
                             </p>
                         </div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-[#0f5d8c] border border-sky-200 shrink-0">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#0f5d8c]"></span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-sky-50 text-primary border border-sky-200 shrink-0">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
                             <span>Session Based</span>
                         </span>
                     </div>
@@ -258,7 +258,7 @@
                         <div class="relative w-full flex-1">
                             <label for="audit-location-select" class="sr-only">Select Ward or Room to Audit</label>
                             <select id="audit-location-select"
-                                    class="w-full min-h-[46px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                                    class="w-full min-h-[46px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                                 <option value="">-- Choose a Hospital Location to Audit --</option>
                             </select>
                         </div>
@@ -266,7 +266,7 @@
                         <button type="button"
                                 id="start-audit-btn"
                                 onclick="startLocationAudit()"
-                                class="w-full sm:w-auto min-h-[46px] px-6 py-2.5 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-2">
+                                class="w-full sm:w-auto min-h-[46px] px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0 flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
                             </svg>
@@ -283,7 +283,7 @@
                     <div class="space-y-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <div>
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Active Audit Location</span>
+                                <span class="text-xs font-semibold text-slate-500">Active audit location</span>
                                 <h2 id="active-location-title" class="text-xl font-bold text-slate-900 mt-0.5"></h2>
                             </div>
 
@@ -318,25 +318,25 @@
                         <!-- 4 Summary Metric Cards -->
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
                             <div class="p-3 rounded-lg bg-slate-50 border border-slate-200">
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Expected</span>
+                                <span class="text-xs font-semibold text-slate-500">Expected</span>
                                 <p id="metric-expected" class="text-2xl font-bold text-slate-900 tabular-nums mt-1">0</p>
                                 <span class="text-[11px] text-slate-500">Registered here</span>
                             </div>
 
                             <div class="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200">
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-800">Found</span>
+                                <span class="text-xs font-semibold text-emerald-800">Found</span>
                                 <p id="metric-found" class="text-2xl font-bold text-emerald-950 tabular-nums mt-1">0</p>
                                 <span class="text-[11px] text-emerald-700">Verified present</span>
                             </div>
 
                             <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200">
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-800">Missing</span>
+                                <span class="text-xs font-semibold text-amber-800">Missing</span>
                                 <p id="metric-missing" class="text-2xl font-bold text-amber-950 tabular-nums mt-1">0</p>
                                 <span class="text-[11px] text-amber-700">Not yet scanned</span>
                             </div>
 
                             <div class="p-3 rounded-lg bg-sky-50/70 border border-sky-200">
-                                <span class="text-[11px] font-semibold uppercase tracking-wider text-[#0f5d8c]">Unexpected</span>
+                                <span class="text-xs font-semibold text-primary">Unexpected</span>
                                 <p id="metric-unexpected" class="text-2xl font-bold text-slate-900 tabular-nums mt-1">0</p>
                                 <span class="text-[11px] text-slate-600">From other rooms</span>
                             </div>
@@ -349,10 +349,10 @@
                     <form id="audit-scan-form" onsubmit="handleAuditScan(event)" class="space-y-3">
                         <div class="flex items-center justify-between gap-3">
                             <label for="audit-scan-input" class="text-sm font-semibold text-slate-900 flex items-center gap-2">
-                                <svg class="w-4 h-4 text-[#0f5d8c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                                 </svg>
-                                <span>Scan Item into Current Location</span>
+                                <span>Scan Barcode or Type Asset No. into Location</span>
                             </label>
 
                             <div class="flex items-center gap-1.5 text-xs text-slate-600">
@@ -366,12 +366,12 @@
                                 <input id="audit-scan-input"
                                        type="text"
                                        autocomplete="off"
-                                       placeholder="Scan QR tag or type Asset No. (e.g. BBH-000001)"
-                                       class="w-full min-h-[46px] px-3.5 py-2 text-base font-mono font-medium text-slate-900 bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                                       placeholder="Scan barcode or type Asset No. (e.g. BBH-000001)"
+                                       class="w-full min-h-[46px] px-3.5 py-2 text-base font-mono font-medium text-slate-900 bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                             </div>
 
                             <button type="submit"
-                                    class="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0">
+                                    class="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer shrink-0">
                                 <span>Verify Item</span>
                             </button>
                         </div>
@@ -487,12 +487,12 @@
 
                     modeQuickBtn.classList.remove('bg-white', 'text-slate-900', 'font-semibold', 'shadow-2xs');
                     modeQuickBtn.classList.add('text-slate-600', 'font-medium');
-                    modeQuickBtn.querySelector('svg').classList.remove('text-[#0f5d8c]');
+                    modeQuickBtn.querySelector('svg').classList.remove('text-primary');
                     modeQuickBtn.querySelector('svg').classList.add('text-slate-400');
 
                     modeAuditBtn.classList.add('bg-white', 'text-slate-900', 'font-semibold', 'shadow-2xs');
                     modeAuditBtn.classList.remove('text-slate-600', 'font-medium');
-                    modeAuditBtn.querySelector('svg').classList.add('text-[#0f5d8c]');
+                    modeAuditBtn.querySelector('svg').classList.add('text-primary');
                     modeAuditBtn.querySelector('svg').classList.remove('text-slate-400');
 
                     loadAuditLocations();
@@ -505,12 +505,12 @@
 
                     modeAuditBtn.classList.remove('bg-white', 'text-slate-900', 'font-semibold', 'shadow-2xs');
                     modeAuditBtn.classList.add('text-slate-600', 'font-medium');
-                    modeAuditBtn.querySelector('svg').classList.remove('text-[#0f5d8c]');
+                    modeAuditBtn.querySelector('svg').classList.remove('text-primary');
                     modeAuditBtn.querySelector('svg').classList.add('text-slate-400');
 
                     modeQuickBtn.classList.add('bg-white', 'text-slate-900', 'font-semibold', 'shadow-2xs');
                     modeQuickBtn.classList.remove('text-slate-600', 'font-medium');
-                    modeQuickBtn.querySelector('svg').classList.add('text-[#0f5d8c]');
+                    modeQuickBtn.querySelector('svg').classList.add('text-primary');
                     modeQuickBtn.querySelector('svg').classList.remove('text-slate-400');
 
                     if (input) {
@@ -886,8 +886,8 @@
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Verified Present
                         </span>`;
                     } else if (isUnexpected) {
-                        badgeHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-[#0f5d8c] border border-sky-200">
-                            <span class="w-1.5 h-1.5 rounded-full bg-[#0f5d8c]"></span> Unexpected Item
+                        badgeHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-primary border border-sky-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span> Unexpected Item
                         </span>`;
                     } else {
                         badgeHtml = `<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 border border-amber-200">
@@ -919,7 +919,7 @@
                                 <div class="flex items-center justify-end gap-2">
                                     ${isUnexpected ? `
                                         <a href="/assets/${item.id}/move"
-                                           class="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-50 text-[#0f5d8c] hover:bg-sky-100 border border-sky-200 text-xs font-medium transition-colors">
+                                           class="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-sky-50 text-primary hover:bg-sky-100 border border-sky-200 text-xs font-medium transition-colors">
                                             Move Here
                                         </a>
                                     ` : ''}
@@ -1000,7 +1000,7 @@
                 if (type === 'emerald') {
                     auditFeedback.className = 'p-3 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-300 flex items-center justify-between';
                 } else if (type === 'sky') {
-                    auditFeedback.className = 'p-3 rounded-lg text-xs font-semibold bg-sky-50 text-[#0f5d8c] border border-sky-300 flex items-center justify-between';
+                    auditFeedback.className = 'p-3 rounded-lg text-xs font-semibold bg-sky-50 text-primary border border-sky-300 flex items-center justify-between';
                 } else {
                     auditFeedback.className = 'p-3 rounded-lg text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-300 flex items-center justify-between';
                 }

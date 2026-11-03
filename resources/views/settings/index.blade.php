@@ -92,8 +92,8 @@
                         role="tab"
                         aria-controls="panel-hospital"
                         aria-selected="true"
-                        class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 border-[#0f5d8c] text-[#0f5d8c] transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4 text-[#0f5d8c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 border-primary text-primary transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                     <span>Hospital Profile</span>
@@ -157,8 +157,8 @@
                     <input type="hidden" name="backup_folder" value="{{ $backupFolder }}">
 
                     <div>
-                        <label for="hospital_name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                            Hospital Name <span class="text-[#b91c1c]">*</span>
+                        <label for="hospital_name" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Hospital Name <span class="text-brand-red">*</span>
                         </label>
                         <input id="hospital_name"
                                name="hospital_name"
@@ -170,8 +170,8 @@
                     </div>
 
                     <div>
-                        <label for="hospital_address" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                            Hospital Address <span class="text-[#b91c1c]">*</span>
+                        <label for="hospital_address" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Hospital Address <span class="text-brand-red">*</span>
                         </label>
                         <input id="hospital_address"
                                name="hospital_address"
@@ -183,7 +183,7 @@
                     </div>
 
                     <div class="pt-2 border-t border-slate-100">
-                        <label for="logo" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                        <label for="logo" class="block text-xs font-semibold text-slate-700 mb-2">
                             Hospital Logo (Embedded as Base64 on Property Tags)
                         </label>
                         <div class="flex items-center gap-5 mb-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
@@ -222,8 +222,8 @@
                     <input type="hidden" name="backup_folder" value="{{ $backupFolder }}">
 
                     <div>
-                        <label for="asset_no_prefix" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                            Asset No. Prefix <span class="text-[#b91c1c]">*</span>
+                        <label for="asset_no_prefix" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Asset No. Prefix <span class="text-brand-red">*</span>
                         </label>
                         <input id="asset_no_prefix"
                                name="asset_no_prefix"
@@ -236,8 +236,8 @@
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
                         <div>
-                            <label for="tag_width_cm" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                Physical Tag Width (cm) <span class="text-[#b91c1c]">*</span>
+                            <label for="tag_width_cm" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Physical Tag Width (cm) <span class="text-brand-red">*</span>
                             </label>
                             <input id="tag_width_cm"
                                    name="tag_width_cm"
@@ -252,8 +252,8 @@
                         </div>
 
                         <div>
-                            <label for="tag_height_cm" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                Physical Tag Height (cm) <span class="text-[#b91c1c]">*</span>
+                            <label for="tag_height_cm" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Physical Tag Height (cm) <span class="text-brand-red">*</span>
                             </label>
                             <input id="tag_height_cm"
                                    name="tag_height_cm"
@@ -265,6 +265,56 @@
                                    value="{{ old('tag_height_cm', $tagHeightCm) }}"
                                    class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
                             <p class="text-xs text-slate-500 mt-1">Standard hospital property tag height (default: 6 cm).</p>
+                        </div>
+                    </div>
+
+                    @if (auth()->user()?->isAdmin())
+                        <div class="pt-4 border-t border-slate-100">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1 min-w-0">
+                                    <label for="show_barcode_toggle" class="block text-sm font-semibold text-slate-900 cursor-pointer">
+                                        Show barcode on tag
+                                    </label>
+                                    <p class="text-xs text-slate-500 mt-0.5">
+                                        Turn this on only if you use a barcode scanner. The barcode contains the Asset No.
+                                    </p>
+                                </div>
+                                <div class="shrink-0 pt-0.5">
+                                    <input type="hidden" name="show_barcode" value="0">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox"
+                                               id="show_barcode_toggle"
+                                               name="show_barcode"
+                                               value="1"
+                                               {{ $showBarcode ? 'checked' : '' }}
+                                               onchange="updateBarcodePreview(this.checked)"
+                                               class="sr-only peer">
+                                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Small Live Tag Preview -->
+                    <div class="pt-5 border-t border-slate-100">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-xs font-semibold text-slate-700">
+                                Live Property Tag Preview
+                            </span>
+                            <span id="barcode-preview-status" class="text-xs font-medium {{ $showBarcode ? 'text-primary' : 'text-slate-500' }}">
+                                {{ $showBarcode ? 'Barcode Enabled' : 'Traditional Paper Tag (No Barcode)' }}
+                            </span>
+                        </div>
+                        <div class="p-4 bg-slate-100/90 rounded-xl border border-slate-200 flex items-center justify-center overflow-x-auto">
+                            <div class="bg-white shadow-sm inline-block" id="tag-preview-wrapper">
+                                @include('tags.partials.tag-card', [
+                                    'asset' => $sampleAsset,
+                                    'showBarcode' => $showBarcode,
+                                    'preview' => true,
+                                    'tagAssetService' => $tagAssetService,
+                                ])
+                            </div>
                         </div>
                     </div>
 
@@ -283,7 +333,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-card padding="p-5">
                     <div class="flex items-center justify-between gap-3 mb-2.5">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active SQLite Database</span>
+                        <span class="text-xs font-semibold text-slate-700">Active SQLite Database</span>
                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
                             <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Connected</span>
@@ -296,7 +346,7 @@
 
                 <x-card padding="p-5">
                     <div class="flex items-center justify-between gap-3 mb-2.5">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Backup Directory</span>
+                        <span class="text-xs font-semibold text-slate-700">Backup Directory</span>
                         <form method="POST" action="{{ route('settings.pick-folder') }}" class="shrink-0">
                             @csrf
                             <button type="submit"
@@ -451,7 +501,7 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     @if ($u->isAdmin())
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-[#0f5d8c] border border-sky-200">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-primary border border-sky-200">
                                             Admin
                                         </span>
                                     @else
@@ -481,8 +531,8 @@
                     <form method="POST" action="{{ route('settings.users.store') }}" class="max-w-xl space-y-4">
                         @csrf
                         <div>
-                            <label for="user_name" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                Full Name <span class="text-[#b91c1c]">*</span>
+                            <label for="user_name" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Full Name <span class="text-brand-red">*</span>
                             </label>
                             <input id="user_name"
                                    name="name"
@@ -493,8 +543,8 @@
                         </div>
 
                         <div>
-                            <label for="user_email" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                Email / Login ID <span class="text-[#b91c1c]">*</span>
+                            <label for="user_email" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                Email / Login ID <span class="text-brand-red">*</span>
                             </label>
                             <input id="user_email"
                                    name="email"
@@ -506,8 +556,8 @@
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label for="user_role" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    System Role <span class="text-[#b91c1c]">*</span>
+                                <label for="user_role" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    System Role <span class="text-brand-red">*</span>
                                 </label>
                                 <select id="user_role"
                                         name="role"
@@ -518,8 +568,8 @@
                             </div>
 
                             <div>
-                                <label for="user_password" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
-                                    Temporary Password <span class="text-[#b91c1c]">*</span>
+                                <label for="user_password" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Temporary Password <span class="text-brand-red">*</span>
                                 </label>
                                 <div class="relative">
                                     <input id="user_password"
@@ -560,32 +610,32 @@
         <x-card title="System Diagnostics & Desktop Environment" subtitle="Technical workstation environment and local SQLite storage details for hospital IT staff">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
                 <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">Application Version</span>
+                    <span class="text-slate-600 font-medium block">Application Version</span>
                     <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">v1.0.0</strong>
-                    <span class="text-slate-500 text-[11px] mt-0.5 block">Native Desktop Build</span>
+                    <span class="text-slate-600 text-[11px] mt-0.5 block">Native Desktop Build</span>
                 </div>
                 <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">Database Engine</span>
+                    <span class="text-slate-600 font-medium block">Database Engine</span>
                     <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">SQLite 3 (WAL mode)</strong>
-                    <span class="text-slate-500 text-[11px] mt-0.5 block">Zero-config local storage</span>
+                    <span class="text-slate-600 text-[11px] mt-0.5 block">Zero-config local storage</span>
                 </div>
                 <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">Network Mode</span>
+                    <span class="text-slate-600 font-medium block">Network Mode</span>
                     <div class="flex items-center gap-1.5 mt-1">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <strong class="text-emerald-700 font-semibold text-xs">Working offline</strong>
+                        <span class="w-2 h-2 rounded-full bg-status-success-dot"></span>
+                        <strong class="text-status-success-text font-semibold text-xs">Working offline</strong>
                     </div>
-                    <span class="text-slate-500 text-[11px] mt-0.5 block">Local hospital workstation</span>
+                    <span class="text-slate-600 text-[11px] mt-0.5 block">Local hospital workstation</span>
                 </div>
                 <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
-                    <span class="text-slate-500 font-medium block">Backup Retention</span>
+                    <span class="text-slate-600 font-medium block">Backup Retention</span>
                     <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">30 Rolling Snapshots</strong>
-                    <span class="text-slate-500 text-[11px] mt-0.5 block">Automated 24h cycle</span>
+                    <span class="text-slate-600 text-[11px] mt-0.5 block">Automated 24h cycle</span>
                 </div>
             </div>
             <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-xs text-slate-600 font-mono">
-                <div><span class="text-slate-500 font-sans font-medium">Database File:</span> {{ $activeDatabasePath }}</div>
-                <div><span class="text-slate-500 font-sans font-medium">Backup Directory:</span> {{ $backupFolder }}</div>
+                <div><span class="text-slate-600 font-sans font-medium">Database File:</span> {{ $activeDatabasePath }}</div>
+                <div><span class="text-slate-600 font-sans font-medium">Backup Directory:</span> {{ $backupFolder }}</div>
             </div>
         </x-card>
     </div>
@@ -604,12 +654,12 @@
 
             // Update Tab Buttons
             document.querySelectorAll('.tab-btn').forEach(function (btn) {
-                btn.classList.remove('border-[#0f5d8c]', 'text-[#0f5d8c]', 'font-semibold');
+                btn.classList.remove('border-primary', 'text-primary', 'font-semibold');
                 btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
                 btn.setAttribute('aria-selected', 'false');
                 const svg = btn.querySelector('svg');
                 if (svg) {
-                    svg.classList.remove('text-[#0f5d8c]');
+                    svg.classList.remove('text-primary');
                     svg.classList.add('text-slate-400');
                 }
             });
@@ -617,12 +667,12 @@
             const activeBtn = document.getElementById('tab-btn-' + tabId);
             if (activeBtn) {
                 activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
-                activeBtn.classList.add('border-[#0f5d8c]', 'text-[#0f5d8c]', 'font-semibold');
+                activeBtn.classList.add('border-primary', 'text-primary', 'font-semibold');
                 activeBtn.setAttribute('aria-selected', 'true');
                 const svg = activeBtn.querySelector('svg');
                 if (svg) {
                     svg.classList.remove('text-slate-400');
-                    svg.classList.add('text-[#0f5d8c]');
+                    svg.classList.add('text-primary');
                 }
             }
 
@@ -647,6 +697,24 @@
                     openIcon.classList.remove('hidden');
                     slashIcon.classList.add('hidden');
                 }
+            }
+        }
+
+        function updateBarcodePreview(checked) {
+            const strips = document.querySelectorAll('#tag-preview-wrapper .barcode-strip');
+            strips.forEach(function (strip) {
+                if (checked) {
+                    strip.classList.remove('hidden');
+                    strip.style.display = '';
+                } else {
+                    strip.classList.add('hidden');
+                    strip.style.display = 'none';
+                }
+            });
+            const status = document.getElementById('barcode-preview-status');
+            if (status) {
+                status.textContent = checked ? 'Barcode Enabled' : 'Traditional Paper Tag (No Barcode)';
+                status.className = checked ? 'text-xs font-medium text-primary' : 'text-xs font-medium text-slate-500';
             }
         }
 

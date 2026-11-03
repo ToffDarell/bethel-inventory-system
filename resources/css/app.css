@@ -10,11 +10,12 @@
     --font-sans: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'Cascadia Mono', 'Consolas', monospace;
 
-    /* Semantic Hospital Tokens */
-    --color-primary: #0f5d8c;
-    --color-primary-hover: #0c4a70;
-    --color-primary-light: #f0f7fb;
+    /* Semantic Hospital Tokens: Direction 1 - Charcoal Primary + Logo Crimson Accent */
+    --color-primary: #0f172a;
+    --color-primary-hover: #1e293b;
+    --color-primary-soft: #f1f5f9;
     --color-brand-red: #b91c1c;
+    --color-brand-red-hover: #991b1b;
 
     --color-canvas: #f8fafc;
     --color-surface: #ffffff;
@@ -24,20 +25,62 @@
     --color-text-main: #0f172a;
     --color-text-secondary: #475569;
     --color-text-muted: #64748b;
+
+    /* Status Tokens (WCAG AA Compliant) */
+    --color-status-success-bg: #dcfce7;
+    --color-status-success-text: #15803d;
+    --color-status-success-border: #86efac;
+    --color-status-success-dot: #059669;
+
+    --color-status-warning-bg: #fef3c7;
+    --color-status-warning-text: #b45309;
+    --color-status-warning-border: #fde68a;
+    --color-status-warning-dot: #d97706;
+
+    --color-status-stored-bg: #f1f5f9;
+    --color-status-stored-text: #475569;
+    --color-status-stored-border: #e2e8f0;
+    --color-status-stored-dot: #64748b;
+
+    --color-status-disposed-bg: #f1f5f9;
+    --color-status-disposed-text: #64748b;
+    --color-status-disposed-border: #e2e8f0;
+    --color-status-disposed-dot: #94a3b8;
 }
 
 @layer base {
     :root {
-        --hospital-primary: #0f5d8c;
-        --hospital-primary-hover: #0c4a70;
-        --hospital-primary-light: #f0f7fb;
+        --hospital-primary: #0f172a;
+        --hospital-primary-hover: #1e293b;
+        --hospital-primary-soft: #f1f5f9;
         --hospital-brand-red: #b91c1c;
+        --hospital-brand-red-hover: #991b1b;
         --hospital-canvas: #f8fafc;
         --hospital-surface: #ffffff;
         --hospital-border: #e2e8f0;
         --hospital-text: #0f172a;
         --hospital-text-secondary: #475569;
         --hospital-text-muted: #64748b;
+
+        --hospital-status-success-bg: #dcfce7;
+        --hospital-status-success-text: #15803d;
+        --hospital-status-success-border: #86efac;
+        --hospital-status-success-dot: #059669;
+
+        --hospital-status-warning-bg: #fef3c7;
+        --hospital-status-warning-text: #b45309;
+        --hospital-status-warning-border: #fde68a;
+        --hospital-status-warning-dot: #d97706;
+
+        --hospital-status-stored-bg: #f1f5f9;
+        --hospital-status-stored-text: #475569;
+        --hospital-status-stored-border: #e2e8f0;
+        --hospital-status-stored-dot: #64748b;
+
+        --hospital-status-disposed-bg: #f1f5f9;
+        --hospital-status-disposed-text: #64748b;
+        --hospital-status-disposed-border: #e2e8f0;
+        --hospital-status-disposed-dot: #94a3b8;
     }
 
     html {
@@ -66,6 +109,27 @@
         outline: 2px solid var(--hospital-primary);
         outline-offset: 2px;
     }
+}
+
+/* Hospital ECG Heartbeat Pulse Animation */
+@keyframes ecg-draw {
+    0% {
+        stroke-dashoffset: 800;
+        opacity: 0.75;
+    }
+    50% {
+        opacity: 1;
+    }
+    100% {
+        stroke-dashoffset: 0;
+        opacity: 0.75;
+    }
+}
+
+.ecg-pulse-line {
+    stroke-dasharray: 800;
+    stroke-dashoffset: 800;
+    animation: ecg-draw 3.2s linear infinite;
 }
 
 @media print {

@@ -81,7 +81,7 @@ test('layout sidebar shows only the five main sections', function () {
 
     $this->actingAs($user)->get('/dashboard')
         ->assertOk()
-        ->assertSeeInOrder(['Dashboard', 'Assets', 'Scan', 'Reports', 'Settings'])
+        ->assertSeeInOrder(['Dashboard', 'Assets', 'Find Asset', 'Reports', 'Settings'])
         ->assertDontSee('fonts.googleapis', false)
         ->assertDontSee('cdn.', false);
 });

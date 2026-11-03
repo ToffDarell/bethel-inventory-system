@@ -3,7 +3,14 @@
 @section('content')
     @php
         $totalCount = max(0, (int) ($totalAssets ?? 0));
-        $underRepairCount = (int) ($statusCounts['Under Repair'] ?? 0);
+        $underRepairItems = \App\Models\Asset::where('status', 'Under Repair')->take(3)->get();
+        $underRepairCount = (int) ($statusCounts['Under Repair'] ?? $underRepairItems->count());
+        $unassignedLocationItems = \App\Models\Asset::query()
+            ->where(function ($q) {
+                $q->whereNull('location')->orWhere('location', '');
+            })
+            ->take(3)
+            ->get();
         $unassignedLocationCount = \App\Models\Asset::query()
             ->where(function ($q) {
                 $q->whereNull('location')->orWhere('location', '');
@@ -26,11 +33,11 @@
                 <span>Print Tags</span>
             </x-button>
 
-            <x-button variant="secondary" :href="route('scan.index')">
+            <x-button variant="secondary" :href="route('assets.find')">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <span>Scan Tag</span>
+                <span>Find Asset</span>
             </x-button>
 
             <x-button variant="primary" :href="route('assets.create')">
@@ -44,47 +51,55 @@
 
     <!-- Needs Attention Compact Clinical Strip -->
     @if ($hasAttentionItems)
-        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-950 flex flex-wrap items-center justify-between gap-3 shadow-2xs" role="region" aria-label="Items needing attention">
+        <div class="p-4 rounded-xl bg-status-warning-bg border border-status-warning-border text-status-warning-text flex flex-wrap items-center justify-between gap-3 shadow-2xs" role="region" aria-label="Items needing attention">
             <div class="flex items-center gap-2.5">
-                <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
-                <span class="text-xs font-semibold text-amber-950">Needs attention:</span>
-                <span class="text-xs text-amber-900 hidden sm:inline">Items requiring review to keep hospital property records and backups current</span>
+                <span class="w-2.5 h-2.5 rounded-full bg-status-warning-dot shrink-0"></span>
+                <span class="text-xs font-bold text-status-warning-text">Needs attention:</span>
+                <span class="text-xs text-status-warning-text/90 hidden sm:inline">Items requiring review to keep hospital property records and backups current</span>
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                @if ($underRepairCount > 0)
+                @foreach ($underRepairItems as $item)
+                    <a href="{{ route('assets.show', $item) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
+                       title="{{ $item->asset_name }} ({{ $item->location ?: 'No location' }})">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
+                        <span>{{ $item->asset_no }}: {{ Str::limit($item->asset_name, 18) }} &bull; Under Repair</span>
+                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endforeach
+                @if ($underRepairCount > $underRepairItems->count())
                     <a href="{{ route('assets.index', ['status' => 'Under Repair']) }}"
-                       class="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-950 hover:bg-amber-100/70 transition-colors">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                        <span>{{ $underRepairCount }} {{ Str::plural('asset', $underRepairCount) }} under repair</span>
-                        <span class="text-amber-700 font-mono text-[11px]">&rarr;</span>
+                       class="text-xs font-semibold text-status-warning-text hover:underline px-1">
+                        +{{ $underRepairCount - $underRepairItems->count() }} more under repair &rarr;
                     </a>
                 @endif
 
-                @if ($unassignedLocationCount > 0)
-                    <a href="{{ route('assets.index') }}"
-                       class="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-950 hover:bg-amber-100/70 transition-colors">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                        <span>{{ $unassignedLocationCount }} without location</span>
-                        <span class="text-amber-700 font-mono text-[11px]">&rarr;</span>
+                @foreach ($unassignedLocationItems as $item)
+                    <a href="{{ route('assets.edit', $item) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
+                       title="{{ $item->asset_name }}">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
+                        <span>{{ $item->asset_no }}: Missing Location</span>
+                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
                     </a>
-                @endif
+                @endforeach
 
                 @if ($backupOverdue)
                     <a href="{{ route('settings.index', ['tab' => 'backup']) }}"
-                       class="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-950 hover:bg-amber-100/70 transition-colors">
-                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600"></span>
-                        <span>Backup overdue (>7 days)</span>
-                        <span class="text-amber-700 font-mono text-[11px]">&rarr;</span>
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
+                        <span>Database Backup Overdue (&gt;7 days)</span>
+                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
                     </a>
                 @endif
             </div>
         </div>
     @else
-        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 flex items-center justify-between gap-4" role="region" aria-label="System status">
+        <div class="p-3.5 rounded-xl bg-status-success-bg border border-status-success-border text-status-success-text flex items-center justify-between gap-4" role="region" aria-label="System status">
             <div class="flex items-center gap-2.5 text-xs">
-                <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
-                <span><strong class="font-semibold text-emerald-900">All records current:</strong> No assets under repair, all locations assigned, database backup verified.</span>
+                <span class="w-2 h-2 rounded-full bg-status-success-dot shrink-0"></span>
+                <span><strong class="font-semibold text-status-success-text">All records current:</strong> No assets under repair, all locations assigned, database backup verified.</span>
             </div>
         </div>
     @endif
@@ -128,7 +143,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         @foreach ($summaryCards as $card)
             <a href="{{ $card['href'] }}"
-               class="group p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs shadow-2xs transition-all flex flex-col justify-between">
+               class="group p-5 rounded-xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs shadow-2xs transition-colors flex flex-col justify-between">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full shrink-0 {{ $card['dot'] }}"></span>
@@ -136,7 +151,7 @@
                             {{ $card['label'] }}
                         </p>
                     </div>
-                    <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-[#0f5d8c] group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg class="w-3.5 h-3.5 text-slate-300 group-hover:text-primary group-hover:translate-x-0.5 transition-transform duration-150" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                     </svg>
                 </div>
@@ -158,7 +173,7 @@
                             <h3 class="text-base font-semibold text-slate-900">Assets by Department</h3>
                             <p class="text-xs text-slate-500 mt-0.5">Inventory distribution across hospital units</p>
                         </div>
-                        <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-[#0f5d8c] hover:underline">
+                        <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
                             View all &rarr;
                         </a>
                     </div>
@@ -170,13 +185,13 @@
                             @php
                                 $barWidth = $totalCount > 0 ? max(6, round(($deptRow->total / $totalCount) * 100)) : 0;
                                 $isUnassigned = $deptRow->dept_name === 'Unassigned';
-                                $barColor = $isUnassigned ? 'bg-slate-300' : 'bg-slate-700';
+                                $barColor = $isUnassigned ? 'bg-slate-300' : ($loop->first ? 'bg-primary' : 'bg-slate-600');
                             @endphp
                             <li>
                                 <div class="flex items-center justify-between text-xs mb-1.5">
                                     @if (! $isUnassigned)
                                         <a href="{{ route('assets.index', ['department' => $deptRow->dept_name]) }}"
-                                           class="font-medium text-slate-800 hover:text-[#0f5d8c] hover:underline truncate">
+                                           class="font-medium text-slate-800 hover:text-primary hover:underline truncate">
                                             {{ $deptRow->dept_name }}
                                         </a>
                                     @else
@@ -213,16 +228,16 @@
                     <span class="text-slate-400 font-normal">Floor actions</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                    <a href="{{ route('scan.index') }}"
+                    <a href="{{ route('assets.find') }}"
                        class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700">
-                        <svg class="w-4 h-4 text-[#0f5d8c] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                        <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        <span>Scan Tag</span>
+                        <span>Find Asset</span>
                     </a>
                     <a href="{{ route('reports.index') }}"
                        class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700">
-                        <svg class="w-4 h-4 text-[#0f5d8c] shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
                         <span>Export Excel</span>
@@ -238,9 +253,9 @@
                     <div class="flex items-center justify-between w-full">
                         <div>
                             <h3 class="text-base font-semibold text-slate-900">Recently Added Assets</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Latest equipment recorded in the hospital register</p>
+                            <p class="text-xs text-slate-600 mt-0.5">Latest equipment recorded in the hospital register</p>
                         </div>
-                        <a href="{{ route('assets.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-all shadow-2xs">
+                        <a href="{{ route('assets.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-2xs">
                             <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                             </svg>
@@ -257,7 +272,7 @@
                                     <th class="py-3 px-4 w-32 whitespace-nowrap">Asset No.</th>
                                     <th class="py-3 px-4">Equipment &amp; Location</th>
                                     <th class="py-3 px-4 w-28 whitespace-nowrap">Status</th>
-                                    <th class="py-3 px-4 w-24 text-right whitespace-nowrap">Actions</th>
+                                    <th class="py-3 px-4 w-32 min-w-[128px] text-right pr-4 whitespace-nowrap">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-slate-100 [&>tr]:h-[52px]">
@@ -271,11 +286,11 @@
                                         </td>
                                         <td class="py-2.5 px-4 min-w-[200px] max-w-[320px]">
                                             <a href="{{ route('assets.show', $recent) }}"
-                                               class="font-semibold text-slate-900 group-hover:text-[#0f5d8c] block truncate transition-colors"
+                                               class="font-semibold text-slate-900 group-hover:text-primary block truncate transition-colors"
                                                title="{{ $recent->asset_name }}">
                                                 {{ $recent->asset_name }}
                                             </a>
-                                            <p class="text-[11px] text-slate-500 truncate mt-0.5"
+                                            <p class="text-[11px] text-slate-600 truncate mt-0.5"
                                                title="{{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}">
                                                 {{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}
                                             </p>
@@ -283,7 +298,7 @@
                                         <td class="py-2.5 px-4 whitespace-nowrap">
                                             <x-badge :status="$recent->status" />
                                         </td>
-                                        <td class="py-2.5 px-4 text-right whitespace-nowrap">
+                                        <td class="py-2.5 px-4 w-32 min-w-[128px] text-right pr-4 whitespace-nowrap">
                                             <div class="inline-flex items-center justify-end gap-1" onclick="event.stopPropagation()">
                                                 <x-icon-button :href="route('assets.show', $recent)" title="View Asset" size="sm">
                                                     <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">

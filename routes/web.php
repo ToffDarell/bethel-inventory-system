@@ -72,8 +72,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');
         Route::get('/tags/pdf', [TagController::class, 'pdf'])->name('tags.pdf');
 
-        Route::get('/scan', [ScanController::class, 'index'])->name('scan.index');
-        Route::get('/scan/lookup', [ScanController::class, 'lookup'])->name('scan.lookup');
+        Route::get('/find', [ScanController::class, 'index'])->name('assets.find');
+        Route::get('/find/lookup', [ScanController::class, 'lookup'])->name('assets.find.lookup');
+
+        Route::get('/scan', function () {
+            return redirect()->route('assets.find');
+        })->name('scan.index');
+        Route::get('/scan/lookup', function (\Illuminate\Http\Request $request) {
+            return redirect()->route('assets.find.lookup', $request->query());
+        })->name('scan.lookup');
 
         Route::get('/assets/{asset}/move', [TransferController::class, 'create'])->name('assets.move.create');
         Route::post('/assets/{asset}/move', [TransferController::class, 'store'])->name('assets.move.store');

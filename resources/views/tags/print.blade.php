@@ -26,7 +26,6 @@
 
         .toolbar {
             background-color: #ffffff;
-            border-top: 3px solid #b91c1c;
             border-bottom: 1px solid #e2e8f0;
             color: #0f172a;
             padding: 12px 24px;
@@ -91,15 +90,15 @@
         }
 
         .btn-primary {
-            background-color: #0f5d8c;
+            background-color: var(--hospital-primary, #0f172a);
             color: #ffffff;
-            border: 1px solid #0f5d8c;
-            box-shadow: 0 1px 2px rgba(15, 93, 140, 0.2);
+            border: 1px solid var(--hospital-primary, #0f172a);
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.15);
         }
 
         .btn-primary:hover {
-            background-color: #0c4a70;
-            border-color: #0c4a70;
+            background-color: var(--hospital-primary-hover, #1e293b);
+            border-color: var(--hospital-primary-hover, #1e293b);
         }
 
         .btn-secondary {
@@ -132,12 +131,6 @@
             box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
             min-height: 27cm;
             width: 21cm;
-        }
-
-        .qr-svg-box svg {
-            width: 100%;
-            height: 100%;
-            display: block;
         }
 
         @media print {
@@ -212,8 +205,9 @@
                     'hospitalAddress' => $hospitalAddress,
                     'tagWidthCm' => $tagWidthCm,
                     'tagHeightCm' => $tagHeightCm,
+                    'showBarcode' => $showBarcode,
                     'logoDataUri' => $logoDataUri,
-                    'qrService' => $qrService,
+                    'tagAssetService' => $tagAssetService,
                     'forPdf' => false,
                 ])
             @endforeach

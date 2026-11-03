@@ -28,3 +28,8 @@ Thumbs.db
 
 /.superpowers
 /nativephp/electron/dist
+/.playwright-mcp/
+/public/screenshots/
+/public/*.png
+/public/Downloads/
+/design-system/

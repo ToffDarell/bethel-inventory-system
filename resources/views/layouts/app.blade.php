@@ -7,10 +7,10 @@
     <title>{{ $title ?? 'Bethel Asset Tracker' }} - {{ \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="bg-[#f8fafc] text-slate-900 font-sans antialiased text-[14.5px] min-h-screen flex selection:bg-sky-100 selection:text-sky-900">
+<body class="bg-canvas text-slate-900 font-sans antialiased text-[14.5px] min-h-screen flex selection:bg-sky-100 selection:text-sky-900">
     @php
         $hospitalName = \App\Models\Setting::get('hospital_name', 'Bethel Baptist Hospital, Inc.');
-        $logoDataUri = app(\App\Services\QrCodeService::class)->hospitalLogoBase64();
+        $logoDataUri = app(\App\Services\TagAssetService::class)->hospitalLogoBase64();
     @endphp
 
     <!-- Left Sidebar (Collapsible 248px <-> 72px, Pure White Clinical Surface) -->
@@ -18,9 +18,6 @@
            class="no-print w-[248px] bg-white text-slate-800 border-r border-slate-200 flex flex-col justify-between shrink-0 h-screen sticky top-0 select-none transition-all duration-200 z-30"
            data-collapsed="false">
         <div class="flex flex-col">
-            <!-- Top Hospital Crimson Accent Line (3px) -->
-            <div class="h-[3px] w-full bg-[#b91c1c]"></div>
-
             <!-- Official Hospital Logo & Branding -->
             <div class="p-3.5 border-b border-slate-200 flex items-center justify-between gap-3">
                 <a href="{{ route('dashboard') }}" class="flex items-center gap-3 min-w-0 group" title="Bethel Asset Tracker">
@@ -30,10 +27,10 @@
                              class="h-8 w-auto object-contain">
                     </div>
                     <div class="sidebar-expanded-text min-w-0">
-                        <h1 class="text-sm font-bold text-slate-900 leading-tight truncate group-hover:text-[#0f5d8c] transition-colors">
+                        <h1 class="text-sm font-bold text-slate-900 leading-tight truncate group-hover:text-primary transition-colors">
                             Bethel Asset Tracker
                         </h1>
-                        <p class="text-[11px] text-slate-500 font-medium truncate mt-0.5">
+                        <p class="text-[11px] text-slate-600 font-medium truncate mt-0.5">
                             Hospital Inventory
                         </p>
                     </div>
@@ -42,7 +39,7 @@
 
             <!-- Primary Navigation (Strictly 5 items in order) -->
             <div class="px-2.5 py-4">
-                <p class="sidebar-expanded-text px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-2 select-none">
+                <p class="sidebar-expanded-text px-3 text-xs font-semibold text-slate-600 mb-2 select-none">
                     Navigation
                 </p>
                 <nav class="space-y-1" aria-label="Main Navigation">
@@ -57,14 +54,14 @@
                             [
                                 'label' => 'Assets',
                                 'route' => 'assets.index',
-                                'active' => request()->routeIs('assets.*'),
+                                'active' => request()->routeIs('assets.*') && ! request()->routeIs('assets.find*'),
                                 'icon' => 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
                             ],
                             [
-                                'label' => 'Scan',
-                                'route' => 'scan.index',
-                                'active' => request()->routeIs('scan.*'),
-                                'icon' => 'M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z',
+                                'label' => 'Find Asset',
+                                'route' => 'assets.find',
+                                'active' => request()->routeIs('assets.find*') || request()->routeIs('scan.*'),
+                                'icon' => 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z',
                             ],
                             [
                                 'label' => 'Reports',
@@ -84,9 +81,9 @@
                     @foreach ($navItems as $item)
                         @if ($item['active'])
                             <a href="{{ route($item['route']) }}"
-                               title="{{ $item['label'] }}"
-                               class="group flex items-center gap-3 min-h-[44px] px-3 py-2.5 rounded-lg bg-[#0f5d8c]/10 text-[#0f5d8c] font-semibold border-l-[3px] border-[#0f5d8c] transition-all">
-                                <svg class="w-5 h-5 shrink-0 text-[#0f5d8c]"
+                               data-nav-label="{{ $item['label'] }}"
+                               class="group flex items-center gap-3 min-h-[44px] px-3 py-2.5 rounded-lg bg-primary-soft text-primary font-semibold border-l-[3px] border-brand-red transition-colors">
+                                <svg class="w-5 h-5 shrink-0 text-primary"
                                      fill="none"
                                      stroke="currentColor"
                                      stroke-width="1.75"
@@ -98,7 +95,7 @@
                             </a>
                         @else
                             <a href="{{ route($item['route']) }}"
-                               title="{{ $item['label'] }}"
+                               data-nav-label="{{ $item['label'] }}"
                                class="group flex items-center gap-3 min-h-[44px] px-3 py-2.5 rounded-lg text-slate-700 hover:bg-slate-100 hover:text-slate-900 font-medium transition-colors">
                                 <svg class="w-5 h-5 shrink-0 text-slate-500 group-hover:text-slate-800 transition-colors"
                                      fill="none"
@@ -141,7 +138,7 @@
                         </div>
                         <div class="sidebar-expanded-text min-w-0 flex-1">
                             <p class="text-xs font-semibold text-slate-900 truncate">{{ auth()->user()->name }}</p>
-                            <p class="text-[11px] text-slate-500 truncate">{{ ucfirst(auth()->user()->role) }}</p>
+                            <p class="text-[11px] text-slate-600 truncate">{{ ucfirst(auth()->user()->role) }}</p>
                         </div>
                     </div>
 
@@ -162,7 +159,7 @@
     </aside>
 
     <!-- Main Workspace -->
-    <div class="flex-1 flex flex-col min-w-0 bg-[#f8fafc]">
+    <div class="flex-1 flex flex-col min-w-0 bg-canvas">
         <!-- Top Context Bar (Global Search, Offline Status, Date, User) -->
         <header class="no-print h-14 px-6 bg-white border-b border-slate-200 flex items-center justify-between gap-4 sticky top-0 z-20">
             <!-- Global Asset Search (Ctrl+K or /) -->
@@ -176,7 +173,7 @@
                            autocomplete="off"
                            placeholder="Search assets... (Press / or Ctrl+K)"
                            aria-label="Global Asset Search"
-                           class="w-full h-9 pl-9 pr-14 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg placeholder:text-slate-400 text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0f5d8c] focus:border-[#0f5d8c] transition-all">
+                           class="w-full h-9 pl-9 pr-14 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 rounded-lg placeholder:text-slate-400 text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition-colors">
                     <kbd class="hidden sm:inline-flex items-center absolute right-2.5 px-1.5 py-0.5 text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded select-none pointer-events-none">
                         Ctrl K
                     </kbd>
@@ -186,7 +183,7 @@
                 <div id="global-search-dropdown"
                      class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden divide-y divide-slate-100 max-h-96 overflow-y-auto">
                     <div id="global-search-loading" class="hidden px-4 py-3 text-xs text-slate-500 flex items-center gap-2">
-                        <svg class="animate-spin h-3.5 w-3.5 text-[#0f5d8c]" fill="none" viewBox="0 0 24 24">
+                        <svg class="animate-spin h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24">
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
                         </svg>
@@ -206,7 +203,7 @@
             <!-- Top Right: Date & Hospital Motto -->
             <div class="flex items-center gap-4 text-xs">
                 <!-- Hospital Motto -->
-                <span class="text-slate-500 hidden xl:inline select-none">Preach the Word, Heal the Sick</span>
+                <span class="text-slate-600 hidden xl:inline select-none">Preach the Word, Heal the Sick</span>
 
                 <!-- Date in Normal Font (No monospace!) -->
                 <span class="text-slate-700 font-medium select-none hidden md:inline">

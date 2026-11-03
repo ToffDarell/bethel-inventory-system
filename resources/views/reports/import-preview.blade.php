@@ -60,7 +60,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 p-2.5 rounded-lg bg-sky-50/70 border border-sky-200 text-slate-900">
-                    <span class="w-6 h-6 rounded-full bg-[#0f5d8c] text-white font-semibold flex items-center justify-center shrink-0">3</span>
+                    <span class="w-6 h-6 rounded-full bg-primary text-white font-semibold flex items-center justify-center shrink-0">3</span>
                     <div>
                         <p class="font-semibold text-slate-900">3. Review Preview</p>
                         <p class="text-[11px] text-slate-600">Active inspection</p>
@@ -82,7 +82,7 @@
             <!-- Ready to Import -->
             <div class="p-5 rounded-xl border border-emerald-200 bg-emerald-50/60 shadow-2xs">
                 <div class="flex items-center justify-between gap-3">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-emerald-800">Ready to Import</p>
+                    <p class="text-xs font-semibold text-emerald-800">Ready to import</p>
                     <span class="w-2 h-2 rounded-full bg-emerald-600"></span>
                 </div>
                 <p class="text-3xl font-semibold text-emerald-950 tabular-nums mt-2">{{ $valid_count }}</p>
@@ -92,7 +92,7 @@
             <!-- Duplicate Asset No. (Skipped) -->
             <div class="p-5 rounded-xl border border-amber-200 bg-amber-50/60 shadow-2xs">
                 <div class="flex items-center justify-between gap-3">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-amber-800">Duplicate (Skipped)</p>
+                    <p class="text-xs font-semibold text-amber-800">Duplicate (skipped)</p>
                     <span class="w-2 h-2 rounded-full bg-amber-600"></span>
                 </div>
                 <p class="text-3xl font-semibold text-amber-950 tabular-nums mt-2">{{ $duplicate_count }}</p>
@@ -102,7 +102,7 @@
             <!-- Incomplete Rows (Skipped) -->
             <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 shadow-2xs">
                 <div class="flex items-center justify-between gap-3">
-                    <p class="text-xs font-semibold uppercase tracking-wider text-slate-600">Incomplete Rows (Skipped)</p>
+                    <p class="text-xs font-semibold text-slate-600">Incomplete rows (skipped)</p>
                     <span class="w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
                 <p class="text-3xl font-semibold text-slate-900 tabular-nums mt-2">{{ $invalid_count }}</p>

@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             'asset_no_prefix' => 'BBH',
             'tag_width_cm' => '10',
             'tag_height_cm' => '6',
+            'show_barcode' => '0',
             'backup_folder' => Setting::defaultBackupFolder(),
         ];
 

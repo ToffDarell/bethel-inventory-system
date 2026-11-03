@@ -35,8 +35,9 @@
                     'hospitalAddress' => $hospitalAddress,
                     'tagWidthCm' => $tagWidthCm,
                     'tagHeightCm' => $tagHeightCm,
+                    'showBarcode' => $showBarcode,
                     'logoDataUri' => $logoDataUri,
-                    'qrService' => $qrService,
+                    'tagAssetService' => $tagAssetService,
                     'forPdf' => true,
                 ])
             </div>

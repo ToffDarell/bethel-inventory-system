@@ -28,7 +28,7 @@
                            id="activity-search"
                            placeholder="Filter by user, action, or asset number..."
                            oninput="filterActivities(this.value)"
-                           class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                           class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                 </div>
 
                 <div class="flex items-center gap-2 text-xs text-slate-500">
@@ -82,7 +82,7 @@
                         <td class="py-3 px-4">
                             @if ($isAsset)
                                 @if (method_exists($subject, 'trashed') && ! $subject->trashed())
-                                    <a href="{{ route('assets.show', $subject) }}" class="inline-flex items-center gap-1 font-mono font-semibold text-xs text-[#0f5d8c] hover:underline">
+                                    <a href="{{ route('assets.show', $subject) }}" class="inline-flex items-center gap-1 font-mono font-semibold text-xs text-primary hover:underline">
                                         <span>{{ $subject->asset_no }}</span>
                                     </a>
                                 @else

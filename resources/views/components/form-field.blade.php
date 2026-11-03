@@ -15,7 +15,7 @@
     $hasError = $errors->has($name);
     $borderClasses = $hasError
         ? 'border-red-500 focus:border-red-600 focus:ring-red-600'
-        : 'border-slate-300 focus:border-[#0f5d8c] focus:ring-[#0f5d8c]';
+        : 'border-slate-300 focus:border-primary focus:ring-primary';
     $fontClasses = $mono ? 'font-mono' : '';
 @endphp
 
@@ -24,7 +24,7 @@
         <label for="{{ $name }}" class="block text-sm font-semibold text-slate-800">
             {{ $label }}
             @if ($required)
-                <span class="text-[#b91c1c] font-semibold ml-0.5" aria-hidden="true">*</span>
+                <span class="text-brand-red font-semibold ml-0.5" aria-hidden="true">*</span>
             @else
                 <span class="text-xs font-normal text-slate-400 ml-1">(Optional)</span>
             @endif
@@ -79,8 +79,8 @@
     @endif
 
     @error($name)
-        <p class="text-xs font-medium text-[#b91c1c] flex items-center gap-1.5 mt-1" role="alert">
-            <svg class="w-3.5 h-3.5 shrink-0 text-[#b91c1c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+        <p class="text-xs font-medium text-brand-red flex items-center gap-1.5 mt-1" role="alert">
+            <svg class="w-3.5 h-3.5 shrink-0 text-brand-red" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
             </svg>
             <span>{{ $message }}</span>

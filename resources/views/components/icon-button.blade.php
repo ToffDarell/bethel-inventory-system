@@ -16,10 +16,10 @@
     };
 
     $variantClasses = match ($variant) {
-        'ghost' => 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus-visible:ring-[#0f5d8c]',
-        'primary' => 'bg-[#0f5d8c] text-white hover:bg-[#0c4a70] shadow-2xs focus-visible:ring-[#0f5d8c]',
-        'danger' => 'text-slate-600 hover:text-[#b91c1c] hover:bg-red-50 hover:border-red-200 border border-transparent focus-visible:ring-[#b91c1c]',
-        default => 'border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 shadow-2xs focus-visible:ring-[#0f5d8c]',
+        'ghost' => 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus-visible:ring-primary',
+        'primary' => 'bg-primary text-white hover:bg-primary-hover shadow-2xs focus-visible:ring-primary',
+        'danger' => 'text-slate-600 hover:text-brand-red hover:bg-red-50 hover:border-red-200 border border-transparent focus-visible:ring-brand-red',
+        default => 'border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 hover:border-slate-300 shadow-2xs focus-visible:ring-primary',
     };
 
     $classes = "{$baseClasses} {$sizeClasses} {$variantClasses}";

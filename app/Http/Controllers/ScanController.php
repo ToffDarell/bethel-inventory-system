@@ -20,8 +20,8 @@ class ScanController extends Controller
 
         if ($code === '') {
             return redirect()
-                ->route('scan.index')
-                ->withErrors(['q' => 'Please scan a barcode/QR tag or type an Asset No.']);
+                ->route('assets.find')
+                ->withErrors(['q' => 'Please type an Asset No. or scan a tag code.']);
         }
 
         $asset = Asset::whereRaw('LOWER(asset_no) = LOWER(?)', [$code])->first();
@@ -32,11 +32,37 @@ class ScanController extends Controller
                 ->with('success', "Asset \"{$asset->asset_no}\" ({$asset->asset_name}) opened.");
         }
 
+        // Check for exact name match
+        $nameMatch = Asset::whereRaw('LOWER(asset_name) = LOWER(?)', [$code])->first();
+        if ($nameMatch) {
+            return redirect()
+                ->route('assets.show', $nameMatch)
+                ->with('success', "Asset \"{$nameMatch->asset_no}\" ({$nameMatch->asset_name}) opened.");
+        }
+
+        // Check if query matches a single partial record
+        $partialMatches = Asset::where('asset_name', 'like', "%{$code}%")
+            ->orWhere('asset_no', 'like', "%{$code}%")
+            ->get();
+
+        if ($partialMatches->count() === 1) {
+            $single = $partialMatches->first();
+            return redirect()
+                ->route('assets.show', $single)
+                ->with('success', "Asset \"{$single->asset_no}\" ({$single->asset_name}) opened.");
+        }
+
+        if ($partialMatches->count() > 1) {
+            return redirect()
+                ->route('assets.index', ['search' => $code])
+                ->with('info', "Found {$partialMatches->count()} equipment items matching \"{$code}\".");
+        }
+
         return redirect()
-            ->route('scan.index')
+            ->route('assets.find')
             ->with('not_found_code', $code)
             ->withErrors([
-                'q' => "No asset found with Asset No. \"{$code}\". Please check the code or register it as a new asset.",
+                'q' => "No asset found with code \"{$code}\". Please check the code or register it as a new asset.",
             ]);
     }
 }

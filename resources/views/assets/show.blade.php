@@ -62,7 +62,7 @@
                     @csrf
                     @method('DELETE')
                     <x-button variant="danger-outline" type="submit">
-                        <svg class="w-4 h-4 text-[#b91c1c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
                         <span>Delete</span>
@@ -79,21 +79,21 @@
             <x-card title="Asset Information" subtitle="Registered identification, location, and condition details">
                 <dl class="divide-y divide-slate-100 text-[15px]">
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Asset No.</dt>
+                        <dt class="text-slate-600 font-medium">Asset No.</dt>
                         <dd class="col-span-2 font-mono font-medium text-slate-900">{{ $asset->asset_no }}</dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Asset Name</dt>
+                        <dt class="text-slate-600 font-medium">Asset Name</dt>
                         <dd class="col-span-2 font-medium text-slate-900">{{ $asset->asset_name }}</dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Model / Brand</dt>
+                        <dt class="text-slate-600 font-medium">Model / Brand</dt>
                         <dd class="col-span-2 text-slate-900">
                             {{ $asset->model ?: 'Not specified' }}
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Serial No.</dt>
+                        <dt class="text-slate-600 font-medium">Serial No.</dt>
                         <dd class="col-span-2 text-slate-900">
                             @if ($asset->serial_no)
                                 <span class="font-mono text-slate-800">{{ $asset->serial_no }}</span>
@@ -103,31 +103,31 @@
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Date Acquired</dt>
+                        <dt class="text-slate-600 font-medium">Date Acquired</dt>
                         <dd class="col-span-2 text-slate-900 tabular-nums">
                             {{ $asset->date_acquired ? $asset->date_acquired->format('M d, Y') : 'Not recorded' }}
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Department</dt>
+                        <dt class="text-slate-600 font-medium">Department</dt>
                         <dd class="col-span-2 text-slate-900">
                             {{ $asset->department ?: 'Unassigned' }}
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Location</dt>
+                        <dt class="text-slate-600 font-medium">Location</dt>
                         <dd class="col-span-2 font-medium text-slate-900">
                             {{ $asset->location ?: 'Unassigned' }}
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4 items-center">
-                        <dt class="text-slate-500 font-medium">Status</dt>
+                        <dt class="text-slate-600 font-medium">Status</dt>
                         <dd class="col-span-2">
                             <x-badge :status="$asset->status" />
                         </dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
-                        <dt class="text-slate-500 font-medium">Notes</dt>
+                        <dt class="text-slate-600 font-medium">Notes</dt>
                         <dd class="col-span-2 text-slate-700 whitespace-pre-line">
                             {{ $asset->notes ?: 'None' }}
                         </dd>
@@ -168,10 +168,6 @@
                         @include('tags.partials.tag-card', ['asset' => $asset, 'preview' => true])
                     </div>
                 </div>
-
-                <p class="text-xs text-slate-500 mt-4 text-center">
-                    Matches Bethel Baptist Hospital physical property tag layout with embedded logo and scannable QR code
-                </p>
             </x-card>
         </div>
     </div>
@@ -197,8 +193,8 @@
             <div class="relative pl-6 sm:pl-8 before:absolute before:left-[11px] sm:before:left-[15px] before:top-3 before:bottom-3 before:w-0.5 before:bg-slate-200 space-y-6 pt-2">
                 @foreach ($asset->transfers as $index => $transfer)
                     <div class="relative flex items-start gap-4">
-                        <!-- Node indicator: Deep Medical Blue for current location, muted border for past -->
-                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full flex items-center justify-center {{ $index === 0 ? 'bg-[#0f5d8c] text-white ring-4 ring-sky-50' : 'bg-white border-2 border-slate-300 text-slate-500' }}">
+                        <!-- Node indicator: Primary for current location, muted border for past -->
+                        <div class="absolute -left-6 sm:-left-8 top-1 w-6 h-6 rounded-full flex items-center justify-center {{ $index === 0 ? 'bg-primary text-white ring-4 ring-primary-soft' : 'bg-white border-2 border-slate-300 text-slate-500' }}">
                             @if ($index === 0)
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
@@ -220,7 +216,7 @@
                                         {{ $transfer->moved_at?->format('h:i A') }}
                                     </span>
                                     @if ($index === 0)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-sky-50 text-[#0f5d8c] border border-sky-200">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-primary-soft text-primary border border-primary/20">
                                             Current Assignment
                                         </span>
                                     @endif
@@ -232,7 +228,7 @@
 
                             <div class="mt-3 flex flex-wrap items-center gap-2.5 text-sm">
                                 <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] text-slate-600 font-semibold uppercase tracking-wider">From</span>
+                                    <span class="text-xs text-slate-600 font-semibold">From</span>
                                     <span class="font-medium text-slate-700 bg-white border border-slate-200 px-2.5 py-1 rounded-md">
                                         {{ $transfer->from_location ?: 'Initial registration' }}
                                     </span>
@@ -243,8 +239,8 @@
                                 </svg>
 
                                 <div class="flex items-center gap-1.5">
-                                    <span class="text-[11px] text-[#0f5d8c] font-semibold uppercase tracking-wider">To</span>
-                                    <span class="font-semibold text-slate-900 bg-white border border-[#0f5d8c]/30 shadow-2xs px-2.5 py-1 rounded-md">
+                                    <span class="text-xs text-primary font-semibold">To</span>
+                                    <span class="font-semibold text-slate-900 bg-white border border-primary/30 shadow-2xs px-2.5 py-1 rounded-md">
                                         {{ $transfer->to_location }}
                                     </span>
                                 </div>

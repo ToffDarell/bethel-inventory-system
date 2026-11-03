@@ -12,7 +12,7 @@ beforeEach(function () {
     ]);
 });
 
-test('scanner page renders autofocused input and lookup trims input, matches case-insensitively, and handles unknown code', function () {
+test('find asset page renders autofocused input, scan redirects to find, and lookup handles exact and unknown code', function () {
     $asset = Asset::create([
         'asset_no' => 'BBHIND-S300002315',
         'asset_name' => 'ECG Machine',
@@ -20,21 +20,36 @@ test('scanner page renders autofocused input and lookup trims input, matches cas
         'status' => 'In Use',
     ]);
 
+    // /scan redirects to /find
     $this->actingAs($this->user)
         ->get('/scan')
+        ->assertRedirect(route('assets.find'));
+
+    // /find renders Find Asset page with autofocus
+    $this->actingAs($this->user)
+        ->get('/find')
         ->assertOk()
-        ->assertSee('Scan Property Tag')
+        ->assertSee('Find Asset')
         ->assertSee('autofocus', false);
 
-    $this->actingAs($this->user)
-        ->get('/scan/lookup?q=' . urlencode('  bbhind-s300002315 '))
-        ->assertRedirect(route('assets.show', $asset));
-
+    // /scan/lookup redirects to /find/lookup which opens the asset
     $this->actingAs($this->user)
         ->followingRedirects()
-        ->get('/scan/lookup?q=UNKNOWN-999')
+        ->get('/scan/lookup?q=' . urlencode('  bbhind-s300002315 '))
         ->assertOk()
-        ->assertSee('No asset found with Asset No. "UNKNOWN-999"');
+        ->assertSee('ECG Machine');
+
+    // /find/lookup with direct query opens the asset
+    $this->actingAs($this->user)
+        ->get('/find/lookup?q=' . urlencode('  bbhind-s300002315 '))
+        ->assertRedirect(route('assets.show', $asset));
+
+    // Unknown code handles gracefully
+    $this->actingAs($this->user)
+        ->followingRedirects()
+        ->get('/find/lookup?q=UNKNOWN-999')
+        ->assertOk()
+        ->assertSee('UNKNOWN-999');
 });
 
 test('moving an asset updates its location and records transfer history with user and timestamp', function () {

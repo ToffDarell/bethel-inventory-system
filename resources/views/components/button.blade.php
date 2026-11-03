@@ -15,12 +15,12 @@
     };
 
     $variantClasses = match ($variant) {
-        'secondary' => 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs focus-visible:ring-[#0f5d8c]',
-        'outline' => 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs focus-visible:ring-[#0f5d8c]',
-        'danger' => 'bg-[#b91c1c] text-white hover:bg-[#991b1b] shadow-2xs focus-visible:ring-[#b91c1c]',
-        'danger-outline' => 'border border-slate-300 bg-white text-[#b91c1c] hover:bg-red-50/70 hover:border-red-300 focus-visible:ring-[#b91c1c]',
-        'ghost' => 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus-visible:ring-[#0f5d8c]',
-        default => 'bg-[#0f5d8c] text-white hover:bg-[#0c4a70] shadow-2xs focus-visible:ring-[#0f5d8c]',
+        'secondary' => 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs focus-visible:ring-primary',
+        'outline' => 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 shadow-2xs focus-visible:ring-primary',
+        'danger' => 'border border-brand-red/30 bg-white text-brand-red hover:bg-red-50 hover:border-brand-red shadow-2xs focus-visible:ring-brand-red',
+        'danger-solid' => 'bg-brand-red text-white hover:bg-brand-red-hover shadow-2xs focus-visible:ring-brand-red',
+        'ghost' => 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 focus-visible:ring-primary',
+        default => 'bg-primary text-white hover:bg-primary-hover shadow-2xs focus-visible:ring-primary',
     };
 
     $classes = "{$baseClasses} {$sizeClasses} {$variantClasses}";

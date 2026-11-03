@@ -17,7 +17,7 @@
             <!-- Sticky Save & Cancel Bar -->
             <div class="sticky bottom-0 z-20 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-4 shadow-2xs flex flex-wrap items-center justify-between gap-4">
                 <p class="text-xs text-slate-500">
-                    A printable QR property tag will be ready immediately after saving
+                    A printable property tag will be ready immediately after saving
                 </p>
                 <div class="flex items-center gap-3">
                     <x-button variant="secondary" :href="route('assets.index')">

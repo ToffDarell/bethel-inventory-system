@@ -19,7 +19,7 @@
                 </div>
 
                 <div class="flex items-center gap-3 p-2.5 rounded-lg bg-sky-50/70 border border-sky-200">
-                    <span class="w-6 h-6 rounded-full bg-[#0f5d8c] text-white font-semibold flex items-center justify-center shrink-0">2</span>
+                    <span class="w-6 h-6 rounded-full bg-primary text-white font-semibold flex items-center justify-center shrink-0">2</span>
                     <div>
                         <p class="font-semibold text-slate-900">Upload File</p>
                         <p class="text-[11px] text-slate-600">Select .xlsx or .csv</p>
@@ -69,7 +69,7 @@
                         </label>
                         <select id="export_department"
                                 name="department"
-                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                             <option value="">All departments</option>
                             @foreach ($departments as $dept)
                                 <option value="{{ $dept }}">{{ $dept }}</option>
@@ -83,7 +83,7 @@
                         </label>
                         <select id="export_status"
                                 name="status"
-                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                             <option value="">All statuses</option>
                             @foreach ($statuses as $statusOption)
                                 <option value="{{ $statusOption }}">{{ $statusOption }}</option>
@@ -132,14 +132,14 @@
 
                     <div>
                         <label for="import_file" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Spreadsheet File <span class="text-[#b91c1c] font-semibold">*</span>
+                            Spreadsheet File <span class="text-brand-red font-semibold">*</span>
                         </label>
                         <input id="import_file"
                                name="file"
                                type="file"
                                required
                                accept=".xlsx,.xls,.csv"
-                               class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 focus:outline-none focus:border-[#0f5d8c] transition-colors">
+                               class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 focus:outline-none focus:border-primary transition-colors">
                         <p class="text-xs text-slate-500 mt-1">
                             <code>date_acquired</code> and <code>serial_no</code> are optional. Blank <code>asset_no</code> rows auto-generate sequential codes.
                         </p>

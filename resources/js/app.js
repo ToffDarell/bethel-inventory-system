@@ -18,6 +18,7 @@ function initSidebarToggle() {
     if (!sidebar || !toggleBtn) return;
 
     function applyState(collapsed) {
+        const navLinks = sidebar.querySelectorAll('nav a[data-nav-label]');
         if (collapsed) {
             sidebar.classList.remove('w-[248px]');
             sidebar.classList.add('w-[72px]');
@@ -25,6 +26,10 @@ function initSidebarToggle() {
             collapseText.forEach(el => el.classList.add('hidden'));
             compactIcons.forEach(el => el.classList.remove('hidden'));
             toggleBtn.setAttribute('title', 'Expand sidebar');
+            toggleBtn.setAttribute('aria-label', 'Expand sidebar');
+            navLinks.forEach(link => {
+                link.setAttribute('title', link.getAttribute('data-nav-label') || '');
+            });
         } else {
             sidebar.classList.remove('w-[72px]');
             sidebar.classList.add('w-[248px]');
@@ -32,6 +37,10 @@ function initSidebarToggle() {
             collapseText.forEach(el => el.classList.remove('hidden'));
             compactIcons.forEach(el => el.classList.add('hidden'));
             toggleBtn.setAttribute('title', 'Collapse sidebar');
+            toggleBtn.setAttribute('aria-label', 'Collapse sidebar');
+            navLinks.forEach(link => {
+                link.removeAttribute('title');
+            });
         }
     }
 

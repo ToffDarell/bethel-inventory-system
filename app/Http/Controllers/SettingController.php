@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Asset;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\BackupService;
-use App\Services\QrCodeService;
+use App\Services\TagAssetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -18,7 +19,7 @@ class SettingController extends Controller
 {
     public function __construct(
         protected BackupService $backupService,
-        protected QrCodeService $qrCodeService,
+        protected TagAssetService $tagAssetService,
     ) {}
 
     public function index(Request $request)
@@ -32,8 +33,19 @@ class SettingController extends Controller
             'assetNoPrefix' => Setting::get('asset_no_prefix', 'BBH'),
             'tagWidthCm' => Setting::get('tag_width_cm', '10'),
             'tagHeightCm' => Setting::get('tag_height_cm', '6'),
+            'showBarcode' => Setting::get('show_barcode', '0') === '1',
             'backupFolder' => $this->backupService->getBackupFolder(),
-            'logoDataUri' => $this->qrCodeService->hospitalLogoBase64(),
+            'logoDataUri' => $this->tagAssetService->hospitalLogoBase64(),
+            'tagAssetService' => $this->tagAssetService,
+            'sampleAsset' => Asset::first() ?? new Asset([
+                'asset_no' => 'BBHIND-S300002315',
+                'asset_name' => 'Automated External Defibrillator with Monitor',
+                'status' => 'In Use',
+                'model' => 'HeartStart FRx',
+                'serial_no' => 'SN-998822',
+                'location' => 'Emergency Room',
+                'department' => 'Emergency Room',
+            ]),
             'backups' => $backups,
             'backupOverdue' => $backupOverdue,
             'activeDatabasePath' => $this->backupService->getDatabasePath(),
@@ -43,12 +55,17 @@ class SettingController extends Controller
 
     public function update(Request $request)
     {
+        if ($request->has('show_barcode') && ! $request->user()?->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can change property tag barcode settings.');
+        }
+
         $validated = $request->validate([
             'hospital_name' => ['required', 'string', 'max:255'],
             'hospital_address' => ['required', 'string', 'max:500'],
             'asset_no_prefix' => ['required', 'string', 'max:30'],
             'tag_width_cm' => ['required', 'numeric', 'min:3', 'max:30'],
             'tag_height_cm' => ['required', 'numeric', 'min:2', 'max:30'],
+            'show_barcode' => ['nullable', 'in:0,1'],
             'backup_folder' => ['nullable', 'string', 'max:500'],
             'logo' => ['nullable', 'file', 'mimes:png,jpg,jpeg,svg,webp', 'max:5120'],
         ]);
@@ -58,6 +75,19 @@ class SettingController extends Controller
         Setting::set('asset_no_prefix', trim($validated['asset_no_prefix']));
         Setting::set('tag_width_cm', (string) $validated['tag_width_cm']);
         Setting::set('tag_height_cm', (string) $validated['tag_height_cm']);
+
+        if ($request->user()?->isAdmin() && $request->has('show_barcode')) {
+            $newBarcode = $request->input('show_barcode') === '1' ? '1' : '0';
+            $oldBarcode = Setting::get('show_barcode', '0');
+
+            if ($newBarcode !== $oldBarcode) {
+                Setting::set('show_barcode', $newBarcode);
+                $statusWord = $newBarcode === '1' ? 'ON' : 'OFF';
+                activity()
+                    ->causedBy($request->user())
+                    ->log("Barcode on tag turned {$statusWord} by {$request->user()->name}");
+            }
+        }
 
         $backupFolder = isset($validated['backup_folder']) && trim($validated['backup_folder']) !== ''
             ? trim($validated['backup_folder'])

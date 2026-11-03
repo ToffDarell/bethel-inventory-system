@@ -6,11 +6,11 @@
         subtitle="Search, filter, register hospital equipment, or select items to print property tags"
     >
         <x-slot:actions>
-            <x-button variant="secondary" :href="route('scan.index')">
+            <x-button variant="secondary" :href="route('assets.find')">
                 <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
-                <span>Scan Tag</span>
+                <span>Find Asset</span>
             </x-button>
 
             <x-button variant="primary" :href="route('assets.create')">
@@ -39,7 +39,7 @@
                                type="text"
                                value="{{ $search }}"
                                placeholder="Asset No., name, serial, or room..."
-                               class="w-full min-h-[44px] pl-10 pr-4 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                               class="w-full min-h-[44px] pl-10 pr-4 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                     </div>
                 </div>
 
@@ -49,7 +49,7 @@
                     </label>
                     <select id="department"
                             name="department"
-                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                         <option value="">All departments</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept }}" @selected($selectedDepartment === $dept)>{{ $dept }}</option>
@@ -63,7 +63,7 @@
                     </label>
                     <select id="status"
                             name="status"
-                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
+                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                         <option value="">All statuses</option>
                         @foreach ($statuses as $statusOption)
                             <option value="{{ $statusOption }}" @selected($selectedStatus === $statusOption)>{{ $statusOption }}</option>
@@ -73,7 +73,7 @@
 
                 <div class="md:col-span-2 flex items-center gap-2">
                     <button type="submit"
-                            class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
+                            class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
                         <span>Filter</span>
                     </button>
                     @if ($search !== '' || $selectedDepartment !== '' || $selectedStatus !== '')
@@ -92,9 +92,9 @@
     <form id="bulk-print-form" method="GET" action="{{ route('tags.print') }}">
         <!-- Contextual Bulk-Select Bar (Appears when rows are ticked) -->
         <div id="bulk-select-bar"
-             class="hidden mb-4 p-3 rounded-xl bg-white border border-[#0f5d8c]/30 text-slate-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
+             class="hidden mb-4 p-3 rounded-xl bg-white border border-primary/30 text-slate-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div class="flex items-center gap-2.5">
-                <span id="bulk-selected-count" class="font-mono text-xs font-bold text-[#0f5d8c] bg-[#0f5d8c]/10 border border-[#0f5d8c]/20 px-2.5 py-1 rounded-md tabular-nums">
+                <span id="bulk-selected-count" class="font-mono text-xs font-bold text-primary bg-primary-soft border border-primary/20 px-2.5 py-1 rounded-md tabular-nums">
                     0 selected
                 </span>
                 <span class="text-xs text-slate-600">Items queued for A4 property tag sheet formatting</span>
@@ -106,7 +106,7 @@
                     Clear selection
                 </button>
                 <button type="submit"
-                        class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
+                        class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
@@ -137,7 +137,7 @@
                             <input type="checkbox"
                                    id="select-all-assets"
                                    aria-label="Select all assets on this page"
-                                   class="w-4 h-4 accent-[#0f5d8c] rounded cursor-pointer">
+                                   class="w-4 h-4 accent-primary rounded cursor-pointer">
                         </th>
                         <th class="py-3 px-4 w-32 whitespace-nowrap">Asset No.</th>
                         <th class="py-3 px-4">Equipment &amp; Location</th>
@@ -155,7 +155,7 @@
                                    name="ids[]"
                                    value="{{ $asset->id }}"
                                    aria-label="Select {{ $asset->asset_no }}"
-                                   class="asset-checkbox w-4 h-4 accent-[#0f5d8c] rounded cursor-pointer">
+                                   class="asset-checkbox w-4 h-4 accent-primary rounded cursor-pointer">
                         </td>
                         <td class="py-2.5 px-4 whitespace-nowrap">
                             <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-semibold group-hover:border-slate-300 transition-colors">
@@ -164,21 +164,21 @@
                         </td>
                         <td class="py-2.5 px-4 min-w-[180px] max-w-[280px]">
                             <a href="{{ route('assets.show', $asset) }}"
-                               class="font-semibold text-slate-900 group-hover:text-[#0f5d8c] block truncate transition-colors"
+                               class="font-semibold text-slate-900 group-hover:text-primary block truncate transition-colors"
                                title="{{ $asset->asset_name }}">
                                 {{ $asset->asset_name }}
                             </a>
-                            <p class="text-[11px] text-slate-500 truncate mt-0.5"
+                            <p class="text-[11px] text-slate-600 truncate mt-0.5"
                                title="{{ $asset->location ?: 'No location' }} &bull; {{ $asset->department ?: 'Unassigned' }}">
                                 {{ $asset->location ?: 'No location' }} &bull; {{ $asset->department ?: 'Unassigned' }}
                             </p>
                         </td>
                         <td class="py-2.5 px-4 min-w-[140px] max-w-[200px]">
-                            <p class="text-xs text-slate-800 font-medium truncate" title="{{ $asset->model ?: '—' }}">
-                                {{ $asset->model ?: '—' }}
+                            <p class="text-xs text-slate-800 font-medium truncate" title="{{ $asset->model ?: '-' }}">
+                                {{ $asset->model ?: '-' }}
                             </p>
                             @if ($asset->serial_no)
-                                <p class="text-[11px] font-mono text-slate-500 truncate mt-0.5" title="SN: {{ $asset->serial_no }}">
+                                <p class="text-[11px] font-mono text-slate-600 truncate mt-0.5" title="SN: {{ $asset->serial_no }}">
                                     SN: {{ $asset->serial_no }}
                                 </p>
                             @endif

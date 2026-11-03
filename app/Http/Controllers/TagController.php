@@ -4,14 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Setting;
-use App\Services\QrCodeService;
+use App\Services\TagAssetService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
     public function __construct(
-        protected QrCodeService $qrCodeService
+        protected TagAssetService $tagAssetService
     ) {}
 
     public function print(Request $request)
@@ -76,8 +76,9 @@ class TagController extends Controller
             'hospitalAddress' => Setting::get('hospital_address', 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700'),
             'tagWidthCm' => $widthCm,
             'tagHeightCm' => $heightCm,
-            'logoDataUri' => $this->qrCodeService->hospitalLogoBase64(),
-            'qrService' => $this->qrCodeService,
+            'showBarcode' => Setting::get('show_barcode', '0') === '1',
+            'logoDataUri' => $this->tagAssetService->hospitalLogoBase64(),
+            'tagAssetService' => $this->tagAssetService,
             'forPdf' => $forPdf,
         ];
     }
