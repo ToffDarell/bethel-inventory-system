@@ -7,14 +7,14 @@
     >
         <x-slot:actions>
             <x-button variant="secondary" :href="route('scan.index')">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
                 </svg>
                 <span>Scan Tag</span>
             </x-button>
 
             <x-button variant="primary" :href="route('assets.create')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
                 </svg>
                 <span>Add Asset</span>
@@ -23,33 +23,33 @@
     </x-page-header>
 
     <!-- Sticky Search & Filter Bar -->
-    <div class="sticky top-0 z-20 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-4 shadow-2xs mb-5">
+    <div class="sticky top-14 z-20 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-3.5 shadow-2xs mb-5 transition-shadow">
         <form method="GET" action="{{ route('assets.index') }}">
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div class="md:col-span-5">
-                    <label for="search" class="block text-xs font-medium text-slate-600 mb-1.5">
-                        Search
+                    <label for="search" class="block text-xs font-semibold text-slate-700 mb-1">
+                        Search Equipment
                     </label>
                     <div class="relative">
-                        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
                         <input id="search"
                                name="search"
                                type="text"
                                value="{{ $search }}"
-                               placeholder="Asset No., name, serial, or location"
-                               class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors">
+                               placeholder="Asset No., name, serial, or room..."
+                               class="w-full min-h-[44px] pl-10 pr-4 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                     </div>
                 </div>
 
                 <div class="md:col-span-3">
-                    <label for="department" class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <label for="department" class="block text-xs font-semibold text-slate-700 mb-1">
                         Department
                     </label>
                     <select id="department"
                             name="department"
-                            class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors">
+                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                         <option value="">All departments</option>
                         @foreach ($departments as $dept)
                             <option value="{{ $dept }}" @selected($selectedDepartment === $dept)>{{ $dept }}</option>
@@ -58,12 +58,12 @@
                 </div>
 
                 <div class="md:col-span-2">
-                    <label for="status" class="block text-xs font-medium text-slate-600 mb-1.5">
+                    <label for="status" class="block text-xs font-semibold text-slate-700 mb-1">
                         Status
                     </label>
                     <select id="status"
                             name="status"
-                            class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors">
+                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                         <option value="">All statuses</option>
                         @foreach ($statuses as $statusOption)
                             <option value="{{ $statusOption }}" @selected($selectedStatus === $statusOption)>{{ $statusOption }}</option>
@@ -73,12 +73,13 @@
 
                 <div class="md:col-span-2 flex items-center gap-2">
                     <button type="submit"
-                            class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-800 font-medium text-sm cursor-pointer transition-colors">
+                            class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
                         <span>Filter</span>
                     </button>
                     @if ($search !== '' || $selectedDepartment !== '' || $selectedStatus !== '')
                         <a href="{{ route('assets.index') }}"
-                           class="min-h-[44px] inline-flex items-center justify-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-medium text-xs hover:bg-slate-50 transition-colors">
+                           title="Clear search filters"
+                           class="min-h-[44px] inline-flex items-center justify-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:border-slate-400 transition-colors">
                             Reset
                         </a>
                     @endif
@@ -89,39 +90,39 @@
 
     <!-- Bulk Print Form + Assets Table -->
     <form id="bulk-print-form" method="GET" action="{{ route('tags.print') }}">
-        <!-- Contextual Bulk-Select Bar (appears when rows are ticked) -->
+        <!-- Contextual Bulk-Select Bar (Appears when rows are ticked) -->
         <div id="bulk-select-bar"
-             class="hidden mb-4 p-3.5 rounded-xl bg-white border border-slate-300 text-slate-900 flex flex-wrap items-center justify-between gap-3 shadow-xs">
+             class="hidden mb-4 p-3 rounded-xl bg-white border border-[#0f5d8c]/30 text-slate-900 flex flex-wrap items-center justify-between gap-3 shadow-sm">
             <div class="flex items-center gap-2.5">
-                <span id="bulk-selected-count" class="font-mono text-xs font-semibold text-slate-900 bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-md tabular-nums">
+                <span id="bulk-selected-count" class="font-mono text-xs font-bold text-[#0f5d8c] bg-[#0f5d8c]/10 border border-[#0f5d8c]/20 px-2.5 py-1 rounded-md tabular-nums">
                     0 selected
                 </span>
-                <span class="text-sm text-slate-600">Ready to format on an A4 property tag sheet</span>
+                <span class="text-xs text-slate-600">Items queued for A4 property tag sheet formatting</span>
             </div>
-            <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2">
                 <button type="button"
                         id="bulk-clear-btn"
-                        class="min-h-[44px] px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 cursor-pointer transition-colors">
+                        class="min-h-[44px] px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 cursor-pointer transition-colors">
                     Clear selection
                 </button>
                 <button type="submit"
-                        class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#b91c1c] hover:bg-[#991b1b] text-white font-medium text-xs cursor-pointer transition-colors">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                     </svg>
-                    <span id="bulk-action-text">Print Tags</span>
+                    <span id="bulk-action-text">Print Selected Tags</span>
                 </button>
             </div>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-            <p class="text-sm text-slate-600 tabular-nums">
+            <p class="text-xs text-slate-600 tabular-nums">
                 Showing <strong class="font-semibold text-slate-900">{{ $assets->firstItem() ?? 0 }}–{{ $assets->lastItem() ?? 0 }}</strong> of <strong class="font-semibold text-slate-900">{{ $assets->total() }}</strong> assets
             </p>
             <button type="submit"
                     id="bulk-print-btn"
-                    class="min-h-[44px] inline-flex items-center gap-2 px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors cursor-pointer">
-                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                    class="min-h-[36px] inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors cursor-pointer">
+                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
                 </svg>
                 <span id="bulk-print-label">Print Selected Tags</span>
@@ -132,70 +133,80 @@
             <x-table>
                 <x-slot:header>
                     <tr>
-                        <th class="py-3.5 px-4 w-12 text-center">
+                        <th class="py-3 px-4 w-10 text-center">
                             <input type="checkbox"
                                    id="select-all-assets"
                                    aria-label="Select all assets on this page"
-                                   class="w-4 h-4 accent-[#b91c1c] rounded cursor-pointer">
+                                   class="w-4 h-4 accent-[#0f5d8c] rounded cursor-pointer">
                         </th>
-                        <th class="py-3.5 px-4">Asset No.</th>
-                        <th class="py-3.5 px-4">Asset Name</th>
-                        <th class="py-3.5 px-4">Model &amp; Serial</th>
-                        <th class="py-3.5 px-4">Department &amp; Location</th>
-                        <th class="py-3.5 px-4">Status</th>
-                        <th class="py-3.5 px-4 text-right">Actions</th>
+                        <th class="py-3 px-4 w-32 whitespace-nowrap">Asset No.</th>
+                        <th class="py-3 px-4">Equipment &amp; Location</th>
+                        <th class="py-3 px-4 w-44">Model &amp; Serial</th>
+                        <th class="py-3 px-4 w-28 whitespace-nowrap">Status</th>
+                        <th class="py-3 px-4 w-28 text-right whitespace-nowrap">Actions</th>
                     </tr>
                 </x-slot:header>
 
                 @foreach ($assets as $asset)
-                    <tr>
-                        <td class="py-3.5 px-4 text-center">
+                    <tr class="hover:bg-slate-50/90 transition-colors cursor-pointer group [&>td]:h-[52px]"
+                        onclick="window.location.href='{{ route('assets.show', $asset) }}'">
+                        <td class="py-2.5 px-4 text-center" onclick="event.stopPropagation()">
                             <input type="checkbox"
                                    name="ids[]"
                                    value="{{ $asset->id }}"
                                    aria-label="Select {{ $asset->asset_no }}"
-                                   class="asset-checkbox w-4 h-4 accent-[#b91c1c] rounded cursor-pointer">
+                                   class="asset-checkbox w-4 h-4 accent-[#0f5d8c] rounded cursor-pointer">
                         </td>
-                        <td class="py-3.5 px-4 whitespace-nowrap">
-                            <a href="{{ route('assets.show', $asset) }}"
-                               class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-medium hover:border-slate-300 hover:text-[#b91c1c] transition-colors">
+                        <td class="py-2.5 px-4 whitespace-nowrap">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-semibold group-hover:border-slate-300 transition-colors">
                                 {{ $asset->asset_no }}
-                            </a>
+                            </span>
                         </td>
-                        <td class="py-3.5 px-4 font-medium text-slate-900">
-                            <a href="{{ route('assets.show', $asset) }}" class="hover:text-[#b91c1c] hover:underline">
+                        <td class="py-2.5 px-4 min-w-[180px] max-w-[280px]">
+                            <a href="{{ route('assets.show', $asset) }}"
+                               class="font-semibold text-slate-900 group-hover:text-[#0f5d8c] block truncate transition-colors"
+                               title="{{ $asset->asset_name }}">
                                 {{ $asset->asset_name }}
                             </a>
+                            <p class="text-[11px] text-slate-500 truncate mt-0.5"
+                               title="{{ $asset->location ?: 'No location' }} &bull; {{ $asset->department ?: 'Unassigned' }}">
+                                {{ $asset->location ?: 'No location' }} &bull; {{ $asset->department ?: 'Unassigned' }}
+                            </p>
                         </td>
-                        <td class="py-3.5 px-4 text-slate-600">
-                            <div class="text-slate-800">{{ $asset->model ?: '—' }}</div>
+                        <td class="py-2.5 px-4 min-w-[140px] max-w-[200px]">
+                            <p class="text-xs text-slate-800 font-medium truncate" title="{{ $asset->model ?: '—' }}">
+                                {{ $asset->model ?: '—' }}
+                            </p>
                             @if ($asset->serial_no)
-                                <div class="text-xs font-mono text-slate-500 mt-0.5">SN: {{ $asset->serial_no }}</div>
+                                <p class="text-[11px] font-mono text-slate-500 truncate mt-0.5" title="SN: {{ $asset->serial_no }}">
+                                    SN: {{ $asset->serial_no }}
+                                </p>
                             @endif
                         </td>
-                        <td class="py-3.5 px-4 text-slate-700">
-                            <div class="text-slate-900">{{ $asset->location ?: '—' }}</div>
-                            @if ($asset->department)
-                                <div class="text-xs text-slate-500 mt-0.5">{{ $asset->department }}</div>
-                            @endif
-                        </td>
-                        <td class="py-3.5 px-4 whitespace-nowrap">
+                        <td class="py-2.5 px-4 whitespace-nowrap">
                             <x-badge :status="$asset->status" />
                         </td>
-                        <td class="py-3.5 px-4 text-right whitespace-nowrap">
-                            <div class="inline-flex items-center justify-end gap-1.5">
-                                <a href="{{ route('assets.show', $asset) }}"
-                                   class="min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors">
-                                    View
-                                </a>
-                                <a href="{{ route('tags.print', ['ids' => [$asset->id]]) }}"
-                                   class="min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors">
-                                    Print Tag
-                                </a>
-                                <a href="{{ route('assets.move.create', $asset) }}"
-                                   class="min-h-[44px] inline-flex items-center px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-medium text-xs transition-colors">
-                                    Move
-                                </a>
+                        <td class="py-2.5 px-4 text-right whitespace-nowrap" onclick="event.stopPropagation()">
+                            <div class="inline-flex items-center justify-end gap-1">
+                                <x-icon-button :href="route('assets.show', $asset)" title="View Asset" size="sm">
+                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                    </svg>
+                                    <span class="sr-only">View</span>
+                                </x-icon-button>
+                                <x-icon-button :href="route('tags.print', ['ids' => [$asset->id]])" title="Print Tag" size="sm">
+                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                    </svg>
+                                    <span class="sr-only">Print Tag</span>
+                                </x-icon-button>
+                                <x-icon-button :href="route('assets.move.create', $asset)" title="Move Asset" size="sm">
+                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                    </svg>
+                                    <span class="sr-only">Move Asset</span>
+                                </x-icon-button>
                             </div>
                         </td>
                     </tr>
@@ -247,7 +258,7 @@
                     if (count > 0) {
                         bulkBar.classList.remove('hidden');
                         if (bulkCountBadge) bulkCountBadge.textContent = `${count} selected`;
-                        if (bulkActionText) bulkActionText.textContent = `Print Tags (${count})`;
+                        if (bulkActionText) bulkActionText.textContent = `Print Selected Tags (${count})`;
                     } else {
                         bulkBar.classList.add('hidden');
                     }
