@@ -28,8 +28,8 @@
                                 {{ $hospitalAddress }}
                             </div>
                         </td>
-                        <td style="width: 68px; vertical-align: middle; text-align: right;">
-                            <span style="display: inline-block; border: 1px solid #000000; background: #000000; color: #ffffff; padding: 1px 4px; font-size: 6.2pt; font-weight: 700; letter-spacing: 0.04em;">
+                        <td style="width: 84px; vertical-align: middle; text-align: right; padding-right: 2px;">
+                            <span style="display: inline-block; background: #000000; color: #ffffff; padding: 2px 6px; font-size: 6.8pt; font-weight: 700; letter-spacing: 0.05em; white-space: nowrap; line-height: 1.15; border-radius: 2px;">
                                 PROPERTY TAG
                             </span>
                         </td>
@@ -63,11 +63,15 @@
         </tr>
 
         <!-- Row 2: Asset Name -->
+        @php
+            $nameLen = mb_strlen($asset->asset_name);
+            $nameFontSize = $nameLen > 34 ? '6.8pt' : ($nameLen > 22 ? '7.3pt' : '8pt');
+        @endphp
         <tr>
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset Name
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8pt; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: {{ $nameFontSize }}; font-weight: 700; line-height: 1.18; word-break: break-word; white-space: normal;">
                 {{ $asset->asset_name }}
             </td>
         </tr>
@@ -107,7 +111,7 @@
             <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset No.
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 8.5pt; font-weight: 700; font-family: Consolas, monospace; letter-spacing: 0.02em; color: #e60000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            <td style="border: 1px solid #000000; padding: 2px 5px; font-size: 10.5pt; font-weight: 800; font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.03em; color: #000000; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
                 {{ $asset->asset_no }}
             </td>
         </tr>

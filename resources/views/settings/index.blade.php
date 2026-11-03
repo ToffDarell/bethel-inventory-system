@@ -282,34 +282,34 @@
             <!-- Backup Summary Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <x-card padding="p-5">
-                    <div class="flex items-start justify-between gap-3">
-                        <div>
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active SQLite Database</p>
-                            <p class="font-mono text-xs font-medium text-slate-900 mt-1.5 break-all bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                                {{ $activeDatabasePath }}
-                            </p>
-                        </div>
-                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                    <div class="flex items-center justify-between gap-3 mb-2.5">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Active SQLite Database</span>
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
                             <span>Connected</span>
                         </span>
+                    </div>
+                    <div class="font-mono text-xs font-medium text-slate-900 break-all bg-slate-50 p-3 rounded-lg border border-slate-200 min-h-[46px] flex items-center">
+                        {{ $activeDatabasePath }}
                     </div>
                 </x-card>
 
                 <x-card padding="p-5">
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-semibold uppercase tracking-wider text-slate-500">Backup Directory</p>
-                            <p class="font-mono text-xs font-medium text-slate-900 mt-1.5 break-all bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                                {{ $backupFolder }}
-                            </p>
-                        </div>
+                    <div class="flex items-center justify-between gap-3 mb-2.5">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">Backup Directory</span>
                         <form method="POST" action="{{ route('settings.pick-folder') }}" class="shrink-0">
                             @csrf
-                            <x-button variant="secondary" size="sm" type="submit">
-                                <span>Choose Folder&hellip;</span>
-                            </x-button>
+                            <button type="submit"
+                                    class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition-colors shadow-2xs cursor-pointer">
+                                <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 00-1.883 2.542l.857 6a2.25 2.25 0 002.227 1.932H19.05a2.25 2.25 0 002.227-1.932l.857-6a2.25 2.25 0 00-1.883-2.542m-16.5 0V6A2.25 2.25 0 016 3.75h3.879a1.5 1.5 0 011.06.44l2.122 2.12a1.5 1.5 0 001.06.44H18A2.25 2.25 0 0120.25 9v.776"/>
+                                </svg>
+                                <span>Choose Folder...</span>
+                            </button>
                         </form>
+                    </div>
+                    <div class="font-mono text-xs font-medium text-slate-900 break-all bg-slate-50 p-3 rounded-lg border border-slate-200 min-h-[46px] flex items-center">
+                        {{ $backupFolder }}
                     </div>
                 </x-card>
             </div>
@@ -521,13 +521,28 @@
                                 <label for="user_password" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                                     Temporary Password <span class="text-[#b91c1c]">*</span>
                                 </label>
-                                <input id="user_password"
-                                       name="password"
-                                       type="password"
-                                       required
-                                       minlength="8"
-                                       placeholder="Minimum 8 characters"
-                                       class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                                <div class="relative">
+                                    <input id="user_password"
+                                           name="password"
+                                           type="password"
+                                           required
+                                           minlength="8"
+                                           placeholder="Minimum 8 characters"
+                                           class="w-full min-h-[44px] pl-3.5 pr-11 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                                    <button type="button"
+                                            onclick="togglePasswordVisibility('user_password', this)"
+                                            aria-label="Toggle temporary password visibility"
+                                            title="Show / hide password"
+                                            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors">
+                                        <svg class="w-4 h-4 eye-open" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <svg class="w-4 h-4 eye-slash hidden" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/>
+                                        </svg>
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -614,6 +629,24 @@
             // Store active tab in URL hash for persistent page reloads
             if (history.replaceState) {
                 history.replaceState(null, null, '#' + tabId);
+            }
+        }
+
+        function togglePasswordVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const isPassword = input.type === 'password';
+            input.type = isPassword ? 'text' : 'password';
+            const openIcon = btn.querySelector('.eye-open');
+            const slashIcon = btn.querySelector('.eye-slash');
+            if (openIcon && slashIcon) {
+                if (isPassword) {
+                    openIcon.classList.add('hidden');
+                    slashIcon.classList.remove('hidden');
+                } else {
+                    openIcon.classList.remove('hidden');
+                    slashIcon.classList.add('hidden');
+                }
             }
         }
 

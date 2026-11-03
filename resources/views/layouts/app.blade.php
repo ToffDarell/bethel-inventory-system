@@ -203,15 +203,8 @@
                 </div>
             </div>
 
-            <!-- Top Right: Working Offline Status, Date, Hospital Motto -->
+            <!-- Top Right: Date & Hospital Motto -->
             <div class="flex items-center gap-4 text-xs">
-                <!-- Working Offline Badge (Calm Green Dot, Replaces Developer "Offline SQLite") -->
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold select-none"
-                     title="Local SQLite storage active. System works fully offline inside hospital network.">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>Working offline</span>
-                </div>
-
                 <!-- Hospital Motto -->
                 <span class="text-slate-500 hidden xl:inline select-none">Preach the Word, Heal the Sick</span>
 
