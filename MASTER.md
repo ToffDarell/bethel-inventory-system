@@ -64,9 +64,23 @@ The color scheme aligns directly with the official **Bethel Baptist Hospital, In
 * **No Stray Tooltips**: Tooltips appear only in compact mode (72px rail) and are dynamically removed when expanded.
 
 ### Split-Screen Authentication (Login & Password Setup)
-* **Left Panel**: Clean white clinical brand surface with hospital logo, official address, animated crimson ECG pulse line, and hospital motto (*Preach the Word, Heal the Sick*).
-* **Right Panel**: Centered white card with clean sentence-case labels, visible password eye toggles, live password match verification, and primary submit button.
-* **No Red Header Stripes**: Arbitrary 3px red bars along card or header edges are strictly removed.
+* **Full-Screen 100dvh Layout**: Zero page scroll at 1366×768 (standard hospital workstation) and 1093×614 (125% OS display scaling).
+* **Left Brand Panel (~55%)**:
+  * Background `#F1F5F9` with mathematical 8-degree diagonal cut (`clip-path: polygon(0 0, 100% 0, calc(100% - 14.05vh) 100%, 0 100%)`).
+  * 3px crimson (`#B91C1C`) diagonal accent seam along the right boundary.
+  * Central hero illustration (`public/images/bethel-login-illustration.svg`, max-width 520px / 90%) with self-animating checkmark pulse, telemetry arc, and workstation LEDs.
+  * Hospital identity typography ("Bethel Baptist Hospital, Inc.", motto *"Preach the Word, Heal the Sick"*, official Malaybalay address).
+  * Crimson animated ECG heartbeat line along the bottom offset from the diagonal cut.
+* **Right Form Panel (~45%)**:
+  * Pure `#FFFFFF` surface, vertically centered.
+  * Compact hospital logo mark, welcoming heading ("Welcome back" / "Set New Password"), sentence-case field labels with red asterisks.
+  * Accessible password reveal toggles with minimum 44×44px touch targets.
+  * Full-width charcoal primary action button (`#0F172A`, hover `#1E293B`).
+  * Local offline status note with active green dot (`#15803D` on `#F8FAFC`).
+  * No remember-me, forgot-password, or language selectors.
+* **Responsive Collapse (< 900px)**:
+  * Left illustration panel collapses automatically.
+  * Right form displays in an elegant, centered single column with compact hospital branding.
 
 ### Property Tag Layout (10cm x 6cm / A4 2x5 Grid)
 * **Strict Physical Dimensions**: 100mm width x 60mm height, 2 columns x 5 rows per A4 page.
