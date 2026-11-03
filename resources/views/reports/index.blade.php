@@ -14,15 +14,15 @@
                     <span class="w-6 h-6 rounded-full bg-slate-200 text-slate-700 font-semibold flex items-center justify-center shrink-0">1</span>
                     <div>
                         <p class="font-medium text-slate-900">Download Template</p>
-                        <p class="text-[11px] text-slate-500">Get pre-formatted spreadsheet</p>
+                        <p class="text-[11px] text-slate-500">Get standard spreadsheet</p>
                     </div>
                 </div>
 
-                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-red-50/60 border border-red-200">
-                    <span class="w-6 h-6 rounded-full bg-[#b91c1c] text-white font-semibold flex items-center justify-center shrink-0">2</span>
+                <div class="flex items-center gap-3 p-2.5 rounded-lg bg-sky-50/70 border border-sky-200">
+                    <span class="w-6 h-6 rounded-full bg-[#0f5d8c] text-white font-semibold flex items-center justify-center shrink-0">2</span>
                     <div>
-                        <p class="font-medium text-slate-900">Upload File</p>
-                        <p class="text-[11px] text-slate-500">Select .xlsx or .csv</p>
+                        <p class="font-semibold text-slate-900">Upload File</p>
+                        <p class="text-[11px] text-slate-600">Select .xlsx or .csv</p>
                     </div>
                 </div>
 
@@ -57,19 +57,19 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Export Assets to Excel -->
-            <x-card title="Export Assets to Excel" subtitle="Download current hospital equipment records as an Excel (.xlsx) file">
+            <x-card title="Export Assets to Excel" subtitle="Download current hospital equipment records as an Excel (.xlsx) spreadsheet">
                 <p class="text-sm text-slate-600 mb-5">
                     Generate an inventory spreadsheet of all registered hospital property ({{ $totalAssets }} total {{ Str::plural('asset', $totalAssets) }}). Filter by department or status if needed.
                 </p>
 
                 <form method="GET" action="{{ route('reports.export') }}" class="space-y-4">
                     <div>
-                        <label for="export_department" class="block text-xs font-medium text-slate-600 mb-1.5">
+                        <label for="export_department" class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Department Filter
                         </label>
                         <select id="export_department"
                                 name="department"
-                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors">
+                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                             <option value="">All departments</option>
                             @foreach ($departments as $dept)
                                 <option value="{{ $dept }}">{{ $dept }}</option>
@@ -78,12 +78,12 @@
                     </div>
 
                     <div>
-                        <label for="export_status" class="block text-xs font-medium text-slate-600 mb-1.5">
+                        <label for="export_status" class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Status Filter
                         </label>
                         <select id="export_status"
                                 name="status"
-                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-slate-900 focus:ring-1 focus:ring-slate-900 transition-colors">
+                                class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                             <option value="">All statuses</option>
                             @foreach ($statuses as $statusOption)
                                 <option value="{{ $statusOption }}">{{ $statusOption }}</option>
@@ -94,7 +94,7 @@
                     <div class="pt-2">
                         <button type="submit"
                                 class="w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-medium text-sm shadow-2xs transition-colors cursor-pointer">
-                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
                             <span>Export to Excel (.xlsx)</span>
@@ -112,11 +112,11 @@
                 <!-- Step 1 Template Download Box -->
                 <div class="mb-5 p-3.5 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-between gap-3">
                     <div>
-                        <p class="text-xs font-medium text-slate-900">Need the template format?</p>
+                        <p class="text-xs font-semibold text-slate-900">Need the template format?</p>
                         <p class="text-[11px] text-slate-500">Download the standard column layout</p>
                     </div>
                     <a href="{{ route('reports.template') }}"
-                       class="min-h-[36px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition-colors shrink-0">
+                       class="min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-medium text-slate-700 transition-colors shrink-0">
                         <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
@@ -131,7 +131,7 @@
                     @csrf
 
                     <div>
-                        <label for="import_file" class="block text-xs font-medium text-slate-600 mb-1.5">
+                        <label for="import_file" class="block text-xs font-semibold text-slate-700 mb-1.5">
                             Spreadsheet File <span class="text-[#b91c1c] font-semibold">*</span>
                         </label>
                         <input id="import_file"
@@ -139,9 +139,9 @@
                                type="file"
                                required
                                accept=".xlsx,.xls,.csv"
-                               class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 focus:outline-none focus:border-slate-900 transition-colors">
+                               class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-medium file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200 focus:outline-none focus:border-[#0f5d8c] transition-colors">
                         <p class="text-xs text-slate-500 mt-1">
-                            <code>date_acquired</code> and <code>serial_no</code> are optional. Blank <code>asset_no</code> rows auto-generate code.
+                            <code>date_acquired</code> and <code>serial_no</code> are optional. Blank <code>asset_no</code> rows auto-generate sequential codes.
                         </p>
                     </div>
 

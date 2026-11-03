@@ -4,7 +4,7 @@
     <div class="space-y-6">
         <!-- Page Header -->
         <x-page-header
-            title="Settings &amp; Backup"
+            title="Settings & Backup"
             subtitle="Configure hospital branding, property tag dimensions, user accounts, and SQLite database backup registry."
         >
             @if (auth()->user()?->isAdmin())
@@ -92,8 +92,8 @@
                         role="tab"
                         aria-controls="panel-hospital"
                         aria-selected="true"
-                        class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 border-[#b91c1c] text-slate-900 transition-colors flex items-center gap-2">
-                    <svg class="w-4 h-4 text-[#b91c1c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-semibold border-b-2 border-[#0f5d8c] text-[#0f5d8c] transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4 text-[#0f5d8c]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
                     </svg>
                     <span>Hospital Profile</span>
@@ -147,7 +147,7 @@
 
         <!-- TAB 1: HOSPITAL PROFILE -->
         <div id="panel-hospital" role="tabpanel" class="tab-panel space-y-6">
-            <x-card title="Hospital Information &amp; Official Emblem" subtitle="Hospital name and address appear on all printed property tags, reports, and audit certificates.">
+            <x-card title="Hospital Information & Official Emblem" subtitle="Hospital name and address appear on all printed property tags, reports, and audit certificates.">
                 <form method="POST" action="{{ route('settings.update') }}" enctype="multipart/form-data" class="max-w-2xl space-y-5">
                     @csrf
                     {{-- Hidden preserved values from other sections to pass validation --}}
@@ -213,7 +213,7 @@
 
         <!-- TAB 2: PROPERTY TAG CONFIGURATION -->
         <div id="panel-tag" role="tabpanel" class="tab-panel hidden space-y-6">
-            <x-card title="Property Tag Dimensions &amp; Code Prefix" subtitle="Configure the default physical label dimensions and automatic code sequencing for new equipment tags.">
+            <x-card title="Property Tag Dimensions & Code Prefix" subtitle="Configure the default physical label dimensions and automatic code sequencing for new equipment tags.">
                 <form method="POST" action="{{ route('settings.update') }}" class="max-w-2xl space-y-5">
                     @csrf
                     {{-- Hidden preserved values from other sections --}}
@@ -451,7 +451,7 @@
                                 </td>
                                 <td class="py-3 px-4">
                                     @if ($u->isAdmin())
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 text-[#0f5d8c] border border-sky-200">
                                             Admin
                                         </span>
                                     @else
@@ -540,6 +540,39 @@
                 </x-card>
             </div>
         @endif
+
+        <!-- System Diagnostics & Database Environment -->
+        <x-card title="System Diagnostics & Desktop Environment" subtitle="Technical workstation environment and local SQLite storage details for hospital IT staff">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">Application Version</span>
+                    <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">v1.0.0</strong>
+                    <span class="text-slate-500 text-[11px] mt-0.5 block">Native Desktop Build</span>
+                </div>
+                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">Database Engine</span>
+                    <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">SQLite 3 (WAL mode)</strong>
+                    <span class="text-slate-500 text-[11px] mt-0.5 block">Zero-config local storage</span>
+                </div>
+                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">Network Mode</span>
+                    <div class="flex items-center gap-1.5 mt-1">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <strong class="text-emerald-700 font-semibold text-xs">Working offline</strong>
+                    </div>
+                    <span class="text-slate-500 text-[11px] mt-0.5 block">Local hospital workstation</span>
+                </div>
+                <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                    <span class="text-slate-500 font-medium block">Backup Retention</span>
+                    <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">30 Rolling Snapshots</strong>
+                    <span class="text-slate-500 text-[11px] mt-0.5 block">Automated 24h cycle</span>
+                </div>
+            </div>
+            <div class="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5 text-xs text-slate-600 font-mono">
+                <div><span class="text-slate-500 font-sans font-medium">Database File:</span> {{ $activeDatabasePath }}</div>
+                <div><span class="text-slate-500 font-sans font-medium">Backup Directory:</span> {{ $backupFolder }}</div>
+            </div>
+        </x-card>
     </div>
 
     <!-- Tab Switching Script -->
@@ -556,12 +589,12 @@
 
             // Update Tab Buttons
             document.querySelectorAll('.tab-btn').forEach(function (btn) {
-                btn.classList.remove('border-[#b91c1c]', 'text-slate-900', 'font-semibold');
+                btn.classList.remove('border-[#0f5d8c]', 'text-[#0f5d8c]', 'font-semibold');
                 btn.classList.add('border-transparent', 'text-slate-500', 'font-medium');
                 btn.setAttribute('aria-selected', 'false');
                 const svg = btn.querySelector('svg');
                 if (svg) {
-                    svg.classList.remove('text-[#b91c1c]');
+                    svg.classList.remove('text-[#0f5d8c]');
                     svg.classList.add('text-slate-400');
                 }
             });
@@ -569,12 +602,12 @@
             const activeBtn = document.getElementById('tab-btn-' + tabId);
             if (activeBtn) {
                 activeBtn.classList.remove('border-transparent', 'text-slate-500', 'font-medium');
-                activeBtn.classList.add('border-[#b91c1c]', 'text-slate-900', 'font-semibold');
+                activeBtn.classList.add('border-[#0f5d8c]', 'text-[#0f5d8c]', 'font-semibold');
                 activeBtn.setAttribute('aria-selected', 'true');
                 const svg = activeBtn.querySelector('svg');
                 if (svg) {
                     svg.classList.remove('text-slate-400');
-                    svg.classList.add('text-[#b91c1c]');
+                    svg.classList.add('text-[#0f5d8c]');
                 }
             }
 

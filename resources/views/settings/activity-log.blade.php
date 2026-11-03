@@ -28,11 +28,11 @@
                            id="activity-search"
                            placeholder="Filter by user, action, or asset number..."
                            oninput="filterActivities(this.value)"
-                           class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                           class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                 </div>
 
                 <div class="flex items-center gap-2 text-xs text-slate-500">
-                    <span>Showing {{ $activities->firstItem() ?? 0 }}–{{ $activities->lastItem() ?? 0 }} of {{ $activities->total() }} audit events</span>
+                    <span>Showing {{ $activities->firstItem() ?? 0 }} to {{ $activities->lastItem() ?? 0 }} of {{ $activities->total() }} audit events</span>
                 </div>
             </div>
         </x-card>
@@ -57,9 +57,9 @@
                         $isAsset = $subject && isset($subject->asset_no);
                     @endphp
                     <tr class="activity-row hover:bg-slate-50 transition-colors">
-                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-600 font-mono">
-                            {{ $activity->created_at?->format('M d, Y') }}
-                            <div class="text-[11px] text-slate-400 font-sans mt-0.5">
+                        <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-700">
+                            <div class="font-medium tabular-nums">{{ $activity->created_at?->format('M d, Y') }}</div>
+                            <div class="text-[11px] text-slate-500 tabular-nums mt-0.5">
                                 {{ $activity->created_at?->format('h:i:s A') }}
                             </div>
                         </td>
@@ -82,7 +82,7 @@
                         <td class="py-3 px-4">
                             @if ($isAsset)
                                 @if (method_exists($subject, 'trashed') && ! $subject->trashed())
-                                    <a href="{{ route('assets.show', $subject) }}" class="inline-flex items-center gap-1 font-mono font-semibold text-xs text-[#b91c1c] hover:underline">
+                                    <a href="{{ route('assets.show', $subject) }}" class="inline-flex items-center gap-1 font-mono font-semibold text-xs text-[#0f5d8c] hover:underline">
                                         <span>{{ $subject->asset_no }}</span>
                                     </a>
                                 @else
@@ -97,7 +97,7 @@
                                     <div class="text-xs text-slate-500 truncate max-w-[180px]">{{ $attributes['asset_name'] }}</div>
                                 @endif
                             @else
-                                <span class="text-slate-400 text-sm">—</span>
+                                <span class="text-slate-400 text-xs font-sans">General system</span>
                             @endif
                         </td>
 
@@ -121,7 +121,7 @@
                                     @endforeach
                                 </div>
                             @else
-                                <span class="text-slate-400 font-sans text-sm">—</span>
+                                <span class="text-slate-400 text-xs">None</span>
                             @endif
                         </td>
                     </tr>

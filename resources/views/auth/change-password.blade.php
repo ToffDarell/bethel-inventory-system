@@ -57,7 +57,7 @@
                            required
                            autofocus
                            placeholder="Enter new private password"
-                           class="w-full min-h-[48px] px-3.5 py-2.5 text-base bg-white border border-slate-300 rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors">
+                           class="w-full min-h-[48px] px-3.5 py-2.5 text-base bg-white border border-slate-300 rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                 </div>
 
                 <div>
@@ -69,12 +69,12 @@
                            type="password"
                            required
                            placeholder="Re-type new password"
-                           class="w-full min-h-[48px] px-3.5 py-2.5 text-base bg-white border border-slate-300 rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:border-slate-900 transition-colors">
+                           class="w-full min-h-[48px] px-3.5 py-2.5 text-base bg-white border border-slate-300 rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:border-[#0f5d8c] focus:ring-1 focus:ring-[#0f5d8c] transition-colors">
                 </div>
 
                 <div class="pt-2">
                     <button type="submit"
-                            class="w-full min-h-[48px] flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#b91c1c] hover:bg-[#991b1b] active:translate-y-[1px] text-white font-semibold text-base shadow-xs transition-colors cursor-pointer">
+                            class="w-full min-h-[48px] flex items-center justify-center gap-2 px-6 py-3 rounded-lg bg-[#0f5d8c] hover:bg-[#0c4a70] active:translate-y-[1px] text-white font-semibold text-base shadow-xs transition-colors cursor-pointer">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                         </svg>
