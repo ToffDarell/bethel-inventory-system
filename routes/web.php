@@ -30,6 +30,21 @@ Route::middleware('auth')->group(function () {
     Route::middleware('force.password')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
 
+        Route::get('/api/assets/quick-search', function (\Illuminate\Http\Request $request) {
+            $q = trim((string) $request->query('q', ''));
+            if (strlen($q) < 1) {
+                return response()->json([]);
+            }
+            $assets = \App\Models\Asset::query()
+                ->where('asset_no', 'like', "%{$q}%")
+                ->orWhere('asset_name', 'like', "%{$q}%")
+                ->orWhere('department', 'like', "%{$q}%")
+                ->orWhere('location', 'like', "%{$q}%")
+                ->limit(8)
+                ->get(['id', 'asset_no', 'asset_name', 'department', 'location', 'status']);
+            return response()->json($assets);
+        })->name('assets.quick-search');
+
         Route::resource('assets', AssetController::class);
 
         Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');

@@ -15,13 +15,13 @@
     $hasError = $errors->has($name);
     $borderClasses = $hasError
         ? 'border-red-500 focus:border-red-600 focus:ring-red-600'
-        : 'border-slate-300 focus:border-slate-900 focus:ring-slate-900';
+        : 'border-slate-300 focus:border-[#0f5d8c] focus:ring-[#0f5d8c]';
     $fontClasses = $mono ? 'font-mono' : '';
 @endphp
 
 <div {{ $attributes->merge(['class' => 'space-y-1.5']) }}>
     <div class="flex items-center justify-between gap-2">
-        <label for="{{ $name }}" class="block text-sm font-medium text-slate-800">
+        <label for="{{ $name }}" class="block text-sm font-semibold text-slate-800">
             {{ $label }}
             @if ($required)
                 <span class="text-[#b91c1c] font-semibold ml-0.5" aria-hidden="true">*</span>
@@ -48,7 +48,7 @@
             {{ $autofocus ? 'autofocus' : '' }}
             aria-invalid="{{ $hasError ? 'true' : 'false' }}"
             @if($help) aria-describedby="{{ $name }}-help" @endif
-            class="w-full px-3.5 py-2.5 text-base bg-white border {{ $borderClasses }} {{ $fontClasses }} rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors"
+            class="w-full px-3.5 py-2 text-sm bg-white border {{ $borderClasses }} {{ $fontClasses }} rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors"
         >{{ old($name, $value) }}</textarea>
     @elseif ($type === 'select')
         <select
@@ -58,7 +58,7 @@
             {{ $autofocus ? 'autofocus' : '' }}
             aria-invalid="{{ $hasError ? 'true' : 'false' }}"
             @if($help) aria-describedby="{{ $name }}-help" @endif
-            class="w-full min-h-[44px] px-3.5 py-2.5 text-base bg-white border {{ $borderClasses }} rounded-lg shadow-2xs focus:outline-none focus:ring-1 transition-colors"
+            class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border {{ $borderClasses }} rounded-lg shadow-2xs focus:outline-none focus:ring-1 transition-colors"
         >
             {{ $slot }}
         </select>
@@ -74,7 +74,7 @@
             {{ $autofocus ? 'autofocus' : '' }}
             aria-invalid="{{ $hasError ? 'true' : 'false' }}"
             @if($help) aria-describedby="{{ $name }}-help" @endif
-            class="w-full min-h-[44px] px-3.5 py-2.5 text-base bg-white border {{ $borderClasses }} {{ $fontClasses }} rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors"
+            class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border {{ $borderClasses }} {{ $fontClasses }} rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors"
         />
     @endif
 

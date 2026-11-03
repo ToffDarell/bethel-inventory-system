@@ -91,15 +91,15 @@
         }
 
         .btn-primary {
-            background-color: #b91c1c;
+            background-color: #0f5d8c;
             color: #ffffff;
-            border: 1px solid #b91c1c;
-            box-shadow: 0 1px 2px rgba(185, 28, 28, 0.2);
+            border: 1px solid #0f5d8c;
+            box-shadow: 0 1px 2px rgba(15, 93, 140, 0.2);
         }
 
         .btn-primary:hover {
-            background-color: #991b1b;
-            border-color: #991b1b;
+            background-color: #0c4a70;
+            border-color: #0c4a70;
         }
 
         .btn-secondary {

@@ -192,7 +192,7 @@
                                 <div class="flex items-center justify-between text-sm mb-1.5">
                                     @if (! $isUnassigned)
                                         <a href="{{ route('assets.index', ['department' => $deptRow->dept_name]) }}"
-                                           class="font-medium text-slate-800 hover:text-[#b91c1c] hover:underline truncate">
+                                           class="font-medium text-slate-800 hover:text-[#0f5d8c] hover:underline truncate">
                                             {{ $deptRow->dept_name }}
                                         </a>
                                     @else
@@ -258,12 +258,12 @@
                                     <tr>
                                         <td class="py-3 px-4 whitespace-nowrap">
                                             <a href="{{ route('assets.show', $recent) }}"
-                                               class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-medium hover:border-slate-300 hover:text-[#b91c1c] transition-colors">
+                                               class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-medium hover:border-slate-300 hover:text-[#0f5d8c] transition-colors">
                                                 {{ $recent->asset_no }}
                                             </a>
                                         </td>
                                         <td class="py-3 px-4 font-medium text-slate-900">
-                                            <a href="{{ route('assets.show', $recent) }}" class="hover:text-[#b91c1c] hover:underline">
+                                            <a href="{{ route('assets.show', $recent) }}" class="hover:text-[#0f5d8c] hover:underline">
                                                 {{ $recent->asset_name }}
                                             </a>
                                         </td>
