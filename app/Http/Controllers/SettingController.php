@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Category;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\BackupService;
@@ -50,6 +51,7 @@ class SettingController extends Controller
             'backupOverdue' => $backupOverdue,
             'activeDatabasePath' => $this->backupService->getDatabasePath(),
             'users' => $request->user()?->isAdmin() ? User::orderBy('name')->get() : collect(),
+            'categories' => Category::withCount('assets')->orderBy('name')->get(),
         ]);
     }
 

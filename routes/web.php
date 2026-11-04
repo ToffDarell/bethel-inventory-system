@@ -3,6 +3,7 @@
 use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ImportExportController;
 use App\Http\Controllers\ScanController;
@@ -101,6 +102,9 @@ Route::middleware('auth')->group(function () {
             Route::post('/settings/restore', [SettingController::class, 'restore'])->name('settings.restore');
             Route::post('/settings/relaunch', [SettingController::class, 'relaunch'])->name('settings.relaunch');
             Route::post('/settings/users', [SettingController::class, 'storeUser'])->name('settings.users.store');
+            Route::post('/settings/categories', [CategoryController::class, 'store'])->name('settings.categories.store');
+            Route::put('/settings/categories/{category}', [CategoryController::class, 'update'])->name('settings.categories.update');
+            Route::delete('/settings/categories/{category}', [CategoryController::class, 'destroy'])->name('settings.categories.destroy');
         });
     });
 });

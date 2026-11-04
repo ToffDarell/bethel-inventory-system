@@ -51,3 +51,73 @@ test('asset supports optional category and financial attributes', function () {
     expect($asset->useful_life_years)->toBe(8);
     expect((float) $asset->salvage_value)->toBe(4250.00);
 });
+
+test('admin can create and update categories from settings', function () {
+    $this->actingAs($this->admin)->post('/settings/categories', [
+        'name' => 'Laboratory Equipment',
+        'default_useful_life_years' => 12,
+        'default_salvage_percent' => 10,
+    ])->assertRedirect();
+
+    $cat = Category::where('name', 'Laboratory Equipment')->first();
+    expect($cat)->not->toBeNull();
+    expect($cat->default_useful_life_years)->toBe(12);
+    expect((float) $cat->default_salvage_percent)->toBe(10.0);
+
+    $this->actingAs($this->admin)->put("/settings/categories/{$cat->id}", [
+        'name' => 'Clinical Lab Equipment',
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 5,
+    ])->assertRedirect();
+
+    expect($cat->fresh()->name)->toBe('Clinical Lab Equipment');
+    expect($cat->fresh()->default_useful_life_years)->toBe(10);
+});
+
+test('blocks category deletion when category is assigned to active or soft-deleted assets', function () {
+    $cat = Category::create(['name' => 'Surgical Equipment']);
+
+    $asset = Asset::create([
+        'asset_no' => 'BBH-SURG-01',
+        'asset_name' => 'Anesthesia Machine',
+        'status' => 'In Use',
+        'category_id' => $cat->id,
+    ]);
+
+    // Attempt delete while asset is active
+    $this->actingAs($this->admin)->delete("/settings/categories/{$cat->id}")
+        ->assertSessionHasErrors('category');
+    expect(Category::find($cat->id))->not->toBeNull();
+
+    // Soft-delete the asset
+    $asset->delete();
+
+    // Attempt delete while asset is soft-deleted
+    $this->actingAs($this->admin)->delete("/settings/categories/{$cat->id}")
+        ->assertSessionHasErrors('category');
+    expect(Category::find($cat->id))->not->toBeNull();
+
+    // An unassigned category CAN be deleted
+    $unusedCat = Category::create(['name' => 'Temporary Category']);
+    $this->actingAs($this->admin)->delete("/settings/categories/{$unusedCat->id}")
+        ->assertRedirect();
+    expect(Category::find($unusedCat->id))->toBeNull();
+});
+
+test('staff cannot create, edit, or delete categories', function () {
+    $staff = User::factory()->create(['role' => 'staff', 'must_change_password' => false]);
+    $cat = Category::create(['name' => 'Office Supply']);
+
+    $this->actingAs($staff)->post('/settings/categories', ['name' => 'Hacked'])->assertForbidden();
+    $this->actingAs($staff)->put("/settings/categories/{$cat->id}", ['name' => 'Hacked'])->assertForbidden();
+    $this->actingAs($staff)->delete("/settings/categories/{$cat->id}")->assertForbidden();
+});
+
+test('settings page displays categories tab with categories list for admin', function () {
+    Category::create(['name' => 'Endoscopy Units', 'default_useful_life_years' => 6]);
+
+    $response = $this->actingAs($this->admin)->get('/settings');
+    $response->assertOk();
+    $response->assertSee('Categories');
+    $response->assertSee('Endoscopy Units');
+});

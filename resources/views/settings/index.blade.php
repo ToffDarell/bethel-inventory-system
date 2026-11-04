@@ -130,6 +130,19 @@
 
                 @if (auth()->user()?->isAdmin())
                     <button type="button"
+                            onclick="switchTab('categories')"
+                            id="tab-btn-categories"
+                            role="tab"
+                            aria-controls="panel-categories"
+                            aria-selected="false"
+                            class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>
+                        </svg>
+                        <span>Categories</span>
+                    </button>
+
+                    <button type="button"
                             onclick="switchTab('users')"
                             id="tab-btn-users"
                             role="tab"
@@ -473,6 +486,163 @@
             @endif
         </div>
 
+        <!-- TAB: CATEGORIES (ADMIN ONLY) -->
+        @if (auth()->user()?->isAdmin())
+            <div id="panel-categories" role="tabpanel" class="tab-panel hidden space-y-6">
+                <!-- Categories Table -->
+                <x-card title="Asset Categories & Depreciation Presets" subtitle="Manage equipment categories, default useful life spans, and estimated salvage percentages. Categories in use cannot be deleted.">
+                    <x-table>
+                        <x-slot:header>
+                            <tr>
+                                <th class="py-3 px-4">Category Name</th>
+                                <th class="py-3 px-4">Default Useful Life</th>
+                                <th class="py-3 px-4">Default Salvage %</th>
+                                <th class="py-3 px-4 text-center">Assigned Assets</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                        </x-slot:header>
+
+                        @forelse ($categories as $cat)
+                            <tr>
+                                <td class="py-3 px-4 font-semibold text-slate-900">
+                                    {{ $cat->name }}
+                                </td>
+                                <td class="py-3 px-4 text-slate-700">
+                                    {{ $cat->default_useful_life_years ? $cat->default_useful_life_years . ' years' : 'Not configured' }}
+                                </td>
+                                <td class="py-3 px-4 text-slate-700 font-mono">
+                                    {{ number_format((float) $cat->default_salvage_percent, 2) }}%
+                                </td>
+                                <td class="py-3 px-4 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $cat->assets_count > 0 ? 'bg-sky-50 text-primary border border-sky-200' : 'bg-slate-100 text-slate-600' }}">
+                                        {{ $cat->assets_count }} {{ Str::plural('asset', $cat->assets_count) }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    <div class="inline-flex items-center gap-2">
+                                        <button type="button"
+                                                onclick="openEditCategoryModal({{ $cat->id }}, '{{ addslashes($cat->name) }}', '{{ $cat->default_useful_life_years ?? '' }}', '{{ $cat->default_salvage_percent }}')"
+                                                class="px-2.5 py-1 text-xs font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded border border-slate-300 transition-colors cursor-pointer">
+                                            Edit
+                                        </button>
+                                        @if ($cat->assets_count === 0)
+                                            <form method="POST" action="{{ route('settings.categories.destroy', $cat) }}" onsubmit="return confirm('Are you sure you want to delete category &quot;{{ $cat->name }}&quot;?');" class="inline">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit"
+                                                        class="px-2.5 py-1 text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded border border-red-200 transition-colors cursor-pointer">
+                                                    Delete
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="text-xs text-slate-400 italic" title="Category is in use and cannot be deleted">Locked</span>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="py-6 text-center text-slate-500">
+                                    No categories defined yet. Create your first category below.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </x-table>
+                </x-card>
+
+                <!-- Add Category Form -->
+                <x-card title="Add New Category" subtitle="Add a new property classification. Newly created assets selecting this category will inherit these defaults.">
+                    <form method="POST" action="{{ route('settings.categories.store') }}" class="max-w-xl space-y-4">
+                        @csrf
+                        <div>
+                            <label for="cat_name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                Category Name <span class="text-crimson">*</span>
+                            </label>
+                            <input type="text"
+                                   id="cat_name"
+                                   name="name"
+                                   required
+                                   value="{{ old('name') }}"
+                                   placeholder="e.g. Diagnostic Equipment, Laboratory, Office Furniture"
+                                   class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="cat_life" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                    Default Useful Life (years)
+                                </label>
+                                <input type="number"
+                                       id="cat_life"
+                                       name="default_useful_life_years"
+                                       min="1"
+                                       max="100"
+                                       value="{{ old('default_useful_life_years') }}"
+                                       placeholder="e.g. 10"
+                                       class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                <p class="text-[11px] text-slate-500 mt-1">Useful life for straight-line calculations</p>
+                            </div>
+                            <div>
+                                <label for="cat_salvage" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                    Default Salvage Value (%)
+                                </label>
+                                <input type="number"
+                                       id="cat_salvage"
+                                       name="default_salvage_percent"
+                                       min="0"
+                                       max="100"
+                                       step="0.01"
+                                       value="{{ old('default_salvage_percent', '0') }}"
+                                       placeholder="0.00"
+                                       class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                <p class="text-[11px] text-slate-500 mt-1">Default salvage % of cost (e.g. 10%)</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <x-button variant="primary" type="submit">
+                                Add Category
+                            </x-button>
+                        </div>
+                    </form>
+                </x-card>
+            </div>
+
+            <!-- Edit Category Modal Dialog -->
+            <div id="edit-category-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="modal-category-title">
+                <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-150">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+                        <h3 id="modal-category-title" class="text-base font-bold text-slate-900">Edit Category</h3>
+                        <button type="button" onclick="closeEditCategoryModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-md">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <form id="edit-category-form" method="POST" action="" class="p-6 space-y-4">
+                        @csrf
+                        @method('PUT')
+                        <div>
+                            <label for="edit_cat_name" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Category Name <span class="text-crimson">*</span></label>
+                            <input type="text" id="edit_cat_name" name="name" required class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="edit_cat_life" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Useful Life (years)</label>
+                                <input type="number" id="edit_cat_life" name="default_useful_life_years" min="1" max="100" class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            </div>
+                            <div>
+                                <label for="edit_cat_salvage" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">Salvage Value (%)</label>
+                                <input type="number" id="edit_cat_salvage" name="default_salvage_percent" min="0" max="100" step="0.01" class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                            </div>
+                        </div>
+                        <div class="pt-3 flex justify-end gap-2 border-t border-slate-100">
+                            <button type="button" onclick="closeEditCategoryModal()" class="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors">Cancel</button>
+                            <x-button variant="primary" type="submit">Save Changes</x-button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        @endif
+
         <!-- TAB 4: USER ACCOUNTS (ADMIN ONLY) -->
         @if (auth()->user()?->isAdmin())
             <div id="panel-users" role="tabpanel" class="tab-panel hidden space-y-6">
@@ -718,10 +888,27 @@
             }
         }
 
+        function openEditCategoryModal(id, name, life, salvage) {
+            const modal = document.getElementById('edit-category-modal');
+            const form = document.getElementById('edit-category-form');
+            if (!modal || !form) return;
+
+            form.action = '/settings/categories/' + id;
+            document.getElementById('edit_cat_name').value = name;
+            document.getElementById('edit_cat_life').value = life || '';
+            document.getElementById('edit_cat_salvage').value = salvage || '0';
+            modal.classList.remove('hidden');
+        }
+
+        function closeEditCategoryModal() {
+            const modal = document.getElementById('edit-category-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         // Initialize tab based on URL hash if provided
         document.addEventListener('DOMContentLoaded', function () {
             const hash = window.location.hash.replace('#', '');
-            if (hash && ['hospital', 'tag', 'backup', 'users'].includes(hash)) {
+            if (hash && ['hospital', 'tag', 'backup', 'categories', 'users'].includes(hash)) {
                 switchTab(hash);
             }
         });
