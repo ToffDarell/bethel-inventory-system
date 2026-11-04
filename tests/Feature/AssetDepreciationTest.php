@@ -261,3 +261,184 @@ test('admin can export depreciation report as csv or excel', function () {
     $responseXlsx = $this->actingAs($this->admin)->get('/reports/depreciation/export?format=xlsx');
     $responseXlsx->assertOk();
 });
+
+test('assets template export includes category and financial headings', function () {
+    $export = new \App\Exports\AssetsTemplateExport();
+    $headings = $export->headings();
+    expect($headings)->toContain('category');
+    expect($headings)->toContain('cost');
+    expect($headings)->toContain('useful_life_years');
+    expect($headings)->toContain('salvage_value');
+});
+
+test('assets export includes financial columns and totals row for admin only', function () {
+    Asset::create([
+        'asset_no' => 'BBH-EXP-01',
+        'asset_name' => 'Computed Tomography Scanner',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => 1500000.00,
+        'salvage_value' => 150000.00,
+        'useful_life_years' => 10,
+        'date_acquired' => '2023-01-01',
+    ]);
+
+    // Admin export
+    $adminExport = new \App\Exports\AssetsExport(null, null, $this->admin);
+    $adminHeadings = $adminExport->headings();
+    expect($adminHeadings)->toContain('category');
+    expect($adminHeadings)->toContain('cost');
+    expect($adminHeadings)->toContain('accumulated_depreciation');
+    expect($adminHeadings)->toContain('current_value');
+
+    $adminRows = $adminExport->array();
+    expect($adminRows)->not->toBeEmpty();
+    // Check totals row is at the end
+    $lastRow = end($adminRows);
+    expect($lastRow[0])->toBe('Total asset value');
+    expect($lastRow[9])->toContain('₱1,500,000.00');
+
+    // Staff export
+    $staffExport = new \App\Exports\AssetsExport(null, null, $this->staff);
+    $staffHeadings = $staffExport->headings();
+    expect($staffHeadings)->toContain('category');
+    expect($staffHeadings)->not->toContain('cost');
+    expect($staffHeadings)->not->toContain('salvage_value');
+    expect($staffHeadings)->not->toContain('accumulated_depreciation');
+    expect($staffHeadings)->not->toContain('current_value');
+
+    $staffRows = $staffExport->array();
+    expect($staffRows)->not->toBeEmpty();
+    $lastStaffRow = end($staffRows);
+    expect($lastStaffRow[0])->not->toBe('Total asset value');
+    expect(implode(' ', $lastStaffRow))->not->toContain('1,500,000');
+    expect(implode(' ', $lastStaffRow))->not->toContain('₱');
+});
+
+test('asset import auto-creates new categories and persists cost properly', function () {
+    $importService = app(\App\Services\AssetImportService::class);
+
+    $rowsToCommit = [
+        [
+            'row_number' => 2,
+            'asset_no' => 'BBH-IMP-001',
+            'asset_name' => 'Defibrillator Unit',
+            'category' => 'Emergency Equipment', // New category not yet seeded
+            'cost' => 85000.00,
+            'salvage_value' => 8500.00,
+            'useful_life_years' => 8,
+            'model' => 'Zoll AED Plus',
+            'serial_no' => 'AED-9988',
+            'date_acquired' => '2024-06-01',
+            'department' => 'Emergency',
+            'location' => 'ER Bay 1',
+            'status' => 'In Use',
+            'notes' => 'Imported test item',
+            'is_duplicate' => false,
+            'is_valid' => true,
+        ],
+        [
+            'row_number' => 3,
+            'asset_no' => 'BBH-IMP-002',
+            'asset_name' => 'IV Pole Stand',
+            'category' => 'Furniture',
+            'cost' => null, // Blank cost
+            'salvage_value' => null,
+            'useful_life_years' => null,
+            'model' => 'Standard 4-Hook',
+            'serial_no' => null,
+            'date_acquired' => null,
+            'department' => 'Ward A',
+            'location' => 'Room 101',
+            'status' => 'In Use',
+            'notes' => 'No cost item',
+            'is_duplicate' => false,
+            'is_valid' => true,
+        ],
+    ];
+
+    $result = $importService->commit($rowsToCommit, $this->admin);
+    expect($result['imported'])->toBe(2);
+
+    // Verify Emergency Equipment was auto-created
+    $newCat = Category::where('name', 'Emergency Equipment')->first();
+    expect($newCat)->not->toBeNull();
+
+    $asset1 = Asset::where('asset_no', 'BBH-IMP-001')->first();
+    expect($asset1->category_id)->toBe($newCat->id);
+    expect((float) $asset1->cost)->toEqualWithDelta(85000.00, 0.01);
+    expect((float) $asset1->salvage_value)->toEqualWithDelta(8500.00, 0.01);
+    expect($asset1->useful_life_years)->toBe(8);
+
+    $asset2 = Asset::where('asset_no', 'BBH-IMP-002')->first();
+    expect($asset2->cost)->toBeNull();
+    expect($asset2->useful_life_years)->toBeNull();
+    expect($asset2->salvage_value)->toBeNull();
+});
+
+test('security: cost and monetary values are never leaked to staff across any endpoint or output', function () {
+    // Unique distinct cost figure to detect any leakage
+    $distinctCost = 789456.12;
+    $distinctCostStr = '789456';
+
+    $sensitiveAsset = Asset::create([
+        'asset_no' => 'BBH-SEC-99',
+        'asset_name' => 'Magnetic Resonance Imager',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => $distinctCost,
+        'salvage_value' => 78945.61,
+        'useful_life_years' => 12,
+        'date_acquired' => '2023-01-01',
+        'department' => 'Radiology',
+        'location' => 'MRI Suite',
+    ]);
+
+    // 1. Quick search endpoint (/api/assets/quick-search)
+    $searchResp = $this->actingAs($this->staff)->getJson('/api/assets/quick-search?q=Magnetic');
+    $searchResp->assertOk();
+    expect($searchResp->getContent())->not->toContain('789456');
+    expect($searchResp->getContent())->not->toContain('789,456');
+
+    // 2. Audit location assets endpoint (/api/audit/location-assets)
+    $auditResp = $this->actingAs($this->staff)->getJson('/api/audit/location-assets?location=MRI%20Suite');
+    $auditResp->assertOk();
+    expect($auditResp->getContent())->not->toContain('789456');
+    expect($auditResp->getContent())->not->toContain('789,456');
+
+    // 3. Assets listing page (/assets)
+    $listResp = $this->actingAs($this->staff)->get('/assets');
+    $listResp->assertOk();
+    expect($listResp->getContent())->not->toContain('789456');
+    expect($listResp->getContent())->not->toContain('789,456');
+
+    // 4. Excel/CSV export endpoint (/reports/export?format=csv)
+    $exportResp = $this->actingAs($this->staff)->get('/reports/export?format=csv');
+    $exportResp->assertOk();
+    $staffCsvContent = file_get_contents($exportResp->getFile()->getPathname());
+    expect($staffCsvContent)->not->toContain('789456');
+    expect($staffCsvContent)->not->toContain('789,456');
+    expect($staffCsvContent)->not->toContain('Total asset value');
+
+    // 5. Print preview (/tags/print)
+    $printResp = $this->actingAs($this->staff)->get("/tags/print?ids[]={$sensitiveAsset->id}");
+    $printResp->assertOk();
+    expect($printResp->getContent())->not->toContain('789456');
+    expect($printResp->getContent())->not->toContain('789,456');
+
+    // 6. PDF export preview (/tags/pdf)
+    $pdfResp = $this->actingAs($this->staff)->get("/tags/pdf?ids[]={$sensitiveAsset->id}");
+    $pdfResp->assertOk();
+    expect($pdfResp->headers->get('content-type'))->toContain('application/pdf');
+
+    // 7. Activity Log page (/settings/activity-log) is completely forbidden to staff
+    $activityResp = $this->actingAs($this->staff)->get('/settings/activity-log');
+    $activityResp->assertForbidden();
+
+    // Verify Admin CAN see the cost in exports
+    $adminExportResp = $this->actingAs($this->admin)->get('/reports/export?format=csv');
+    $adminExportResp->assertOk();
+    $adminCsvContent = file_get_contents($adminExportResp->getFile()->getPathname());
+    expect($adminCsvContent)->toContain('789,456.12');
+    expect($adminCsvContent)->toContain('Total asset value');
+});

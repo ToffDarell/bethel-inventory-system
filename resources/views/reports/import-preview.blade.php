@@ -77,6 +77,20 @@
             </div>
         </div>
 
+        @if (!empty($unknown_category_count) && $unknown_category_count > 0)
+            <div class="p-4 rounded-xl border border-sky-200 bg-sky-50 text-sky-950 flex items-start gap-3 text-xs leading-relaxed">
+                <svg class="w-5 h-5 text-sky-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-sky-900">New Categories Detected ({{ $unknown_category_count }})</p>
+                    <p class="text-sky-800 mt-0.5">
+                        Some rows reference categories that are not currently registered. These categories will be created automatically in Settings upon confirming the import.
+                    </p>
+                </div>
+            </div>
+        @endif
+
         <!-- Metric Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Ready to Import -->
@@ -130,6 +144,8 @@
                             <th class="py-3 px-4">Validation State</th>
                             <th class="py-3 px-4">Asset No.</th>
                             <th class="py-3 px-4">Asset Name</th>
+                            <th class="py-3 px-4">Category</th>
+                            <th class="py-3 px-4 text-right">Cost</th>
                             <th class="py-3 px-4">Model</th>
                             <th class="py-3 px-4">Serial No.</th>
                             <th class="py-3 px-4">Date Acquired</th>
@@ -180,6 +196,25 @@
                                 <td class="py-3 px-4 font-medium text-slate-900">
                                     {{ $row['asset_name'] ?: 'Not specified' }}
                                 </td>
+                                <td class="py-3 px-4 text-sm">
+                                    @if (!empty($row['category']))
+                                        <span class="inline-flex items-center gap-1.5 font-medium text-slate-800">
+                                            <span>{{ $row['category'] }}</span>
+                                            @if (!empty($row['is_unknown_category']))
+                                                <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-semibold" title="Will be auto-created">New</span>
+                                            @endif
+                                        </span>
+                                    @else
+                                        <span class="text-xs text-slate-400">Uncategorized</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-sm font-mono tabular-nums text-right whitespace-nowrap">
+                                    @if (isset($row['cost']) && $row['cost'] !== null)
+                                        <span class="text-slate-900 font-medium">₱{{ number_format((float) $row['cost'], 2) }}</span>
+                                    @else
+                                        <span class="text-xs font-sans text-slate-400">No cost entered</span>
+                                    @endif
+                                </td>
                                 <td class="py-3 px-4 text-slate-600 text-sm">
                                     {{ $row['model'] ?: 'Not specified' }}
                                 </td>
@@ -205,7 +240,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="p-8 text-center text-slate-500">
+                                <td colspan="11" class="p-8 text-center text-slate-500">
                                     No data rows were found in the uploaded spreadsheet file.
                                 </td>
                             </tr>

@@ -63,7 +63,7 @@ class ImportExportController extends Controller
             $filename = 'bethel-assets-' . now()->format('Y-m-d') . '.csv';
 
             return Excel::download(
-                new AssetsExport($department, $status),
+                new AssetsExport($department, $status, $request->user()),
                 $filename,
                 \Maatwebsite\Excel\Excel::CSV,
                 ['Content-Type' => 'text/csv; charset=UTF-8']
@@ -73,7 +73,7 @@ class ImportExportController extends Controller
         $filename = 'bethel-assets-' . now()->format('Y-m-d') . '.xlsx';
 
         return Excel::download(
-            new AssetsExport($department, $status),
+            new AssetsExport($department, $status, $request->user()),
             $filename
         );
     }

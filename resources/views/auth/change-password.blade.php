@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Set New Password - Bethel Asset Tracker</title>
+    <link rel="icon" type="image/png" href="{{ asset('icon.png') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-white text-slate-900 font-sans antialiased h-full h-[100dvh] overflow-hidden selection:bg-slate-200 selection:text-slate-900">
