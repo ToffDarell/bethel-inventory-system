@@ -31,8 +31,19 @@ class ImportExportController extends Controller
         ]);
     }
 
-    public function template()
+    public function template(Request $request)
     {
+        $format = strtolower((string) $request->query('format', 'xlsx'));
+
+        if ($format === 'csv' || ! class_exists('XMLWriter')) {
+            return Excel::download(
+                new AssetsTemplateExport,
+                'bethel-assets-import-template.csv',
+                \Maatwebsite\Excel\Excel::CSV,
+                ['Content-Type' => 'text/csv; charset=UTF-8']
+            );
+        }
+
         return Excel::download(
             new AssetsTemplateExport,
             'bethel-assets-import-template.xlsx'
@@ -43,6 +54,18 @@ class ImportExportController extends Controller
     {
         $department = $request->query('department');
         $status = $request->query('status');
+        $format = strtolower((string) $request->query('format', 'xlsx'));
+
+        if ($format === 'csv' || ! class_exists('XMLWriter')) {
+            $filename = 'bethel-assets-' . now()->format('Y-m-d') . '.csv';
+
+            return Excel::download(
+                new AssetsExport($department, $status),
+                $filename,
+                \Maatwebsite\Excel\Excel::CSV,
+                ['Content-Type' => 'text/csv; charset=UTF-8']
+            );
+        }
 
         $filename = 'bethel-assets-' . now()->format('Y-m-d') . '.xlsx';
 

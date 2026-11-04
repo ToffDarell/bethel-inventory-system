@@ -25,7 +25,15 @@ test('downloads sample excel template and exports assets list', function () {
         ->assertOk();
 
     $this->actingAs($this->user)
+        ->get('/reports/template?format=csv')
+        ->assertOk();
+
+    $this->actingAs($this->user)
         ->get('/reports/export')
+        ->assertOk();
+
+    $this->actingAs($this->user)
+        ->get('/reports/export?format=csv')
         ->assertOk();
 });
 

@@ -91,9 +91,20 @@
                         </select>
                     </div>
 
-                    <div class="pt-2">
+                    <div class="pt-2 flex flex-col sm:flex-row gap-3">
                         <button type="submit"
-                                class="w-full min-h-[44px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-medium text-sm shadow-2xs transition-colors cursor-pointer">
+                                name="format"
+                                value="csv"
+                                class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-slate-800 text-white font-medium text-sm shadow-2xs transition-colors cursor-pointer">
+                            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            <span>Export to CSV (.csv)</span>
+                        </button>
+                        <button type="submit"
+                                name="format"
+                                value="xlsx"
+                                class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-medium text-sm shadow-2xs transition-colors cursor-pointer">
                             <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                             </svg>
