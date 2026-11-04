@@ -40,5 +40,7 @@ class DatabaseSeeder extends Seeder
                 ['value' => $value]
             );
         }
+
+        $this->call(CategorySeeder::class);
     }
 }

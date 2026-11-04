@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\Activitylog\LogOptions;
@@ -30,13 +31,25 @@ class Asset extends Model
         'location',
         'status',
         'notes',
+        'category_id',
+        'cost',
+        'useful_life_years',
+        'salvage_value',
     ];
 
     protected function casts(): array
     {
         return [
             'date_acquired' => 'date',
+            'cost' => 'decimal:2',
+            'salvage_value' => 'decimal:2',
+            'useful_life_years' => 'integer',
         ];
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class);
     }
 
     public function transfers(): HasMany
