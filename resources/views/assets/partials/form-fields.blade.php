@@ -73,6 +73,103 @@
         </div>
     </x-card>
 
+    <!-- Section: Category and Value -->
+    <x-card title="Category and Value" subtitle="Equipment classification and straight-line depreciation parameters">
+        <div class="space-y-5">
+            <div>
+                <label for="category_id" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    Category
+                </label>
+                <select id="category_id"
+                        name="category_id"
+                        onchange="handleCategoryChange(this)"
+                        class="w-full min-h-[44px] px-3.5 py-2.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                    <option value="" data-life="" data-salvage="0">Uncategorized (Select a category)</option>
+                    @foreach ($categories ?? [] as $categoryOption)
+                        <option value="{{ $categoryOption->id }}"
+                                data-life="{{ $categoryOption->default_useful_life_years ?? '' }}"
+                                data-salvage="{{ $categoryOption->default_salvage_percent ?? 0 }}"
+                                @selected(old('category_id', $asset->category_id ?? '') == $categoryOption->id)>
+                            {{ $categoryOption->name }}
+                            @if ($categoryOption->default_useful_life_years)
+                                ({{ $categoryOption->default_useful_life_years }} yrs)
+                            @endif
+                        </option>
+                    @endforeach
+                </select>
+                <p class="text-[11px] text-slate-500 mt-1">Choosing a category automatically fills recommended useful life and salvage value</p>
+            </div>
+
+            @if (auth()->user()?->isAdmin())
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
+                    <div>
+                        <label for="cost" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Cost (₱)
+                        </label>
+                        <div class="relative rounded-lg">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
+                                ₱
+                            </div>
+                            <input type="number"
+                                   id="cost"
+                                   name="cost"
+                                   step="0.01"
+                                   min="0"
+                                   oninput="updateDepreciationPreview()"
+                                   value="{{ old('cost', isset($asset) && $asset->cost !== null ? $asset->cost : '') }}"
+                                   placeholder="0.00"
+                                   class="w-full min-h-[44px] pl-8 pr-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Original acquisition cost</p>
+                    </div>
+
+                    <div>
+                        <label for="useful_life_years" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Useful life (years)
+                        </label>
+                        <input type="number"
+                               id="useful_life_years"
+                               name="useful_life_years"
+                               min="1"
+                               max="100"
+                               oninput="updateDepreciationPreview()"
+                               value="{{ old('useful_life_years', $asset->useful_life_years ?? '') }}"
+                               placeholder="e.g. 10"
+                               class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        <p class="text-[11px] text-slate-500 mt-1">Depreciable lifespan</p>
+                    </div>
+
+                    <div>
+                        <label for="salvage_value" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                            Salvage value (₱)
+                        </label>
+                        <div class="relative rounded-lg">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 font-semibold text-sm">
+                                ₱
+                            </div>
+                            <input type="number"
+                                   id="salvage_value"
+                                   name="salvage_value"
+                                   step="0.01"
+                                   min="0"
+                                   oninput="updateDepreciationPreview()"
+                                   value="{{ old('salvage_value', isset($asset) && $asset->salvage_value !== null ? $asset->salvage_value : '') }}"
+                                   placeholder="0.00"
+                                   class="w-full min-h-[44px] pl-8 pr-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1">Estimated residual value at end of life</p>
+                    </div>
+                </div>
+
+                <!-- Live Preview Line -->
+                <div id="depreciation-live-preview" class="p-3.5 rounded-lg bg-slate-50 border border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span class="text-slate-600 font-medium">Estimated current value:</span>
+                    <strong id="preview-value-text" class="text-sm font-bold font-mono text-slate-900">No cost entered</strong>
+                </div>
+            @endif
+        </div>
+    </x-card>
+
     <!-- Section 2: Location & Status -->
     <x-card title="Location" subtitle="Assigned hospital department, room or station, and current operating status">
         <div class="space-y-5">
@@ -138,3 +235,95 @@
         </div>
     </x-card>
 </div>
+
+@if (auth()->user()?->isAdmin())
+<script>
+    function handleCategoryChange(select) {
+        const option = select.options[select.selectedIndex];
+        if (!option) return;
+
+        const life = option.dataset.life;
+        const salvagePercent = parseFloat(option.dataset.salvage || 0);
+
+        const lifeInput = document.getElementById('useful_life_years');
+        const costInput = document.getElementById('cost');
+        const salvageInput = document.getElementById('salvage_value');
+
+        if (life && lifeInput && (!lifeInput.value || lifeInput.value === '')) {
+            lifeInput.value = life;
+        }
+
+        if (salvagePercent > 0 && costInput && costInput.value && salvageInput && (!salvageInput.value || salvageInput.value === '0')) {
+            const cost = parseFloat(costInput.value);
+            if (!isNaN(cost) && cost > 0) {
+                salvageInput.value = (cost * (salvagePercent / 100)).toFixed(2);
+            }
+        }
+
+        updateDepreciationPreview();
+    }
+
+    function updateDepreciationPreview() {
+        const previewText = document.getElementById('preview-value-text');
+        if (!previewText) return;
+
+        const costVal = document.getElementById('cost')?.value;
+        const lifeVal = document.getElementById('useful_life_years')?.value;
+        const salvageVal = document.getElementById('salvage_value')?.value || '0';
+        const dateVal = document.getElementById('date_acquired')?.value;
+
+        if (!costVal || isNaN(parseFloat(costVal)) || parseFloat(costVal) <= 0) {
+            previewText.textContent = 'No cost entered';
+            return;
+        }
+
+        const cost = parseFloat(costVal);
+        const salvage = Math.max(0, parseFloat(salvageVal) || 0);
+        const usefulLife = parseInt(lifeVal, 10);
+
+        if (!dateVal || isNaN(usefulLife) || usefulLife <= 0) {
+            previewText.textContent = 'Not enough data (requires cost, date acquired, and useful life)';
+            return;
+        }
+
+        const acquiredDate = new Date(dateVal);
+        const now = new Date();
+
+        if (acquiredDate > now) {
+            previewText.textContent = '₱' + cost.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' (no depreciation yet)';
+            return;
+        }
+
+        const depreciable = Math.max(0, cost - salvage);
+        const totalMonths = Math.max(1, usefulLife * 12);
+        const monthlyRate = depreciable / totalMonths;
+
+        let monthsElapsed = (now.getFullYear() - acquiredDate.getFullYear()) * 12 + (now.getMonth() - acquiredDate.getMonth());
+        if (now.getDate() < acquiredDate.getDate()) {
+            monthsElapsed--;
+        }
+        monthsElapsed = Math.max(0, monthsElapsed);
+
+        let accumulated = 0;
+        let current = cost;
+
+        if (monthsElapsed >= totalMonths) {
+            accumulated = depreciable;
+            current = salvage;
+        } else {
+            accumulated = Math.min(depreciable, monthlyRate * monthsElapsed);
+            current = Math.max(salvage, cost - accumulated);
+        }
+
+        previewText.textContent = '₱' + current.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const dateInput = document.getElementById('date_acquired');
+        if (dateInput) {
+            dateInput.addEventListener('change', updateDepreciationPreview);
+        }
+        updateDepreciationPreview();
+    });
+</script>
+@endif

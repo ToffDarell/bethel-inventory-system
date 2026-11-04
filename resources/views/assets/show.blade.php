@@ -15,6 +15,11 @@
                 <div class="flex flex-wrap items-center gap-3">
                     <h1 class="text-2xl font-semibold text-slate-900 tracking-tight">{{ $asset->asset_name }}</h1>
                     <x-badge :status="$asset->status" />
+                    @if ($asset->category)
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                            {{ $asset->category->name }}
+                        </span>
+                    @endif
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2.5 mt-2 text-sm">
@@ -87,6 +92,12 @@
                         <dd class="col-span-2 font-medium text-slate-900">{{ $asset->asset_name }}</dd>
                     </div>
                     <div class="py-3.5 grid grid-cols-3 gap-4">
+                        <dt class="text-slate-600 font-medium">Category</dt>
+                        <dd class="col-span-2 text-slate-900 font-medium">
+                            {{ $asset->category ? $asset->category->name : 'Uncategorized' }}
+                        </dd>
+                    </div>
+                    <div class="py-3.5 grid grid-cols-3 gap-4">
                         <dt class="text-slate-600 font-medium">Model / Brand</dt>
                         <dd class="col-span-2 text-slate-900">
                             {{ $asset->model ?: 'Not specified' }}
@@ -134,6 +145,73 @@
                     </div>
                 </dl>
             </x-card>
+
+            @if (auth()->user()?->isAdmin() && isset($depreciation))
+                <div class="mt-6">
+                    <x-card title="Value" subtitle="Straight-line depreciation calculation based on acquisition date and useful life">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                            <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <span class="text-slate-500 font-medium text-xs block">Cost</span>
+                                <strong class="text-slate-900 font-semibold text-sm mt-0.5 block font-mono">
+                                    {{ $asset->cost !== null ? '₱' . number_format($asset->cost, 2) : 'No cost entered' }}
+                                </strong>
+                            </div>
+                            <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <span class="text-slate-500 font-medium text-xs block">Salvage value</span>
+                                <strong class="text-slate-900 font-semibold text-sm mt-0.5 block font-mono">
+                                    {{ $asset->salvage_value !== null ? '₱' . number_format($asset->salvage_value, 2) : 'Not set' }}
+                                </strong>
+                            </div>
+                            <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <span class="text-slate-500 font-medium text-xs block">Useful life</span>
+                                <strong class="text-slate-900 font-semibold text-sm mt-0.5 block">
+                                    {{ $asset->useful_life_years ? $asset->useful_life_years . ' years' : 'Not set' }}
+                                </strong>
+                            </div>
+                            <div class="p-3.5 rounded-lg bg-slate-50 border border-slate-200">
+                                <span class="text-slate-500 font-medium text-xs block">Current value</span>
+                                <strong class="text-slate-900 font-bold text-base mt-0.5 block font-mono text-primary">
+                                    {{ $depreciation->isCalculable() ? '₱' . number_format($depreciation->getCurrentValue(), 2) : 'Not enough data' }}
+                                </strong>
+                            </div>
+                        </div>
+
+                        @if ($depreciation->isCalculable())
+                            <div class="space-y-4 pt-4 border-t border-slate-100">
+                                <div>
+                                    <div class="flex items-center justify-between text-xs text-slate-600 mb-1.5">
+                                        <span class="font-medium">Depreciation progress</span>
+                                        <span class="font-mono font-semibold text-slate-900">{{ round($depreciation->getUsagePercentage()) }}% of depreciable life elapsed</span>
+                                    </div>
+                                    <div class="w-full bg-slate-200 rounded-full h-2.5 overflow-hidden">
+                                        <div class="bg-primary h-2.5 rounded-full transition-all duration-300" style="width: {{ $depreciation->getUsagePercentage() }}%"></div>
+                                    </div>
+                                </div>
+
+                                <dl class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs pt-2">
+                                    <div class="p-2.5 rounded bg-slate-50 border border-slate-100">
+                                        <dt class="text-slate-500">Yearly depreciation</dt>
+                                        <dd class="font-mono font-semibold text-slate-800 mt-0.5">₱{{ number_format($depreciation->getYearlyDepreciation(), 2) }}</dd>
+                                    </div>
+                                    <div class="p-2.5 rounded bg-slate-50 border border-slate-100">
+                                        <dt class="text-slate-500">Accumulated depreciation</dt>
+                                        <dd class="font-mono font-semibold text-slate-800 mt-0.5">₱{{ number_format($depreciation->getAccumulatedDepreciation(), 2) }}</dd>
+                                    </div>
+                                    <div class="p-2.5 rounded bg-slate-50 border border-slate-100">
+                                        <dt class="text-slate-500">Months elapsed</dt>
+                                        <dd class="font-mono font-semibold text-slate-800 mt-0.5">{{ $depreciation->getMonthsElapsed() }} months</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        @else
+                            <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-900 flex items-center gap-2">
+                                <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                <span>Automatic depreciation calculation unavailable: {{ $depreciation->getMissingReason() }}.</span>
+                            </div>
+                        @endif
+                    </x-card>
+                </div>
+            @endif
         </div>
 
         <!-- Right Column: Property Tag Preview & Print Actions -->
