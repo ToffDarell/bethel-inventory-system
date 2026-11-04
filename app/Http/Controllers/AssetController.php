@@ -18,8 +18,10 @@ class AssetController extends Controller
         $search = trim((string) $request->query('search', ''));
         $department = trim((string) $request->query('department', ''));
         $status = trim((string) $request->query('status', ''));
+        $category = trim((string) $request->query('category', ''));
 
         $assets = Asset::query()
+            ->with('category')
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . $search . '%';
                 $query->where(function ($sub) use ($like) {
@@ -33,6 +35,7 @@ class AssetController extends Controller
             })
             ->when($department !== '', fn ($query) => $query->where('department', $department))
             ->when($status !== '', fn ($query) => $query->where('status', $status))
+            ->when($category !== '', fn ($query) => $query->where('category_id', $category))
             ->latest('id')
             ->paginate(15)
             ->withQueryString();
@@ -47,10 +50,13 @@ class AssetController extends Controller
         return view('assets.index', [
             'assets' => $assets,
             'departments' => $departments,
+            'categories' => Category::orderBy('name')->get(),
             'statuses' => Asset::STATUSES,
             'search' => $search,
             'selectedDepartment' => $department,
             'selectedStatus' => $status,
+            'selectedCategory' => $category,
+            'depreciationService' => app(DepreciationService::class),
         ]);
     }
 

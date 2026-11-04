@@ -98,6 +98,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/settings/backup', [SettingController::class, 'backup'])->name('settings.backup');
 
         Route::middleware('admin')->group(function () {
+            Route::get('/reports/depreciation', [ImportExportController::class, 'depreciation'])->name('reports.depreciation');
+            Route::get('/reports/depreciation/export', [ImportExportController::class, 'exportDepreciation'])->name('reports.depreciation.export');
             Route::get('/settings/activity-log', [ActivityLogController::class, 'index'])->name('settings.activity-log');
             Route::post('/settings/restore', [SettingController::class, 'restore'])->name('settings.restore');
             Route::post('/settings/relaunch', [SettingController::class, 'relaunch'])->name('settings.relaunch');

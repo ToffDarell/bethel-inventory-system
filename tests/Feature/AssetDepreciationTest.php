@@ -164,3 +164,100 @@ test('staff sees category badge but cost and current value are hidden everywhere
     $tagResponse->assertDontSee('456,789');
     $tagResponse->assertDontSee('456789');
 });
+
+test('assets list filters by category and shows category column', function () {
+    $catA = Category::create(['name' => 'IT Equipment']);
+    $catB = Category::create(['name' => 'Vehicles']);
+
+    Asset::create(['asset_no' => 'BBH-IT-1', 'asset_name' => 'Dell Workstation', 'status' => 'In Use', 'category_id' => $catA->id]);
+    Asset::create(['asset_no' => 'BBH-VH-1', 'asset_name' => 'Ambulance Van', 'status' => 'In Use', 'category_id' => $catB->id]);
+
+    $response = $this->actingAs($this->admin)->get('/assets?category=' . $catA->id);
+    $response->assertOk();
+    $response->assertSee('Dell Workstation');
+    $response->assertDontSee('Ambulance Van');
+    $response->assertSee('IT Equipment');
+});
+
+test('assets list shows current value column for admin and hides it from staff', function () {
+    $asset = Asset::create([
+        'asset_no' => 'BBH-LST-01',
+        'asset_name' => 'Computed Tomography Scanner',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => 1200000.00,
+        'salvage_value' => 100000.00,
+        'useful_life_years' => 10,
+        'date_acquired' => '2023-01-01',
+    ]);
+
+    $adminResp = $this->actingAs($this->admin)->get('/assets');
+    $adminResp->assertOk();
+    $adminResp->assertSee('Current Value');
+    $adminResp->assertSee('Ultrasound Systems');
+
+    $staffResp = $this->actingAs($this->staff)->get('/assets');
+    $staffResp->assertOk();
+    $staffResp->assertSee('Category');
+    $staffResp->assertDontSee('Current Value');
+    $staffResp->assertDontSee('1,200,000');
+});
+
+test('dashboard shows total asset value and category breakdown for admin, counts only for staff', function () {
+    Asset::create([
+        'asset_no' => 'BBH-DSH-01',
+        'asset_name' => 'Patient Monitor Pro',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => 100000.00,
+        'salvage_value' => 10000.00,
+        'useful_life_years' => 5,
+        'date_acquired' => now()->subYear()->format('Y-m-d'),
+    ]);
+
+    $adminResp = $this->actingAs($this->admin)->get('/dashboard');
+    $adminResp->assertOk();
+    $adminResp->assertSee('Total Asset Value');
+    $adminResp->assertSee('By Category');
+    $adminResp->assertSee('Ultrasound Systems');
+
+    $staffResp = $this->actingAs($this->staff)->get('/dashboard');
+    $staffResp->assertOk();
+    $staffResp->assertDontSee('Total Asset Value');
+    $staffResp->assertSee('By Category');
+    $staffResp->assertSee('Ultrasound Systems');
+    $staffResp->assertDontSee('₱');
+});
+
+test('admin can view depreciation report with totals and category summary', function () {
+    Asset::create([
+        'asset_no' => 'BBH-REP-01',
+        'asset_name' => 'Hemodialysis Machine',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => 500000.00,
+        'salvage_value' => 50000.00,
+        'useful_life_years' => 10,
+        'date_acquired' => '2023-01-01',
+    ]);
+
+    $response = $this->actingAs($this->admin)->get('/reports/depreciation');
+    $response->assertOk();
+    $response->assertSee('Depreciation Report');
+    $response->assertSee('Hemodialysis Machine');
+    $response->assertSee('Totals');
+});
+
+test('staff cannot access depreciation report or export', function () {
+    $this->actingAs($this->staff)->get('/reports/depreciation')->assertForbidden();
+    $this->actingAs($this->staff)->get('/reports/depreciation/export')->assertForbidden();
+});
+
+test('admin can export depreciation report as csv or excel', function () {
+    $responseCsv = $this->actingAs($this->admin)->get('/reports/depreciation/export?format=csv');
+    $responseCsv->assertOk();
+    $responseCsv->assertHeader('content-type', 'text/csv; charset=UTF-8');
+
+    $responseXlsx = $this->actingAs($this->admin)->get('/reports/depreciation/export?format=xlsx');
+    $responseXlsx->assertOk();
+});

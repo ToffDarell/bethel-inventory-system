@@ -26,7 +26,7 @@
     <div class="sticky top-14 z-20 bg-white/95 backdrop-blur-xs border border-slate-200 rounded-xl p-3.5 shadow-2xs mb-5 transition-shadow">
         <form method="GET" action="{{ route('assets.index') }}">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                <div class="md:col-span-5">
+                <div class="md:col-span-4">
                     <label for="search" class="block text-xs font-semibold text-slate-700 mb-1">
                         Search Equipment
                     </label>
@@ -43,7 +43,21 @@
                     </div>
                 </div>
 
-                <div class="md:col-span-3">
+                <div class="md:col-span-2">
+                    <label for="category" class="block text-xs font-semibold text-slate-700 mb-1">
+                        Category
+                    </label>
+                    <select id="category"
+                            name="category"
+                            class="w-full min-h-[44px] px-3 py-2 text-xs bg-slate-50/50 hover:bg-white focus:bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+                        <option value="">All categories</option>
+                        @foreach ($categories as $cat)
+                            <option value="{{ $cat->id }}" @selected($selectedCategory == $cat->id)>{{ $cat->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
                     <label for="department" class="block text-xs font-semibold text-slate-700 mb-1">
                         Department
                     </label>
@@ -76,7 +90,7 @@
                             class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs cursor-pointer shadow-2xs transition-colors">
                         <span>Filter</span>
                     </button>
-                    @if ($search !== '' || $selectedDepartment !== '' || $selectedStatus !== '')
+                    @if ($search !== '' || $selectedDepartment !== '' || $selectedStatus !== '' || $selectedCategory !== '')
                         <a href="{{ route('assets.index') }}"
                            title="Clear search filters"
                            class="min-h-[44px] inline-flex items-center justify-center px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:border-slate-400 transition-colors">
@@ -141,8 +155,12 @@
                         </th>
                         <th class="py-3 px-4 w-32 whitespace-nowrap">Asset No.</th>
                         <th class="py-3 px-4">Equipment &amp; Location</th>
-                        <th class="py-3 px-4 w-44">Model &amp; Serial</th>
+                        <th class="py-3 px-4 w-36 whitespace-nowrap">Category</th>
+                        <th class="py-3 px-4 w-40">Model &amp; Serial</th>
                         <th class="py-3 px-4 w-28 whitespace-nowrap">Status</th>
+                        @if (auth()->user()?->isAdmin())
+                            <th class="py-3 px-4 w-36 text-right whitespace-nowrap">Current Value</th>
+                        @endif
                         <th class="py-3 px-4 w-28 text-right whitespace-nowrap">Actions</th>
                     </tr>
                 </x-slot:header>
@@ -173,6 +191,11 @@
                                 {{ $asset->location ?: 'No location' }} &bull; {{ $asset->department ?: 'Unassigned' }}
                             </p>
                         </td>
+                        <td class="py-2.5 px-4 whitespace-nowrap">
+                            <span class="text-xs text-slate-700 font-medium truncate block max-w-[140px]" title="{{ $asset->category?->name ?? 'Uncategorized' }}">
+                                {{ $asset->category?->name ?? 'Uncategorized' }}
+                            </span>
+                        </td>
                         <td class="py-2.5 px-4 min-w-[140px] max-w-[200px]">
                             <p class="text-xs text-slate-800 font-medium truncate" title="{{ $asset->model ?: '-' }}">
                                 {{ $asset->model ?: '-' }}
@@ -186,6 +209,20 @@
                         <td class="py-2.5 px-4 whitespace-nowrap">
                             <x-badge :status="$asset->status" />
                         </td>
+                        @if (auth()->user()?->isAdmin())
+                            @php
+                                $valResult = $depreciationService->calculateForAsset($asset);
+                            @endphp
+                            <td class="py-2.5 px-4 text-right whitespace-nowrap font-mono text-xs font-semibold text-slate-900">
+                                @if ($valResult->isCalculable())
+                                    ₱{{ number_format($valResult->getCurrentValue(), 2) }}
+                                @elseif ($asset->cost !== null)
+                                    ₱{{ number_format($asset->cost, 2) }}
+                                @else
+                                    <span class="text-slate-400 font-normal">No cost</span>
+                                @endif
+                            </td>
+                        @endif
                         <td class="py-2.5 px-4 text-right whitespace-nowrap" onclick="event.stopPropagation()">
                             <div class="inline-flex items-center justify-end gap-1">
                                 <x-icon-button :href="route('assets.show', $asset)" title="View Asset" size="sm">

@@ -55,6 +55,28 @@
             </div>
         @endif
 
+        @if (auth()->user()?->isAdmin())
+            <div class="p-5 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-white/20 text-white uppercase tracking-wider">Admin Only</span>
+                        <h3 class="text-base font-bold text-white">Depreciation &amp; Valuation Report</h3>
+                    </div>
+                    <p class="text-xs text-slate-300">
+                        View comprehensive straight-line depreciation schedules, accumulated depreciation, category summaries, and export financial valuation reports.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('reports.depreciation.export', ['format' => 'csv']) }}" class="min-h-[40px] inline-flex items-center justify-center px-3.5 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-colors">
+                        Export CSV
+                    </a>
+                    <a href="{{ route('reports.depreciation') }}" class="min-h-[40px] inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold shadow-2xs transition-colors">
+                        Open Depreciation Report &rarr;
+                    </a>
+                </div>
+            </div>
+        @endif
+
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Export Assets to Excel -->
             <x-card title="Export Assets to Excel" subtitle="Download current hospital equipment records as an Excel (.xlsx) spreadsheet">

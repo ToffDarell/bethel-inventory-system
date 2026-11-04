@@ -104,6 +104,25 @@
         </div>
     @endif
 
+    @if ($isAdmin)
+        <!-- Total Asset Value Banner (Admin Only) -->
+        <div class="p-5 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
+            <div>
+                <span class="text-xs uppercase font-semibold tracking-wider text-slate-400 block">Total Asset Value</span>
+                <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight mt-1 text-white">
+                    ₱{{ number_format($totalAssetValue, 2) }}
+                </div>
+                <span class="text-xs text-slate-400 mt-0.5 block">Estimated current straight-line valuation across active hospital assets</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('reports.depreciation') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-colors">
+                    <span>View Depreciation Report</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
+        </div>
+    @endif
+
     <!-- Summary Cards: Clean hospital metrics with zero filler captions -->
     @php
         $summaryCards = [
@@ -219,6 +238,40 @@
                         <p class="text-xs text-slate-500">No departments recorded yet</p>
                     </div>
                 @endif
+            </x-card>
+
+            <!-- By Category Breakdown -->
+            <x-card>
+                <x-slot:header>
+                    <div class="flex items-center justify-between w-full">
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-900">By Category</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Asset classification distribution</p>
+                        </div>
+                        <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
+                            Filter &rarr;
+                        </a>
+                    </div>
+                </x-slot:header>
+
+                <div class="divide-y divide-slate-100">
+                    @forelse ($categoryBreakdown as $catItem)
+                        <a href="{{ $catItem['id'] ? route('assets.index', ['category' => $catItem['id']]) : route('assets.index') }}"
+                           class="py-2.5 px-1 flex items-center justify-between hover:bg-slate-50 transition-colors group rounded-md">
+                            <div>
+                                <span class="text-xs font-semibold text-slate-800 group-hover:text-primary block">{{ $catItem['name'] }}</span>
+                                @if ($isAdmin && $catItem['value'] > 0)
+                                    <span class="text-[11px] font-mono text-slate-500">₱{{ number_format($catItem['value'], 2) }}</span>
+                                @endif
+                            </div>
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                                {{ $catItem['count'] }}
+                            </span>
+                        </a>
+                    @empty
+                        <p class="text-xs text-slate-500 py-3 text-center">No categories configured yet</p>
+                    @endforelse
+                </div>
             </x-card>
 
             <!-- Quick Operational Shortcuts Card (Balances Column Height) -->
