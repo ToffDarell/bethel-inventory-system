@@ -143,6 +143,19 @@
                     </button>
 
                     <button type="button"
+                            onclick="switchTab('depreciation')"
+                            id="tab-btn-depreciation"
+                            role="tab"
+                            aria-controls="panel-depreciation"
+                            aria-selected="false"
+                            class="tab-btn min-h-[44px] px-5 py-2.5 text-sm font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300 transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span>Depreciation</span>
+                    </button>
+
+                    <button type="button"
                             onclick="switchTab('users')"
                             id="tab-btn-users"
                             role="tab"
@@ -643,6 +656,139 @@
             </div>
         @endif
 
+        <!-- TAB: DEPRECIATION POLICY (ADMIN ONLY) -->
+        @if (auth()->user()?->isAdmin())
+            <div id="panel-depreciation" role="tabpanel" class="tab-panel hidden space-y-6">
+                <x-card title="Depreciation Policy & Rules" subtitle="Configure calculation conventions, salvage percentages, and minimum cost thresholds for tracking asset values.">
+                    <form method="POST" action="{{ route('settings.depreciation.update') }}" onsubmit="return confirm('This changes the estimated values of all assets.');" class="space-y-6">
+                        @csrf
+
+                        <!-- Notice Banner -->
+                        <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-3">
+                            <svg class="w-5 h-5 text-blue-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+                            </svg>
+                            <div class="text-xs text-blue-900 leading-relaxed">
+                                <p class="font-semibold text-blue-950 mb-0.5">Estimated Values for Tracking Only</p>
+                                <p>These settings govern the straight-line depreciation estimates shown in reports. They do not alter physical asset records and are not an official accounting record.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <!-- Start Convention -->
+                            <div>
+                                <label for="depreciation_start_convention" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                    Start Convention *
+                                </label>
+                                <select id="depreciation_start_convention"
+                                        name="depreciation_start_convention"
+                                        required
+                                        onchange="handleConventionChange(this.value)"
+                                        class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <option value="january_1" @selected(old('depreciation_start_convention', $depreciationStartConvention ?? 'january_1') === 'january_1')>
+                                        January 1 of Year Bought (Default, Full-Year)
+                                    </option>
+                                    <option value="july_1" @selected(old('depreciation_start_convention', $depreciationStartConvention ?? 'january_1') === 'july_1')>
+                                        July 1 of Year Bought (Half-Year convention)
+                                    </option>
+                                    <option value="december_31" @selected(old('depreciation_start_convention', $depreciationStartConvention ?? 'january_1') === 'december_31')>
+                                        December 31 of Year Bought (Year-End)
+                                    </option>
+                                    <option value="custom" @selected(old('depreciation_start_convention', $depreciationStartConvention ?? 'january_1') === 'custom')>
+                                        Custom Month &amp; Day of Year Bought
+                                    </option>
+                                </select>
+                                <p class="text-[11px] text-slate-500 mt-1">Used only when only the purchase year is known. Assets imported with an exact date are never shifted.</p>
+
+                                <!-- Custom Month & Day Picker (shown when Custom is selected) -->
+                                <div id="custom-convention-picker" class="mt-3 p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2 {{ old('depreciation_start_convention', $depreciationStartConvention ?? 'january_1') === 'custom' ? '' : 'hidden' }}">
+                                    <span class="block text-xs font-semibold text-slate-700">Choose Custom Start Date</span>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <div>
+                                            <label for="depreciation_custom_month" class="block text-[11px] font-medium text-slate-600 mb-0.5">Month</label>
+                                            <select id="depreciation_custom_month"
+                                                    name="depreciation_custom_month"
+                                                    class="w-full min-h-[38px] px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                                                @foreach ([1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April', 5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August', 9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'] as $mNum => $mName)
+                                                    <option value="{{ $mNum }}" @selected((int) old('depreciation_custom_month', $depreciationCustomMonth ?? 1) === $mNum)>
+                                                        {{ $mName }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="depreciation_custom_day" class="block text-[11px] font-medium text-slate-600 mb-0.5">Day (1-31)</label>
+                                            <input type="number"
+                                                   id="depreciation_custom_day"
+                                                   name="depreciation_custom_day"
+                                                   min="1"
+                                                   max="31"
+                                                   value="{{ old('depreciation_custom_day', $depreciationCustomDay ?? 1) }}"
+                                                   class="w-full min-h-[38px] px-2.5 py-1.5 text-xs font-sans tabular-nums bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
+                                        </div>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500">Assets will start depreciating on this month and day of their purchase year.</p>
+                                </div>
+                            </div>
+
+                            <!-- Default Salvage Percent -->
+                            <div>
+                                <label for="depreciation_default_salvage_percent" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                    Default Salvage Percent (%) *
+                                </label>
+                                <div class="relative rounded-lg">
+                                    <input type="number"
+                                           id="depreciation_default_salvage_percent"
+                                           name="depreciation_default_salvage_percent"
+                                           min="0"
+                                           max="90"
+                                           step="0.01"
+                                           required
+                                           value="{{ old('depreciation_default_salvage_percent', $depreciationDefaultSalvagePercent ?? '0') }}"
+                                           placeholder="0"
+                                           class="w-full min-h-[44px] px-3.5 py-2 text-sm font-sans tabular-nums bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <div class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-medium">
+                                        %
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Global fallback (0% to 90%) used when an asset category does not specify a salvage percent.</p>
+                            </div>
+
+                            <!-- Minimum Cost to Depreciate -->
+                            <div>
+                                <label for="depreciation_min_cost" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                                    Minimum Cost to Depreciate (₱) *
+                                </label>
+                                <div class="relative rounded-lg">
+                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400 text-sm font-semibold">
+                                        ₱
+                                    </div>
+                                    <input type="number"
+                                           id="depreciation_min_cost"
+                                           name="depreciation_min_cost"
+                                           min="0"
+                                           step="0.01"
+                                           required
+                                           value="{{ old('depreciation_min_cost', $depreciationMinCost ?? '0.00') }}"
+                                           placeholder="0.00"
+                                           class="w-full min-h-[44px] pl-8 pr-3.5 py-2 text-sm font-sans tabular-nums bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1">Default 0. Assets below this cost show "Below minimum cost" and are excluded from valuation totals.</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-slate-200 flex items-center justify-between">
+                            <span class="text-xs text-slate-500">Changes will be logged in the activity audit trail.</span>
+                            <button type="submit"
+                                    class="min-h-[44px] px-6 py-2.5 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                Save Depreciation Policy
+                            </button>
+                        </div>
+                    </form>
+                </x-card>
+            </div>
+        @endif
+
         <!-- TAB 4: USER ACCOUNTS (ADMIN ONLY) -->
         @if (auth()->user()?->isAdmin())
             <div id="panel-users" role="tabpanel" class="tab-panel hidden space-y-6">
@@ -652,9 +798,11 @@
                         <x-slot:header>
                             <tr>
                                 <th class="py-3 px-4">Full Name</th>
-                                <th class="py-3 px-4">Email / Login ID</th>
+                                <th class="py-3 px-4">Username</th>
+                                <th class="py-3 px-4">Email</th>
                                 <th class="py-3 px-4">Assigned Role</th>
-                                <th class="py-3 px-4 text-right">Status</th>
+                                <th class="py-3 px-4">Status</th>
+                                <th class="py-3 px-4 text-right">Actions</th>
                             </tr>
                         </x-slot:header>
 
@@ -666,8 +814,11 @@
                                         <span class="ml-1.5 text-xs font-normal text-slate-400">(You)</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 font-mono text-xs text-slate-600">
-                                    {{ $u->email }}
+                                <td class="py-3 px-4 font-mono text-xs font-semibold text-slate-800">
+                                    {{ $u->username }}
+                                </td>
+                                <td class="py-3 px-4 text-xs text-slate-600">
+                                    {{ $u->email ?: '-' }}
                                 </td>
                                 <td class="py-3 px-4">
                                     @if ($u->isAdmin())
@@ -680,7 +831,7 @@
                                         </span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 text-right">
+                                <td class="py-3 px-4">
                                     @if ($u->must_change_password)
                                         <span class="text-xs font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                                             Temp Password
@@ -689,6 +840,17 @@
                                         <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
                                             Active
                                         </span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-right">
+                                    @if ($u->id !== auth()->id())
+                                        <button type="button"
+                                                onclick="openResetPasswordModal({{ $u->id }}, '{{ addslashes($u->name) }}', '{{ addslashes($u->username) }}')"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 hover:text-slate-900 transition-colors cursor-pointer">
+                                            Reset Password
+                                        </button>
+                                    @else
+                                        <span class="text-xs text-slate-400 italic">Current User</span>
                                     @endif
                                 </td>
                             </tr>
@@ -708,20 +870,41 @@
                                    name="name"
                                    type="text"
                                    required
+                                   value="{{ old('name') }}"
                                    placeholder="e.g. Maria Santos, RN"
                                    class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
                         </div>
 
-                        <div>
-                            <label for="user_email" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                                Email / Login ID <span class="text-brand-red">*</span>
-                            </label>
-                            <input id="user_email"
-                                   name="email"
-                                   type="email"
-                                   required
-                                   placeholder="e.g. maria.santos@hospital.local"
-                                   class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="user_username" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Username <span class="text-brand-red">*</span>
+                                </label>
+                                <input id="user_username"
+                                       name="username"
+                                       type="text"
+                                       required
+                                       minlength="3"
+                                       maxlength="30"
+                                       pattern="[a-zA-Z0-9._-]+"
+                                       value="{{ old('username') }}"
+                                       placeholder="e.g. maria.santos"
+                                       class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                                <p class="text-[11px] text-slate-500 mt-1">3 to 30 characters: letters, numbers, dot, dash, underscore.</p>
+                            </div>
+
+                            <div>
+                                <label for="user_email" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Email Address <span class="text-slate-400 font-normal">(Optional)</span>
+                                </label>
+                                <input id="user_email"
+                                       name="email"
+                                       type="email"
+                                       value="{{ old('email') }}"
+                                       placeholder="e.g. maria.santos@hospital.local"
+                                       class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                                <p class="text-[11px] text-slate-500 mt-1">Optional secondary login identifier.</p>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -732,8 +915,8 @@
                                 <select id="user_role"
                                         name="role"
                                         class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
-                                    <option value="staff">Staff (Standard Inventory)</option>
-                                    <option value="admin">Admin (Full System Access)</option>
+                                    <option value="staff" {{ old('role') === 'staff' ? 'selected' : '' }}>Staff (Standard Inventory)</option>
+                                    <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin (Full System Access)</option>
                                 </select>
                             </div>
 
@@ -773,6 +956,57 @@
                         </div>
                     </form>
                 </x-card>
+
+                <!-- Reset Password Modal (Admin Only) -->
+                <div id="reset-password-modal" class="fixed inset-0 z-50 hidden overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+                    <div class="relative w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+                        <div class="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+                            <div>
+                                <h3 class="text-base font-bold text-slate-900">Reset User Password</h3>
+                                <p class="text-xs text-slate-500 mt-0.5">Assign a temporary password for <span id="reset-modal-username" class="font-semibold font-mono text-slate-800"></span></p>
+                            </div>
+                            <button type="button" onclick="closeResetPasswordModal()" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                        </div>
+
+                        <form id="reset-password-form" method="POST" action="" class="p-6 space-y-4">
+                            @csrf
+                            <div>
+                                <label for="reset_password_input" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                                    Temporary Password <span class="text-brand-red">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input id="reset_password_input"
+                                           name="password"
+                                           type="password"
+                                           required
+                                           minlength="8"
+                                           placeholder="Minimum 8 characters"
+                                           class="w-full min-h-[44px] pl-3.5 pr-11 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                                    <button type="button"
+                                            onclick="togglePasswordVisibility('reset_password_input', this)"
+                                            aria-label="Toggle temporary password visibility"
+                                            title="Show / hide password"
+                                            class="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer transition-colors">
+                                        <svg class="w-4 h-4 eye-open" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <svg class="w-4 h-4 eye-slash hidden" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88"/></svg>
+                                    </button>
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-1.5">User will be prompted to set their own permanent password on their next sign in.</p>
+                            </div>
+
+                            <div class="pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                                <button type="button" onclick="closeResetPasswordModal()" class="min-h-[40px] px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg shadow-2xs hover:bg-slate-50 hover:border-slate-400 hover:text-slate-900 transition-colors cursor-pointer">
+                                    Cancel
+                                </button>
+                                <button type="submit" class="min-h-[40px] px-5 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-2xs transition-colors cursor-pointer">
+                                    Save Temporary Password
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -905,11 +1139,43 @@
             if (modal) modal.classList.add('hidden');
         }
 
-        // Initialize tab based on URL hash if provided
+        function openResetPasswordModal(userId, userName, username) {
+            const modal = document.getElementById('reset-password-modal');
+            const form = document.getElementById('reset-password-form');
+            const label = document.getElementById('reset-modal-username');
+            const input = document.getElementById('reset_password_input');
+            if (!modal || !form) return;
+            form.action = '/settings/users/' + userId + '/reset-password';
+            if (label) label.textContent = userName + ' (@' + username + ')';
+            if (input) input.value = '';
+            modal.classList.remove('hidden');
+            setTimeout(() => { if (input) input.focus(); }, 50);
+        }
+
+        function closeResetPasswordModal() {
+            const modal = document.getElementById('reset-password-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleConventionChange(value) {
+            const picker = document.getElementById('custom-convention-picker');
+            if (picker) {
+                if (value === 'custom') {
+                    picker.classList.remove('hidden');
+                } else {
+                    picker.classList.add('hidden');
+                }
+            }
+        }
+
+        // Initialize tab based on URL param or hash if provided
         document.addEventListener('DOMContentLoaded', function () {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab');
             const hash = window.location.hash.replace('#', '');
-            if (hash && ['hospital', 'tag', 'backup', 'categories', 'users'].includes(hash)) {
-                switchTab(hash);
+            const initialTab = tabParam || hash;
+            if (initialTab && ['hospital', 'tag', 'backup', 'categories', 'depreciation', 'users'].includes(initialTab)) {
+                switchTab(initialTab);
             }
         });
     </script>

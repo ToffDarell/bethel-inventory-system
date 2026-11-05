@@ -18,7 +18,7 @@ class ImportExportController extends Controller
         protected AssetImportService $importService
     ) {}
 
-    public function index()
+    public function index(Request $request, DepreciationService $depreciationService)
     {
         $departments = Asset::query()
             ->whereNotNull('department')
@@ -27,10 +27,81 @@ class ImportExportController extends Controller
             ->orderBy('department')
             ->pluck('department');
 
+        $isAdmin = (bool) $request->user()?->isAdmin();
+
+        $totalCost = 0.0;
+        $totalAccumulated = 0.0;
+        $totalCurrentValue = 0.0;
+        $categorySummary = [];
+        $activeDepreciableCount = 0;
+
+        if ($isAdmin) {
+            $activeAssets = Asset::query()
+                ->with('category')
+                ->where('status', '!=', 'Disposed')
+                ->get();
+
+            $activeDepreciableCount = $activeAssets->count();
+
+            $missingCostCount = 0;
+            $belowMinCostCount = 0;
+
+            foreach ($activeAssets as $asset) {
+                $dep = $depreciationService->calculateForAsset($asset);
+                $hasCost = ($asset->cost !== null && $asset->cost !== '');
+                $c = $hasCost ? (float) $asset->cost : 0.0;
+                $isBelowMin = ($dep->getMissingReason() === 'Below minimum cost');
+
+                if (! $hasCost) {
+                    $missingCostCount++;
+                } elseif ($isBelowMin) {
+                    $belowMinCostCount++;
+                } else {
+                    $acc = $dep->isCalculable() ? (float) $dep->getAccumulatedDepreciation() : 0.0;
+                    $cur = $dep->isCalculable() ? (float) $dep->getCurrentValue() : $c;
+
+                    $totalCost += $c;
+                    $totalAccumulated += $acc;
+                    $totalCurrentValue += $cur;
+                }
+
+                $catName = $asset->category?->name ?? 'Uncategorized';
+                if (! isset($categorySummary[$catName])) {
+                    $categorySummary[$catName] = [
+                        'name' => $catName,
+                        'count' => 0,
+                        'cost_count' => 0,
+                        'without_cost_count' => 0,
+                        'cost' => 0.0,
+                        'accumulated' => 0.0,
+                        'current_value' => 0.0,
+                    ];
+                }
+                if ($hasCost && ! $isBelowMin) {
+                    $categorySummary[$catName]['cost_count']++;
+                    $categorySummary[$catName]['cost'] += $c;
+                    $categorySummary[$catName]['accumulated'] += ($dep->isCalculable() ? (float) $dep->getAccumulatedDepreciation() : 0.0);
+                    $categorySummary[$catName]['current_value'] += ($dep->isCalculable() ? (float) $dep->getCurrentValue() : $c);
+                } else {
+                    $categorySummary[$catName]['without_cost_count']++;
+                }
+                $categorySummary[$catName]['count'] = $categorySummary[$catName]['cost_count'];
+            }
+        }
+
         return view('reports.index', [
             'totalAssets' => Asset::count(),
             'departments' => $departments,
             'statuses' => Asset::STATUSES,
+            'isAdmin' => $isAdmin,
+            'totalCost' => $totalCost,
+            'totalAccumulated' => $totalAccumulated,
+            'totalCurrentValue' => $totalCurrentValue,
+            'categorySummary' => $categorySummary,
+            'activeDepreciableCount' => $activeDepreciableCount,
+            'belowMinCostCount' => $belowMinCostCount ?? 0,
+            'policyConventionLabel' => $depreciationService->getConventionLabel(),
+            'policyMinCost' => $depreciationService->getMinCost(),
         ]);
     }
 
@@ -86,6 +157,16 @@ class ImportExportController extends Controller
 
         $categoryId = $request->query('category');
         $department = $request->query('department');
+        $asOfInput = $request->query('as_of');
+        if ($asOfInput) {
+            try {
+                $asOfDate = \Carbon\Carbon::parse($asOfInput)->startOfDay();
+            } catch (\Throwable) {
+                $asOfDate = \Carbon\Carbon::today();
+            }
+        } else {
+            $asOfDate = \Carbon\Carbon::today();
+        }
 
         $query = Asset::query()
             ->with('category')
@@ -122,33 +203,51 @@ class ImportExportController extends Controller
         $totalCurrentValue = 0.0;
 
         $categorySummary = [];
+        $missingCostCount = 0;
+        $belowMinCostCount = 0;
 
         foreach ($allFiltered as $asset) {
-            $dep = $depreciationService->calculateForAsset($asset);
-            $c = (float) ($asset->cost ?? 0.0);
-            $s = (float) ($asset->salvage_value ?? 0.0);
-            $acc = $dep->isCalculable() ? (float) $dep->getAccumulatedDepreciation() : 0.0;
-            $cur = $dep->isCalculable() ? (float) $dep->getCurrentValue() : $c;
+            $dep = $depreciationService->calculateForAsset($asset, $asOfDate);
+            $hasCost = ($asset->cost !== null && $asset->cost !== '');
+            $c = $hasCost ? (float) $asset->cost : 0.0;
+            $s = ($asset->salvage_value !== null && $asset->salvage_value !== '') ? (float) $asset->salvage_value : 0.0;
+            $isBelowMin = ($dep->getMissingReason() === 'Below minimum cost');
 
-            $totalCost += $c;
-            $totalSalvage += $s;
-            $totalAccumulated += $acc;
-            $totalCurrentValue += $cur;
+            if (! $hasCost) {
+                $missingCostCount++;
+            } elseif ($isBelowMin) {
+                $belowMinCostCount++;
+            } else {
+                $acc = $dep->isCalculable() ? (float) $dep->getAccumulatedDepreciation() : 0.0;
+                $cur = $dep->isCalculable() ? (float) $dep->getCurrentValue() : $c;
+
+                $totalCost += $c;
+                $totalSalvage += $s;
+                $totalAccumulated += $acc;
+                $totalCurrentValue += $cur;
+            }
 
             $catName = $asset->category?->name ?? 'Uncategorized';
             if (! isset($categorySummary[$catName])) {
                 $categorySummary[$catName] = [
                     'name' => $catName,
                     'count' => 0,
+                    'cost_count' => 0,
+                    'without_cost_count' => 0,
                     'cost' => 0.0,
                     'accumulated' => 0.0,
                     'current_value' => 0.0,
                 ];
             }
-            $categorySummary[$catName]['count']++;
-            $categorySummary[$catName]['cost'] += $c;
-            $categorySummary[$catName]['accumulated'] += $acc;
-            $categorySummary[$catName]['current_value'] += $cur;
+            if ($hasCost && ! $isBelowMin) {
+                $categorySummary[$catName]['cost_count']++;
+                $categorySummary[$catName]['cost'] += $c;
+                $categorySummary[$catName]['accumulated'] += ($dep->isCalculable() ? (float) $dep->getAccumulatedDepreciation() : 0.0);
+                $categorySummary[$catName]['current_value'] += ($dep->isCalculable() ? (float) $dep->getCurrentValue() : $c);
+            } else {
+                $categorySummary[$catName]['without_cost_count']++;
+            }
+            $categorySummary[$catName]['count'] = $categorySummary[$catName]['cost_count'];
         }
 
         $departments = Asset::query()
@@ -166,10 +265,15 @@ class ImportExportController extends Controller
             'categories' => $categories,
             'selectedCategory' => $categoryId,
             'selectedDepartment' => $department,
+            'asOfDate' => $asOfDate,
             'totalCost' => $totalCost,
             'totalSalvage' => $totalSalvage,
             'totalAccumulated' => $totalAccumulated,
             'totalCurrentValue' => $totalCurrentValue,
+            'missingCostCount' => $missingCostCount,
+            'belowMinCostCount' => $belowMinCostCount,
+            'policyConventionLabel' => $depreciationService->getConventionLabel(),
+            'policyMinCost' => $depreciationService->getMinCost(),
             'categorySummary' => $categorySummary,
             'depreciationService' => $depreciationService,
         ]);
@@ -183,23 +287,34 @@ class ImportExportController extends Controller
 
         $category = $request->query('category');
         $department = $request->query('department');
+        $asOfInput = $request->query('as_of');
+        if ($asOfInput) {
+            try {
+                $asOfDate = \Carbon\Carbon::parse($asOfInput)->startOfDay();
+            } catch (\Throwable) {
+                $asOfDate = \Carbon\Carbon::today();
+            }
+        } else {
+            $asOfDate = \Carbon\Carbon::today();
+        }
+
         $format = strtolower((string) $request->query('format', 'xlsx'));
 
         if ($format === 'csv' || ! class_exists('XMLWriter')) {
-            $filename = 'bethel-depreciation-report-' . now()->format('Y-m-d') . '.csv';
+            $filename = 'bethel-depreciation-report-' . $asOfDate->format('Y-m-d') . '.csv';
 
             return Excel::download(
-                new DepreciationExport($category, $department),
+                new DepreciationExport($category, $department, $asOfDate),
                 $filename,
                 \Maatwebsite\Excel\Excel::CSV,
                 ['Content-Type' => 'text/csv; charset=UTF-8']
             );
         }
 
-        $filename = 'bethel-depreciation-report-' . now()->format('Y-m-d') . '.xlsx';
+        $filename = 'bethel-depreciation-report-' . $asOfDate->format('Y-m-d') . '.xlsx';
 
         return Excel::download(
-            new DepreciationExport($category, $department),
+            new DepreciationExport($category, $department, $asOfDate),
             $filename
         );
     }

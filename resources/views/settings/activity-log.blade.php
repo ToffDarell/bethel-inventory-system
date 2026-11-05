@@ -69,9 +69,16 @@
                                 <span class="w-6 h-6 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center justify-center shrink-0">
                                     {{ substr($activity->causer?->name ?? 'S', 0, 1) }}
                                 </span>
-                                <span class="text-sm font-semibold text-slate-900">
-                                    {{ $activity->causer?->name ?? 'System' }}
-                                </span>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 leading-tight">
+                                        {{ $activity->causer?->name ?? 'System' }}
+                                    </div>
+                                    @if ($activity->causer?->username)
+                                        <div class="text-[11px] font-mono text-slate-500 mt-0.5">
+                                            {{ '@' . $activity->causer->username }}
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </td>
 
@@ -102,9 +109,16 @@
                         </td>
 
                         <td class="py-3 px-4 text-xs font-mono text-slate-600">
+                            @php
+                                $allowedKeys = ['asset_no', 'asset_name', 'brand', 'section', 'assigned_personnel', 'asset_condition', 'department', 'location', 'status'];
+                                if (auth()->user()?->isAdmin()) {
+                                    $allowedKeys[] = 'cost';
+                                    $allowedKeys[] = 'salvage_value';
+                                }
+                            @endphp
                             @if (! empty($attributes))
                                 <div class="space-y-0.5">
-                                    @foreach (collect($attributes)->only(['asset_no', 'asset_name', 'location', 'department', 'status'])->filter() as $k => $v)
+                                    @foreach (collect($attributes)->only($allowedKeys)->filter() as $k => $v)
                                         <span class="inline-block bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] mr-1 mb-1">
                                             <strong>{{ $k }}:</strong> {{ $v }}
                                         </span>
@@ -113,6 +127,9 @@
                             @elseif ($activity->properties && $activity->properties->count() > 0)
                                 <div class="space-y-0.5">
                                     @foreach ($activity->properties as $k => $v)
+                                        @if (! auth()->user()?->isAdmin() && in_array($k, ['cost', 'salvage_value', 'current_value'], true))
+                                            @continue
+                                        @endif
                                         @if (is_scalar($v))
                                             <span class="inline-block bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] mr-1 mb-1">
                                                 <strong>{{ $k }}:</strong> {{ $v }}

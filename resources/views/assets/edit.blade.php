@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-3xl">
+    <div class="max-w-6xl mx-auto space-y-6">
         <x-page-header
             title="Edit Asset"
             :subtitle="'Updating ' . $asset->asset_no . ': ' . $asset->asset_name"

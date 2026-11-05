@@ -17,6 +17,7 @@ class DepreciationExport implements FromCollection, WithHeadings, WithMapping, S
     public function __construct(
         protected ?string $categoryId = null,
         protected ?string $department = null,
+        protected mixed $asOfDate = null,
     ) {
         $this->depreciationService = app(DepreciationService::class);
     }
@@ -41,16 +42,25 @@ class DepreciationExport implements FromCollection, WithHeadings, WithMapping, S
 
     public function headings(): array
     {
+        $conventionLabel = $this->depreciationService->getConventionLabel();
+        $minCost = $this->depreciationService->getMinCost();
+        $minCostText = $minCost > 0 ? 'PHP ' . number_format($minCost, 2) : 'None (all assets)';
+
         return [
-            'Asset No.',
-            'Asset Name',
-            'Category',
-            'Date Acquired',
-            'Useful Life (Years)',
-            'Cost (PHP)',
-            'Salvage Value (PHP)',
-            'Accumulated Depreciation (PHP)',
-            'Current Value (PHP)',
+            ['DISCLAIMER: Estimated values for tracking, not an official accounting record'],
+            ['POLICY: ' . $conventionLabel . ' | Minimum Cost to Depreciate: ' . $minCostText],
+            [],
+            [
+                'Asset No.',
+                'Asset Description',
+                'Category',
+                'Year Bought',
+                'Useful Life (Years)',
+                'Cost (PHP)',
+                'Salvage (PHP)',
+                'Accumulated Depreciation (PHP)',
+                'Current Value (PHP)',
+            ],
         ];
     }
 
@@ -59,18 +69,31 @@ class DepreciationExport implements FromCollection, WithHeadings, WithMapping, S
      */
     public function map($asset): array
     {
-        $dep = $this->depreciationService->calculateForAsset($asset);
+        $dep = $this->depreciationService->calculateForAsset($asset, $this->asOfDate);
+
+        $accumulated = '';
+        $currentValue = '';
+
+        if ($dep->isCalculable()) {
+            $accumulated = number_format((float) $dep->getAccumulatedDepreciation(), 2, '.', '');
+            $currentValue = number_format((float) $dep->getCurrentValue(), 2, '.', '');
+        } elseif ($dep->getMissingReason() === 'Below minimum cost') {
+            $accumulated = 'Below minimum cost';
+            $currentValue = 'Below minimum cost';
+        } elseif ($asset->cost !== null) {
+            $currentValue = number_format((float) $asset->cost, 2, '.', '');
+        }
 
         return [
             $asset->asset_no,
             $asset->asset_name,
             $asset->category?->name ?? 'Uncategorized',
-            $asset->date_acquired ? $asset->date_acquired->format('Y-m-d') : '',
+            $asset->date_acquired ? $asset->date_acquired->format('Y') : '',
             $asset->useful_life_years ?? '',
             $asset->cost !== null ? number_format((float) $asset->cost, 2, '.', '') : '',
-            $asset->salvage_value !== null ? number_format((float) $asset->salvage_value, 2, '.', '') : '',
-            $dep->isCalculable() ? number_format((float) $dep->getAccumulatedDepreciation(), 2, '.', '') : '',
-            $dep->isCalculable() ? number_format((float) $dep->getCurrentValue(), 2, '.', '') : ($asset->cost !== null ? number_format((float) $asset->cost, 2, '.', '') : ''),
+            $asset->salvage_value !== null ? number_format((float) $asset->salvage_value, 2, '.', '') : '-',
+            $accumulated,
+            $currentValue,
         ];
     }
 }

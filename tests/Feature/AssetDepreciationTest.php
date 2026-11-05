@@ -230,7 +230,7 @@ test('dashboard shows total asset value and category breakdown for admin, counts
 });
 
 test('admin can view depreciation report with totals and category summary', function () {
-    Asset::create([
+    $assetWithCost = Asset::create([
         'asset_no' => 'BBH-REP-01',
         'asset_name' => 'Hemodialysis Machine',
         'status' => 'In Use',
@@ -241,11 +241,73 @@ test('admin can view depreciation report with totals and category summary', func
         'date_acquired' => '2023-01-01',
     ]);
 
+    $assetWithoutCost = Asset::create([
+        'asset_no' => 'BBH-REP-02',
+        'asset_name' => 'Ancient Hospital Stretcher',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => null,
+        'useful_life_years' => 5,
+        'date_acquired' => '2021-01-01',
+    ]);
+
     $response = $this->actingAs($this->admin)->get('/reports/depreciation');
     $response->assertOk();
     $response->assertSee('Depreciation Report');
+    $response->assertSee('Back to Reports');
+    $response->assertSee('Total Acquisition Cost');
+    $response->assertSee('What the hospital paid');
+    $response->assertSee('Accumulated Depreciation');
+    $response->assertSee('Value lost so far');
+    $response->assertSee('Net Book Value');
+    $response->assertSee('Straight-line');
+    $response->assertSee('Counted from January 1 of the Year Bought');
+    $response->assertSee('Useful Life');
+    $response->assertSee('Salvage');
+    $response->assertSee('Asset Values');
     $response->assertSee('Hemodialysis Machine');
+    $response->assertSee('Ancient Hospital Stretcher');
+    $response->assertSee('Missing cost');
+    $response->assertSee(route('assets.edit', $assetWithoutCost));
+    $response->assertSee('1 asset excluded from totals because no cost was entered.');
     $response->assertSee('Totals');
+    $response->assertSee('₱500,000.00');
+    $response->assertSee('1 (1 without cost)');
+});
+
+test('depreciation report and export respect optional as_of date filter with a past date', function () {
+    // Machine acquired 2020-01-01 with cost 120,000, 10-year useful life, 0 salvage.
+    // Yearly straight-line rate = 12,000 (1,000/month).
+    $asset = Asset::create([
+        'asset_no' => 'BBH-HIST-01',
+        'asset_name' => 'Historical Ventilator',
+        'status' => 'In Use',
+        'category_id' => $this->category->id,
+        'cost' => 120000.00,
+        'salvage_value' => null, // Missing salvage -> should show '-'
+        'useful_life_years' => 10,
+        'date_acquired' => '2020-01-01',
+    ]);
+
+    // Query as of 2022-01-01 (exactly 24 months elapsed = 24,000 depreciation, 96,000 net book value)
+    $response = $this->actingAs($this->admin)->get('/reports/depreciation?as_of=2022-01-01');
+    $response->assertOk();
+    $response->assertSee('January 1, 2022');
+    $response->assertSee('₱24,000.00'); // Accumulated as of Jan 1, 2022
+    $response->assertSee('₱96,000.00'); // Net Book Value as of Jan 1, 2022
+    $response->assertSee('name="as_of" value="2022-01-01"', false);
+
+    // CSV export respecting past as_of date
+    $csvResponse = $this->actingAs($this->admin)->get('/reports/depreciation/export?format=csv&as_of=2022-01-01');
+    $csvResponse->assertOk();
+    $csvContent = file_get_contents($csvResponse->getFile()->getPathname());
+    expect($csvContent)->toContain('BBH-HIST-01');
+    expect($csvContent)->toContain('120000');
+    expect($csvContent)->toContain('24000');
+    expect($csvContent)->toContain('96000');
+    // Verify Salvage column exists and shows '-' for missing salvage
+    expect($csvContent)->toContain('Salvage');
+    expect($csvContent)->toContain('"-"');
 });
 
 test('staff cannot access depreciation report or export', function () {
@@ -296,7 +358,8 @@ test('assets export includes financial columns and totals row for admin only', f
     // Check totals row is at the end
     $lastRow = end($adminRows);
     expect($lastRow[0])->toBe('Total asset value');
-    expect($lastRow[9])->toContain('₱1,500,000.00');
+    $costIndex = array_search('cost', $adminHeadings);
+    expect($lastRow[$costIndex])->toContain('₱1,500,000.00');
 
     // Staff export
     $staffExport = new \App\Exports\AssetsExport(null, null, $this->staff);
@@ -441,4 +504,24 @@ test('security: cost and monetary values are never leaked to staff across any en
     $adminCsvContent = file_get_contents($adminExportResp->getFile()->getPathname());
     expect($adminCsvContent)->toContain('789,456.12');
     expect($adminCsvContent)->toContain('Total asset value');
+});
+
+test('admin can submit cost and salvage value formatted with commas and they are saved correctly', function () {
+    $response = $this->actingAs($this->admin)->post(route('assets.store'), [
+        'asset_no' => 'BBH-COMMA-01',
+        'asset_name' => 'Computed Tomography Scanner',
+        'category_id' => $this->category->id,
+        'department' => 'Radiology',
+        'location' => 'CT Room 1',
+        'status' => 'In Use',
+        'cost' => '1,250,000.50',
+        'useful_life_years' => 10,
+        'salvage_value' => '125,000.00',
+    ]);
+
+    $response->assertRedirect();
+    $asset = Asset::where('asset_no', 'BBH-COMMA-01')->first();
+    expect($asset)->not->toBeNull();
+    expect((float) $asset->cost)->toBe(1250000.50);
+    expect((float) $asset->salvage_value)->toBe(125000.00);
 });

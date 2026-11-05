@@ -27,34 +27,42 @@ class AssetsExport implements FromArray, WithHeadings, ShouldAutoSize
         if ($this->isAdmin()) {
             return [
                 'asset_no',
-                'asset_name',
-                'category',
+                'asset_description',
+                'brand',
                 'model',
-                'serial_no',
-                'date_acquired',
+                'serial_number',
                 'department',
+                'section',
                 'location',
+                'assigned_personnel',
+                'category',
+                'year_bought',
+                'asset_condition',
                 'status',
                 'cost',
                 'useful_life_years',
                 'salvage_value',
                 'accumulated_depreciation',
                 'current_value',
-                'notes',
+                'remarks',
             ];
         }
 
         return [
             'asset_no',
-            'asset_name',
-            'category',
+            'asset_description',
+            'brand',
             'model',
-            'serial_no',
-            'date_acquired',
+            'serial_number',
             'department',
+            'section',
             'location',
+            'assigned_personnel',
+            'category',
+            'year_bought',
+            'asset_condition',
             'status',
-            'notes',
+            'remarks',
         ];
     }
 
@@ -83,8 +91,9 @@ class AssetsExport implements FromArray, WithHeadings, ShouldAutoSize
         $totalCurrentValue = 0.0;
 
         foreach ($assets as $asset) {
-            $categoryName = $asset->category?->name ?? '';
-            $dateStr = $asset->date_acquired?->format('Y-m-d') ?? '';
+            $categoryName = $asset->category?->name ?? 'Uncategorized';
+            $yearBought = $asset->date_acquired?->format('Y') ?? '';
+            $condition = $asset->asset_condition ?? 'Not set';
 
             if ($isAdmin) {
                 $dep = $depService->calculateForAsset($asset);
@@ -116,12 +125,16 @@ class AssetsExport implements FromArray, WithHeadings, ShouldAutoSize
                 $rows[] = [
                     $asset->asset_no,
                     $asset->asset_name,
-                    $categoryName,
+                    $asset->brand ?? '',
                     $asset->model ?? '',
                     $asset->serial_no ?? '',
-                    $dateStr,
                     $asset->department ?? '',
+                    $asset->section ?? '',
                     $asset->location ?? '',
+                    $asset->assigned_personnel ?? '',
+                    $categoryName,
+                    $yearBought,
+                    $condition,
                     $asset->status,
                     $costFormatted,
                     $asset->useful_life_years !== null ? (string) $asset->useful_life_years : '',
@@ -134,12 +147,16 @@ class AssetsExport implements FromArray, WithHeadings, ShouldAutoSize
                 $rows[] = [
                     $asset->asset_no,
                     $asset->asset_name,
-                    $categoryName,
+                    $asset->brand ?? '',
                     $asset->model ?? '',
                     $asset->serial_no ?? '',
-                    $dateStr,
                     $asset->department ?? '',
+                    $asset->section ?? '',
                     $asset->location ?? '',
+                    $asset->assigned_personnel ?? '',
+                    $categoryName,
+                    $yearBought,
+                    $condition,
                     $asset->status,
                     $asset->notes ?? '',
                 ];
@@ -150,6 +167,10 @@ class AssetsExport implements FromArray, WithHeadings, ShouldAutoSize
         if ($isAdmin && count($rows) > 0) {
             $rows[] = [
                 'Total asset value',
+                '',
+                '',
+                '',
+                '',
                 '',
                 '',
                 '',

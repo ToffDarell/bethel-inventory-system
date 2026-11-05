@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Models\Asset;
+use App\Models\Category;
+use App\Models\Setting;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 
@@ -17,7 +19,8 @@ class DepreciationService
         mixed $salvageValue,
         mixed $usefulLifeYears,
         mixed $dateAcquired,
-        mixed $asOfDate = null
+        mixed $asOfDate = null,
+        ?bool $acquiredYearOnly = null
     ): DepreciationResult {
         if ($cost === null || $cost === '') {
             return new DepreciationResult(
@@ -30,6 +33,17 @@ class DepreciationService
         }
 
         $costFloat = round((float) $cost, 2);
+
+        $minCost = $this->getMinCost();
+        if ($minCost > 0 && $costFloat < $minCost) {
+            return new DepreciationResult(
+                calculable: false,
+                missingReason: 'Below minimum cost',
+                cost: $costFloat,
+                salvageValue: $salvageValue !== null ? (float) $salvageValue : null,
+                usefulLifeYears: $usefulLifeYears !== null ? (int) $usefulLifeYears : null,
+            );
+        }
 
         if ($dateAcquired === null || $dateAcquired === '') {
             return new DepreciationResult(
@@ -65,6 +79,19 @@ class DepreciationService
         $acquired = $dateAcquired instanceof CarbonInterface
             ? $dateAcquired->copy()
             : Carbon::parse($dateAcquired);
+
+        // Apply start convention at calculation time only to year-only rows
+        $isYearOnly = $acquiredYearOnly ?? (is_numeric($dateAcquired) && strlen((string) $dateAcquired) === 4);
+        if ($isYearOnly) {
+            $convention = $this->getStartConvention();
+            $year = $acquired->year;
+            $acquired = match ($convention) {
+                'july_1' => Carbon::create($year, 7, 1, 0, 0, 0),
+                'december_31' => Carbon::create($year, 12, 31, 0, 0, 0),
+                'custom' => Carbon::create($year, $this->getCustomMonth(), $this->getCustomDay(), 0, 0, 0),
+                default => Carbon::create($year, 1, 1, 0, 0, 0),
+            };
+        }
 
         $asOf = $asOfDate instanceof CarbonInterface
             ? $asOfDate->copy()
@@ -127,8 +154,68 @@ class DepreciationService
             $asset->salvage_value,
             $asset->useful_life_years,
             $asset->date_acquired,
-            $asOfDate
+            $asOfDate,
+            $asset->acquired_year_only
         );
+    }
+
+    /**
+     * Active depreciation policy getters
+     */
+    public function getStartConvention(): string
+    {
+        return Setting::get('depreciation_start_convention', 'january_1');
+    }
+
+    public function getMinCost(): float
+    {
+        return (float) Setting::get('depreciation_min_cost', 0);
+    }
+
+    public function getDefaultSalvagePercent(): float
+    {
+        return (float) Setting::get('depreciation_default_salvage_percent', 0);
+    }
+
+    public function getCustomMonth(): int
+    {
+        return max(1, min(12, (int) Setting::get('depreciation_custom_month', 1)));
+    }
+
+    public function getCustomDay(): int
+    {
+        return max(1, min(31, (int) Setting::get('depreciation_custom_day', 1)));
+    }
+
+    public function getConventionLabel(?string $convention = null): string
+    {
+        $conv = $convention ?? $this->getStartConvention();
+        if ($conv === 'custom') {
+            $month = $this->getCustomMonth();
+            $day = $this->getCustomDay();
+            $dateFormatted = Carbon::create(2000, $month, $day)->format('F j');
+            return "Counted from {$dateFormatted} of the Year Bought (Custom convention)";
+        }
+
+        return match ($conv) {
+            'july_1' => 'Counted from July 1 of the Year Bought (Half-Year convention)',
+            'december_31' => 'Counted from December 31 of the Year Bought (Year-End convention)',
+            default => 'Counted from January 1 of the Year Bought (Full-Year convention)',
+        };
+    }
+
+    public function resolveDefaultSalvagePercent(?Category $category): float
+    {
+        if ($category && $category->default_salvage_percent !== null && (float) $category->default_salvage_percent > 0) {
+            return (float) $category->default_salvage_percent;
+        }
+
+        $global = $this->getDefaultSalvagePercent();
+        if ($global > 0) {
+            return $global;
+        }
+
+        return 0.0;
     }
 
     /**

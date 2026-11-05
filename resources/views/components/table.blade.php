@@ -11,6 +11,11 @@
             <tbody class="divide-y divide-slate-100 {{ $striped ? '[&>tr:nth-child(even)]:bg-slate-50/40' : '' }} [&>tr]:h-[52px] [&>tr:hover]:bg-slate-50/90 transition-colors">
                 {{ $slot }}
             </tbody>
+            @if (isset($tfoot))
+                <tfoot class="border-t-2 border-slate-300">
+                    {{ $tfoot }}
+                </tfoot>
+            @endif
         </table>
     </div>
 

@@ -13,15 +13,19 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        User::firstOrCreate(
-            ['email' => 'admin@hospital.local'],
-            [
+        $admin = User::where('username', 'admin')->orWhere('email', 'admin@hospital.local')->first();
+        if (! $admin) {
+            User::create([
                 'name' => 'Hospital Administrator',
+                'username' => 'admin',
+                'email' => 'admin@hospital.local',
                 'password' => 'password123',
                 'role' => 'admin',
                 'must_change_password' => true,
-            ]
-        );
+            ]);
+        } elseif (empty($admin->username)) {
+            $admin->update(['username' => 'admin']);
+        }
 
         $defaults = [
             'hospital_name' => 'Bethel Baptist Hospital, Inc.',

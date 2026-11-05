@@ -43,6 +43,11 @@ class ScanController extends Controller
         // Check if query matches a single partial record
         $partialMatches = Asset::where('asset_name', 'like', "%{$code}%")
             ->orWhere('asset_no', 'like', "%{$code}%")
+            ->orWhere('brand', 'like', "%{$code}%")
+            ->orWhere('model', 'like', "%{$code}%")
+            ->orWhere('serial_no', 'like', "%{$code}%")
+            ->orWhere('section', 'like', "%{$code}%")
+            ->orWhere('assigned_personnel', 'like', "%{$code}%")
             ->get();
 
         if ($partialMatches->count() === 1) {
@@ -56,6 +61,20 @@ class ScanController extends Controller
             return redirect()
                 ->route('assets.index', ['search' => $code])
                 ->with('info', "Found {$partialMatches->count()} equipment items matching \"{$code}\".");
+        }
+
+        // Check if matching asset is in the archive
+        $archivedMatch = Asset::onlyTrashed()
+            ->where(function ($q) use ($code) {
+                $q->whereRaw('LOWER(asset_no) = LOWER(?)', [$code])
+                    ->orWhereRaw('LOWER(asset_name) = LOWER(?)', [$code]);
+            })
+            ->first();
+
+        if ($archivedMatch) {
+            return redirect()
+                ->route('assets.show', $archivedMatch)
+                ->with('info', "Asset \"{$archivedMatch->asset_no}\" ({$archivedMatch->asset_name}) was found in the Archive.");
         }
 
         return redirect()

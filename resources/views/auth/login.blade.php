@@ -127,18 +127,18 @@
                 <form method="POST" action="{{ route('login.submit') }}" class="space-y-3.5">
                     @csrf
 
-                    <!-- Email Field -->
+                    <!-- Username Field -->
                     <div class="auth-anim-field auth-delay-3">
-                        <label for="email" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Email Address <span class="text-brand-red" aria-hidden="true">*</span>
+                        <label for="username" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Username <span class="text-brand-red" aria-hidden="true">*</span>
                         </label>
-                        <input id="email"
-                               name="email"
-                               type="email"
-                               value="{{ old('email', 'admin@hospital.local') }}"
+                        <input id="username"
+                               name="username"
+                               type="text"
+                               value="{{ old('username') }}"
                                required
                                autofocus
-                               placeholder="staff@hospital.local"
+                               placeholder="Enter your username"
                                autocomplete="username"
                                class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
                     </div>

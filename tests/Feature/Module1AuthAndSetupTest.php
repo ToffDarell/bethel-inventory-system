@@ -11,6 +11,7 @@ test('seeder creates default admin requiring password change and hospital settin
 
     $admin = User::where('email', 'admin@hospital.local')->first();
     expect($admin)->not->toBeNull()
+        ->and($admin->username)->toBe('admin')
         ->and($admin->role)->toBe('admin')
         ->and($admin->must_change_password)->toBeTrue()
         ->and(Hash::check('password123', $admin->password))->toBeTrue();

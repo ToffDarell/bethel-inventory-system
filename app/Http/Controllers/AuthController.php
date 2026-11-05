@@ -6,9 +6,12 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -21,7 +24,12 @@ class AuthController extends Controller
 
         $this->ensureInitialAdminSeeded();
 
-        $defaultAdmin = User::where('email', 'admin@hospital.local')->first();
+        $defaultAdmin = null;
+        if (Schema::hasTable('users')) {
+            $defaultAdmin = Schema::hasColumn('users', 'username')
+                ? User::where('username', 'admin')->orWhere('email', 'admin@hospital.local')->first()
+                : User::where('email', 'admin@hospital.local')->first();
+        }
 
         return view('auth.login', [
             'showInitialCredentialsHint' => $defaultAdmin && $defaultAdmin->must_change_password,
@@ -32,29 +40,65 @@ class AuthController extends Controller
     {
         $this->ensureInitialAdminSeeded();
 
-        $credentials = $request->validate([
-            'email' => ['required', 'email'],
-            'password' => ['required', 'string'],
-        ], [
-            'email.required' => 'Please enter your email address.',
-            'email.email' => 'Please enter a valid email address.',
-            'password.required' => 'Please enter your password.',
-        ]);
+        $login = trim((string) ($request->input('username') ?? $request->input('email') ?? ''));
+        $password = (string) $request->input('password', '');
+        $errorKey = $request->has('email') && ! $request->has('username') ? 'email' : 'username';
 
-        if (! Auth::attempt($credentials, $request->boolean('remember'))) {
+        if ($login === '' || $password === '') {
             return back()
-                ->withInput($request->only('email'))
+                ->withInput($request->only('username', 'email'))
                 ->withErrors([
-                    'email' => 'The email or password you entered is incorrect. Please try again.',
+                    $errorKey => 'Username or password is incorrect',
+                    'username' => 'Username or password is incorrect',
                 ]);
         }
 
+        $throttleKey = Str::transliterate(Str::lower($login).'|'.$request->ip());
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()
+                ->withInput($request->only('username', 'email'))
+                ->withErrors([
+                    $errorKey => "Too many login attempts. Please try again in {$seconds} seconds.",
+                    'username' => "Too many login attempts. Please try again in {$seconds} seconds.",
+                ]);
+        }
+
+        $hasUsernameCol = Schema::hasTable('users') && Schema::hasColumn('users', 'username');
+        $userQuery = User::query();
+
+        if ($hasUsernameCol) {
+            $userQuery->where(function ($q) use ($login) {
+                $q->whereRaw('LOWER(username) = ?', [strtolower($login)])
+                  ->orWhereRaw('LOWER(email) = ?', [strtolower($login)]);
+            });
+        } else {
+            $userQuery->whereRaw('LOWER(email) = ?', [strtolower($login)]);
+        }
+
+        $user = $userQuery->first();
+
+        if (! $user || ! Hash::check($password, $user->password)) {
+            RateLimiter::hit($throttleKey, 60);
+
+            return back()
+                ->withInput($request->only('username', 'email'))
+                ->withErrors([
+                    $errorKey => 'Username or password is incorrect',
+                    'username' => 'Username or password is incorrect',
+                ]);
+        }
+
+        RateLimiter::clear($throttleKey);
+        Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
 
         $user = Auth::user();
         activity()
             ->causedBy($user)
-            ->log("User {$user->name} ({$user->email}) signed in");
+            ->log("User {$user->name} ({$user->username}) signed in");
 
         if ($user->must_change_password) {
             return redirect()->route('password.change');
@@ -69,7 +113,7 @@ class AuthController extends Controller
         if ($user) {
             activity()
                 ->causedBy($user)
-                ->log("User {$user->name} ({$user->email}) signed out");
+                ->log("User {$user->name} ({$user->username}) signed out");
         }
 
         Auth::logout();
@@ -109,7 +153,7 @@ class AuthController extends Controller
 
         activity()
             ->causedBy($user)
-            ->log("User {$user->name} changed their password");
+            ->log("User {$user->name} ({$user->username}) changed their password");
 
         return redirect()
             ->route('dashboard')
@@ -123,8 +167,13 @@ class AuthController extends Controller
         }
 
         try {
-            if (Schema::hasTable('users') && User::count() === 0) {
-                app(DatabaseSeeder::class)->run();
+            if (Schema::hasTable('users')) {
+                if (! Schema::hasColumn('users', 'username')) {
+                    Artisan::call('migrate', ['--force' => true]);
+                }
+                if (User::count() === 0) {
+                    app(DatabaseSeeder::class)->run();
+                }
             }
         } catch (\Throwable) {
             // Ignore if database is not yet migrated

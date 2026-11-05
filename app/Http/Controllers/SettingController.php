@@ -8,6 +8,7 @@ use App\Models\Setting;
 use App\Models\User;
 use App\Services\BackupService;
 use App\Services\TagAssetService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -49,9 +50,14 @@ class SettingController extends Controller
             ]),
             'backups' => $backups,
             'backupOverdue' => $backupOverdue,
-            'activeDatabasePath' => $this->backupService->getDatabasePath(),
+            'activeDatabasePath' => $request->user()?->isAdmin() ? $this->backupService->getDatabasePath() : null,
             'users' => $request->user()?->isAdmin() ? User::orderBy('name')->get() : collect(),
             'categories' => Category::withCount('assets')->orderBy('name')->get(),
+            'depreciationStartConvention' => Setting::get('depreciation_start_convention', 'january_1'),
+            'depreciationCustomMonth' => (int) Setting::get('depreciation_custom_month', 1),
+            'depreciationCustomDay' => (int) Setting::get('depreciation_custom_day', 1),
+            'depreciationDefaultSalvagePercent' => Setting::get('depreciation_default_salvage_percent', '0'),
+            'depreciationMinCost' => Setting::get('depreciation_min_cost', '0.00'),
         ]);
     }
 
@@ -235,18 +241,43 @@ class SettingController extends Controller
         return redirect()->route('login')->with('success', 'Application session restarted. Please sign in.');
     }
 
-    public function storeUser(Request $request)
+    public function storeUser(Request $request): RedirectResponse
     {
+        if (! $request->user()?->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can add user accounts.');
+        }
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'username' => [
+                'required',
+                'string',
+                'min:3',
+                'max:30',
+                'regex:/^[a-zA-Z0-9._-]+$/',
+                Rule::unique('users', 'username'),
+            ],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             'role' => ['required', Rule::in(['admin', 'staff'])],
             'password' => ['required', 'string', 'min:8'],
+        ], [
+            'name.required' => 'Full name is required.',
+            'username.required' => 'Please enter a username.',
+            'username.min' => 'Username must be at least 3 characters.',
+            'username.max' => 'Username may not be greater than 30 characters.',
+            'username.regex' => 'Username may only contain letters, numbers, dots, dashes, and underscores.',
+            'username.unique' => 'This username is already taken.',
+            'email.email' => 'Please enter a valid email address.',
+            'email.unique' => 'This email address is already in use.',
+            'role.required' => 'Please select a system role.',
+            'password.required' => 'Temporary password is required.',
+            'password.min' => 'Temporary password must be at least 8 characters.',
         ]);
 
         $user = User::create([
             'name' => trim($validated['name']),
-            'email' => strtolower(trim($validated['email'])),
+            'username' => strtolower(trim($validated['username'])),
+            'email' => ! empty(trim($validated['email'] ?? '')) ? strtolower(trim($validated['email'])) : null,
             'role' => $validated['role'],
             'password' => Hash::make($validated['password']),
             'must_change_password' => true,
@@ -255,10 +286,119 @@ class SettingController extends Controller
         activity()
             ->causedBy($request->user())
             ->performedOn($user)
-            ->log("Created {$user->role} user account: {$user->email}");
+            ->log("Created {$user->role} user account: {$user->username}");
 
         return redirect()
-            ->route('settings.index')
-            ->with('success', "User account \"{$user->name}\" ({$user->email}) created. They will be asked to set a new password on first login.");
+            ->route('settings.index', ['tab' => 'users'])
+            ->with('success', "User account \"{$user->name}\" ({$user->username}) created. They will be asked to set a new password on first login.");
+    }
+
+    public function resetUserPassword(Request $request, User $user): RedirectResponse
+    {
+        if (! $request->user()?->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can reset user passwords.');
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8'],
+        ], [
+            'password.required' => 'Temporary password is required.',
+            'password.min' => 'Temporary password must be at least 8 characters.',
+        ]);
+
+        $user->update([
+            'password' => Hash::make($validated['password']),
+            'must_change_password' => true,
+        ]);
+
+        activity()
+            ->causedBy($request->user())
+            ->performedOn($user)
+            ->log("Reset temporary password for user {$user->username}");
+
+        return redirect()
+            ->route('settings.index', ['tab' => 'users'])
+            ->with('success', "Temporary password for {$user->name} ({$user->username}) has been updated. They must change it on their next login.");
+    }
+
+    public function updateDepreciation(Request $request): RedirectResponse
+    {
+        if (! $request->user()?->isAdmin()) {
+            abort(403, 'Unauthorized. Only administrators can change depreciation policy.');
+        }
+
+        $validated = $request->validate([
+            'depreciation_start_convention' => ['required', 'string', 'in:january_1,july_1,december_31,custom'],
+            'depreciation_custom_month' => ['nullable', 'required_if:depreciation_start_convention,custom', 'integer', 'min:1', 'max:12'],
+            'depreciation_custom_day' => ['nullable', 'required_if:depreciation_start_convention,custom', 'integer', 'min:1', 'max:31'],
+            'depreciation_default_salvage_percent' => ['required', 'numeric', 'min:0', 'max:90'],
+            'depreciation_min_cost' => ['required', 'numeric', 'min:0'],
+        ], [
+            'depreciation_start_convention.required' => 'Please select a valid start convention.',
+            'depreciation_start_convention.in' => 'Please select a valid start convention.',
+            'depreciation_custom_month.required_if' => 'Please select a valid month for the custom start date.',
+            'depreciation_custom_day.required_if' => 'Please enter a valid day for the custom start date.',
+            'depreciation_default_salvage_percent.required' => 'Default salvage percent is required.',
+            'depreciation_default_salvage_percent.numeric' => 'Default salvage percent must be a number.',
+            'depreciation_default_salvage_percent.min' => 'Default salvage percent cannot be negative.',
+            'depreciation_default_salvage_percent.max' => 'Default salvage percent cannot exceed 90%.',
+            'depreciation_min_cost.required' => 'Minimum cost to depreciate is required.',
+            'depreciation_min_cost.numeric' => 'Minimum cost to depreciate must be a number.',
+            'depreciation_min_cost.min' => 'Minimum cost to depreciate cannot be negative.',
+        ]);
+
+        if ($validated['depreciation_start_convention'] === 'custom') {
+            $month = (int) $validated['depreciation_custom_month'];
+            $day = (int) $validated['depreciation_custom_day'];
+            if (! checkdate($month, $day, 2024)) {
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['depreciation_custom_day' => 'The selected month and day do not form a valid calendar date.']);
+            }
+            Setting::set('depreciation_custom_month', (string) $month);
+            Setting::set('depreciation_custom_day', (string) $day);
+        }
+
+        $settings = [
+            'depreciation_start_convention' => [
+                'name' => 'Depreciation start convention',
+                'new' => $validated['depreciation_start_convention'],
+                'default' => 'january_1',
+            ],
+            'depreciation_default_salvage_percent' => [
+                'name' => 'Default salvage percent',
+                'new' => (string) round((float) $validated['depreciation_default_salvage_percent'], 2),
+                'default' => '0',
+            ],
+            'depreciation_min_cost' => [
+                'name' => 'Minimum cost to depreciate',
+                'new' => (string) round((float) $validated['depreciation_min_cost'], 2),
+                'default' => '0.00',
+            ],
+        ];
+
+        foreach ($settings as $key => $meta) {
+            $oldValue = Setting::get($key, $meta['default']);
+            $newValue = $meta['new'];
+
+            if ($oldValue !== $newValue) {
+                Setting::set($key, $newValue);
+                $oldDisplay = $oldValue;
+                $newDisplay = $newValue;
+                if ($newValue === 'custom') {
+                    $customMonth = (int) ($validated['depreciation_custom_month'] ?? 1);
+                    $customDay = (int) ($validated['depreciation_custom_day'] ?? 1);
+                    $dateName = \Carbon\Carbon::create(2000, $customMonth, $customDay)->format('F j');
+                    $newDisplay = "custom ({$dateName})";
+                }
+                activity()
+                    ->causedBy($request->user())
+                    ->log("{$meta['name']} changed from '{$oldDisplay}' to '{$newDisplay}' by {$request->user()->name}");
+            }
+        }
+
+        return redirect()
+            ->route('settings.index', ['tab' => 'depreciation'])
+            ->with('success', 'Depreciation policy updated successfully.');
     }
 }

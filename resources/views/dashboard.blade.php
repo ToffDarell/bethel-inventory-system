@@ -16,8 +16,9 @@
                 $q->whereNull('location')->orWhere('location', '');
             })
             ->count();
+        $damagedCount = \App\Models\Asset::where('asset_condition', 'Damage')->count();
         $backupOverdue = app(\App\Services\BackupService::class)->isBackupOverdue(7);
-        $hasAttentionItems = $underRepairCount > 0 || $backupOverdue || $unassignedLocationCount > 0;
+        $hasAttentionItems = $underRepairCount > 0 || $backupOverdue || $unassignedLocationCount > 0 || $damagedCount > 0;
     @endphp
 
     <!-- Page Header with Quick Actions -->
@@ -85,6 +86,15 @@
                     </a>
                 @endforeach
 
+                @if ($damagedCount > 0)
+                    <a href="{{ route('assets.index', ['condition' => 'Damage']) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-50 shadow-2xs transition-colors">
+                        <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+                        <span>{{ $damagedCount }} {{ Str::plural('asset', $damagedCount) }} in Damage condition</span>
+                        <span class="text-rose-500 font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endif
+
                 @if ($backupOverdue)
                     <a href="{{ route('settings.index', ['tab' => 'backup']) }}"
                        class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors">
@@ -109,10 +119,10 @@
         <div class="p-5 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <div>
                 <span class="text-xs uppercase font-semibold tracking-wider text-slate-400 block">Total Asset Value</span>
-                <div class="text-2xl sm:text-3xl font-extrabold font-mono tracking-tight mt-1 text-white">
+                <div class="text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight mt-1 text-white">
                     ₱{{ number_format($totalAssetValue, 2) }}
                 </div>
-                <span class="text-xs text-slate-400 mt-0.5 block">Estimated current straight-line valuation across active hospital assets</span>
+                <span class="text-xs text-slate-400 mt-0.5 block">Current estimated worth of all active hospital equipment</span>
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('reports.depreciation') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-colors">
@@ -181,16 +191,109 @@
         @endforeach
     </div>
 
-    <!-- Main Lower Grid: Department Breakdown + Recently Added Assets -->
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        <!-- Left Column: Department Breakdown + Quick Navigation -->
-        <div class="lg:col-span-4 space-y-5">
+    <!-- Main Operational Table: Recently Added Assets (Full Width) -->
+    <x-card padding="p-0">
+        <x-slot:header>
+            <div class="flex items-center justify-between w-full">
+                <div>
+                    <h3 class="text-base font-semibold text-slate-900">Recently Added Assets</h3>
+                    <p class="text-xs text-slate-600 mt-0.5">Latest equipment recorded in the hospital register</p>
+                </div>
+                <a href="{{ route('assets.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-2xs">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span>Add Asset</span>
+                </a>
+            </div>
+        </x-slot:header>
+
+        @if (! empty($recentAssets) && count($recentAssets) > 0)
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead class="bg-slate-50/95 sticky top-0 z-10 border-b border-slate-200 text-xs font-semibold text-slate-700 select-none">
+                        <tr>
+                            <th class="py-3 px-4 w-36 whitespace-nowrap">Asset No.</th>
+                            <th class="py-3 px-4">Equipment &amp; Location</th>
+                            <th class="py-3 px-4 w-32 whitespace-nowrap">Status</th>
+                            <th class="py-3 px-4 w-36 min-w-[140px] text-right pr-4 whitespace-nowrap">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 [&>tr]:h-[52px]">
+                        @foreach ($recentAssets as $recent)
+                            <tr class="hover:bg-slate-50/90 transition-colors cursor-pointer group"
+                                onclick="window.location.href='{{ route('assets.show', $recent) }}'">
+                                <td class="py-2.5 px-4 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-semibold group-hover:border-slate-300 transition-colors">
+                                        {{ $recent->asset_no }}
+                                    </span>
+                                </td>
+                                <td class="py-2.5 px-4">
+                                    <a href="{{ route('assets.show', $recent) }}"
+                                       class="font-semibold text-slate-900 group-hover:text-primary block truncate transition-colors"
+                                       title="{{ $recent->asset_name }}">
+                                        {{ $recent->asset_name }}
+                                    </a>
+                                    <p class="text-[11px] text-slate-600 truncate mt-0.5"
+                                       title="{{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}">
+                                        {{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}
+                                    </p>
+                                </td>
+                                <td class="py-2.5 px-4 whitespace-nowrap">
+                                    <x-badge :status="$recent->status" />
+                                </td>
+                                <td class="py-2.5 px-4 w-36 min-w-[140px] text-right pr-4 whitespace-nowrap">
+                                    <div class="inline-flex items-center justify-end gap-1" onclick="event.stopPropagation()">
+                                        <x-icon-button :href="route('assets.show', $recent)" title="View Asset" size="sm">
+                                            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            </svg>
+                                        </x-icon-button>
+                                        <x-icon-button :href="route('tags.print', ['ids' => [$recent->id]])" title="Print Tag" size="sm">
+                                            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                                            </svg>
+                                        </x-icon-button>
+                                        <x-icon-button :href="route('assets.move.create', $recent)" title="Move Asset" size="sm">
+                                            <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                            </svg>
+                                        </x-icon-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <div class="p-6">
+                <x-empty-state
+                    title="No assets registered yet"
+                    description="Start building the hospital property register by adding your first piece of equipment"
+                >
+                    <x-slot:action>
+                        <x-button variant="primary" :href="route('assets.create')">
+                            Add Your First Asset
+                        </x-button>
+                    </x-slot:action>
+                </x-empty-state>
+            </div>
+        @endif
+    </x-card>
+
+    <!-- Side-by-Side Lower Section: Department Breakdown + Quick Tasks (Left) and Category Breakdown (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        <!-- Left Column: Department Breakdown + Quick Tasks -->
+        <div class="space-y-6">
+            <!-- Assets by Department -->
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <div>
                             <h3 class="text-base font-semibold text-slate-900">Assets by Department</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Inventory distribution across hospital units</p>
+                            <p class="text-xs text-slate-500 mt-0.5">Equipment count in each department</p>
                         </div>
                         <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
                             View all &rarr;
@@ -240,157 +343,85 @@
                 @endif
             </x-card>
 
-            <!-- By Category Breakdown -->
+            <!-- Quick Tasks Card -->
             <x-card>
                 <x-slot:header>
                     <div class="flex items-center justify-between w-full">
                         <div>
-                            <h3 class="text-base font-semibold text-slate-900">By Category</h3>
-                            <p class="text-xs text-slate-500 mt-0.5">Asset classification distribution</p>
+                            <h3 class="text-base font-semibold text-slate-900">Quick Tasks</h3>
+                            <p class="text-xs text-slate-500 mt-0.5">Common shortcuts and tools</p>
                         </div>
-                        <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
-                            Filter &rarr;
-                        </a>
+                        <span class="text-xs text-slate-400">Inventory tools</span>
                     </div>
                 </x-slot:header>
-
-                <div class="divide-y divide-slate-100">
-                    @forelse ($categoryBreakdown as $catItem)
-                        <a href="{{ $catItem['id'] ? route('assets.index', ['category' => $catItem['id']]) : route('assets.index') }}"
-                           class="py-2.5 px-1 flex items-center justify-between hover:bg-slate-50 transition-colors group rounded-md">
-                            <div>
-                                <span class="text-xs font-semibold text-slate-800 group-hover:text-primary block">{{ $catItem['name'] }}</span>
-                                @if ($isAdmin && $catItem['value'] > 0)
-                                    <span class="text-[11px] font-mono text-slate-500">₱{{ number_format($catItem['value'], 2) }}</span>
-                                @endif
-                            </div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
-                                {{ $catItem['count'] }}
-                            </span>
-                        </a>
-                    @empty
-                        <p class="text-xs text-slate-500 py-3 text-center">No categories configured yet</p>
-                    @endforelse
-                </div>
-            </x-card>
-
-            <!-- Quick Operational Shortcuts Card (Balances Column Height) -->
-            <x-card padding="p-4">
-                <div class="flex items-center justify-between text-xs font-semibold text-slate-800 mb-3">
-                    <span>Quick Tasks</span>
-                    <span class="text-slate-400 font-normal">Floor actions</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                    <a href="{{ route('assets.find') }}"
-                       class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700">
-                        <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <div class="grid grid-cols-2 gap-2.5">
+                    <x-button variant="secondary" :href="route('assets.find')" class="w-full text-xs justify-center py-2.5">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                         </svg>
-                        <span>Find Asset</span>
-                    </a>
-                    <a href="{{ route('reports.index') }}"
-                       class="flex items-center gap-2 p-2.5 rounded-lg border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-colors text-xs font-medium text-slate-700">
-                        <svg class="w-4 h-4 text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        Find Asset
+                    </x-button>
+                    <x-button variant="secondary" :href="route('reports.index')" class="w-full text-xs justify-center py-2.5">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
                         </svg>
-                        <span>Export Excel</span>
-                    </a>
+                        Reports Hub
+                    </x-button>
+                    <x-button variant="secondary" :href="route('tags.print')" class="w-full text-xs justify-center py-2.5">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                        </svg>
+                        Print Tags
+                    </x-button>
+                    <x-button variant="secondary" :href="route('assets.create')" class="w-full text-xs justify-center py-2.5">
+                        <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                        </svg>
+                        Add Asset
+                    </x-button>
                 </div>
             </x-card>
         </div>
 
-        <!-- Right Column: Recently Added Assets Table (No clipping, single-line truncated, icon actions) -->
-        <div class="lg:col-span-8">
-            <x-card padding="p-0">
-                <x-slot:header>
-                    <div class="flex items-center justify-between w-full">
-                        <div>
-                            <h3 class="text-base font-semibold text-slate-900">Recently Added Assets</h3>
-                            <p class="text-xs text-slate-600 mt-0.5">Latest equipment recorded in the hospital register</p>
-                        </div>
-                        <a href="{{ route('assets.create') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors shadow-2xs">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-                            </svg>
-                            <span>Add Asset</span>
-                        </a>
+        <!-- Right Column: By Category Breakdown -->
+        <x-card>
+            <x-slot:header>
+                <div class="flex items-center justify-between w-full">
+                    <div>
+                        <h3 class="text-base font-semibold text-slate-900">By Category</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Equipment count and value by category</p>
                     </div>
-                </x-slot:header>
+                    <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
+                        Filter &rarr;
+                    </a>
+                </div>
+            </x-slot:header>
 
-                @if (! empty($recentAssets) && count($recentAssets) > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse text-xs">
-                            <thead class="bg-slate-50/95 sticky top-0 z-10 border-b border-slate-200 text-xs font-semibold text-slate-700 select-none">
-                                <tr>
-                                    <th class="py-3 px-4 w-32 whitespace-nowrap">Asset No.</th>
-                                    <th class="py-3 px-4">Equipment &amp; Location</th>
-                                    <th class="py-3 px-4 w-28 whitespace-nowrap">Status</th>
-                                    <th class="py-3 px-4 w-32 min-w-[128px] text-right pr-4 whitespace-nowrap">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100 [&>tr]:h-[52px]">
-                                @foreach ($recentAssets as $recent)
-                                    <tr class="hover:bg-slate-50/90 transition-colors cursor-pointer group"
-                                        onclick="window.location.href='{{ route('assets.show', $recent) }}'">
-                                        <td class="py-2.5 px-4 whitespace-nowrap">
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200 font-mono text-xs font-semibold group-hover:border-slate-300 transition-colors">
-                                                {{ $recent->asset_no }}
-                                            </span>
-                                        </td>
-                                        <td class="py-2.5 px-4 min-w-[200px] max-w-[320px]">
-                                            <a href="{{ route('assets.show', $recent) }}"
-                                               class="font-semibold text-slate-900 group-hover:text-primary block truncate transition-colors"
-                                               title="{{ $recent->asset_name }}">
-                                                {{ $recent->asset_name }}
-                                            </a>
-                                            <p class="text-[11px] text-slate-600 truncate mt-0.5"
-                                               title="{{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}">
-                                                {{ $recent->location ?: 'No location' }} &bull; {{ $recent->department ?: 'Unassigned' }}
-                                            </p>
-                                        </td>
-                                        <td class="py-2.5 px-4 whitespace-nowrap">
-                                            <x-badge :status="$recent->status" />
-                                        </td>
-                                        <td class="py-2.5 px-4 w-32 min-w-[128px] text-right pr-4 whitespace-nowrap">
-                                            <div class="inline-flex items-center justify-end gap-1" onclick="event.stopPropagation()">
-                                                <x-icon-button :href="route('assets.show', $recent)" title="View Asset" size="sm">
-                                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                                    </svg>
-                                                </x-icon-button>
-                                                <x-icon-button :href="route('tags.print', ['ids' => [$recent->id]])" title="Print Tag" size="sm">
-                                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
-                                                    </svg>
-                                                </x-icon-button>
-                                                <x-icon-button :href="route('assets.move.create', $recent)" title="Move Asset" size="sm">
-                                                    <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
-                                                    </svg>
-                                                </x-icon-button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @else
-                    <div class="p-6">
-                        <x-empty-state
-                            title="No assets registered yet"
-                            description="Start building the hospital property register by adding your first piece of equipment"
-                        >
-                            <x-slot:action>
-                                <x-button variant="primary" :href="route('assets.create')">
-                                    Add Your First Asset
-                                </x-button>
-                            </x-slot:action>
-                        </x-empty-state>
-                    </div>
-                @endif
-            </x-card>
-        </div>
+            <div class="divide-y divide-slate-100">
+                @forelse ($categoryBreakdown as $catItem)
+                    <a href="{{ $catItem['id'] ? route('assets.index', ['category' => $catItem['id']]) : route('assets.index') }}"
+                       class="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 transition-colors group rounded-md">
+                        <div>
+                            <span class="text-xs font-semibold text-slate-800 group-hover:text-primary block">{{ $catItem['name'] }}</span>
+                            @if ($isAdmin && $catItem['value'] > 0)
+                                <span class="text-[11px] font-mono text-slate-500">₱{{ number_format($catItem['value'], 2) }}</span>
+                            @endif
+                        </div>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
+                            {{ $catItem['count'] }}
+                        </span>
+                    </a>
+                @empty
+                    <p class="text-xs text-slate-500 py-3 text-center">No categories configured yet</p>
+                @endforelse
+            </div>
+
+            <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span class="font-medium">Configured Categories</span>
+                <span class="font-mono font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                    {{ count($categoryBreakdown) }}
+                </span>
+            </div>
+        </x-card>
     </div>
 @endsection

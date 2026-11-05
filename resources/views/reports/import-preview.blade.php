@@ -143,14 +143,19 @@
                             <th class="py-3 px-4 w-14 text-center">Row</th>
                             <th class="py-3 px-4">Validation State</th>
                             <th class="py-3 px-4">Asset No.</th>
-                            <th class="py-3 px-4">Asset Name</th>
+                            <th class="py-3 px-4">Asset Description</th>
+                            <th class="py-3 px-4">Brand &amp; Model</th>
+                            <th class="py-3 px-4">Serial Number</th>
+                            <th class="py-3 px-4">Department &amp; Section</th>
+                            <th class="py-3 px-4">Location &amp; Personnel</th>
                             <th class="py-3 px-4">Category</th>
-                            <th class="py-3 px-4 text-right">Cost</th>
-                            <th class="py-3 px-4">Model</th>
-                            <th class="py-3 px-4">Serial No.</th>
-                            <th class="py-3 px-4">Date Acquired</th>
-                            <th class="py-3 px-4">Department &amp; Location</th>
+                            <th class="py-3 px-4 whitespace-nowrap">Year Bought</th>
+                            <th class="py-3 px-4 whitespace-nowrap">Asset Condition</th>
                             <th class="py-3 px-4">Status</th>
+                            @if (auth()->user()?->isAdmin())
+                                <th class="py-3 px-4 text-right">Cost</th>
+                            @endif
+                            <th class="py-3 px-4">Remarks</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -161,6 +166,9 @@
                                     : ($row['is_duplicate']
                                         ? 'bg-amber-50/40 hover:bg-amber-50/70 text-slate-700'
                                         : 'bg-slate-50/60 hover:bg-slate-100/60 text-slate-500');
+                                $yearBoughtDisplay = !empty($row['date_acquired'])
+                                    ? (strlen($row['date_acquired']) >= 4 ? substr($row['date_acquired'], 0, 4) : $row['date_acquired'])
+                                    : 'Not set';
                             @endphp
                             <tr class="{{ $rowClass }} transition-colors">
                                 <td class="py-3 px-4 text-center font-mono text-xs text-slate-500 tabular-nums">
@@ -196,6 +204,39 @@
                                 <td class="py-3 px-4 font-medium text-slate-900">
                                     {{ $row['asset_name'] ?: 'Not specified' }}
                                 </td>
+                                <td class="py-3 px-4 text-sm text-slate-700">
+                                    @if ($row['brand'] || $row['model'])
+                                        <div class="font-medium text-slate-900">{{ $row['brand'] ?: 'No brand' }}</div>
+                                        @if ($row['model'])
+                                            <div class="text-xs text-slate-500 mt-0.5">{{ $row['model'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-slate-400">Not specified</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 font-mono text-xs text-slate-600">
+                                    {{ $row['serial_no'] ?: 'None' }}
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    @if ($row['department'] || $row['section'])
+                                        <div class="font-medium text-slate-900">{{ $row['department'] ?: 'Unassigned' }}</div>
+                                        @if ($row['section'])
+                                            <div class="text-xs text-slate-500 mt-0.5">{{ $row['section'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-slate-400">Unassigned</span>
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-sm">
+                                    @if ($row['location'] || $row['assigned_personnel'])
+                                        <div class="font-medium text-slate-900">{{ $row['location'] ?: 'No room' }}</div>
+                                        @if ($row['assigned_personnel'])
+                                            <div class="text-xs text-slate-500 mt-0.5">{{ $row['assigned_personnel'] }}</div>
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-slate-400">Unassigned</span>
+                                    @endif
+                                </td>
                                 <td class="py-3 px-4 text-sm">
                                     @if (!empty($row['category']))
                                         <span class="inline-flex items-center gap-1.5 font-medium text-slate-800">
@@ -208,39 +249,48 @@
                                         <span class="text-xs text-slate-400">Uncategorized</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 text-sm font-mono tabular-nums text-right whitespace-nowrap">
-                                    @if (isset($row['cost']) && $row['cost'] !== null)
-                                        <span class="text-slate-900 font-medium">₱{{ number_format((float) $row['cost'], 2) }}</span>
-                                    @else
-                                        <span class="text-xs font-sans text-slate-400">No cost entered</span>
-                                    @endif
+                                <td class="py-3 px-4 text-sm text-slate-700 font-mono tabular-nums whitespace-nowrap">
+                                    {{ $yearBoughtDisplay }}
                                 </td>
-                                <td class="py-3 px-4 text-slate-600 text-sm">
-                                    {{ $row['model'] ?: 'Not specified' }}
-                                </td>
-                                <td class="py-3 px-4 font-mono text-xs text-slate-600">
-                                    {{ $row['serial_no'] ?: 'None' }}
-                                </td>
-                                <td class="py-3 px-4 text-sm text-slate-600 tabular-nums">
-                                    {{ $row['date_acquired'] ?: 'Not recorded' }}
-                                </td>
-                                <td class="py-3 px-4 text-sm">
-                                    @if ($row['department'] || $row['location'])
-                                        <div class="font-medium text-slate-900">{{ $row['location'] ?: 'Unassigned' }}</div>
-                                        @if ($row['department'])
-                                            <div class="text-xs text-slate-500 mt-0.5">{{ $row['department'] }}</div>
+                                <td class="py-3 px-4 whitespace-nowrap">
+                                    @if ($row['asset_condition'])
+                                        <x-condition-badge :condition="$row['asset_condition']" />
+                                        @if (!empty($row['condition_mapped']))
+                                            <div class="text-[10px] text-sky-700 font-medium mt-1">
+                                                Mapped from "{{ $row['condition_original'] }}"
+                                            </div>
                                         @endif
+                                    @elseif (!empty($row['is_unknown_condition']))
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 border border-amber-300" title="{{ $row['condition_note'] }}">
+                                            <svg class="w-3 h-3 text-amber-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                            <span>Unknown: "{{ $row['condition_original'] }}"</span>
+                                        </span>
+                                        <div class="text-[10px] text-slate-500 mt-0.5">Saved as Not set</div>
                                     @else
-                                        <span class="text-slate-400">Unassigned</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                                            Not set
+                                        </span>
                                     @endif
                                 </td>
                                 <td class="py-3 px-4 whitespace-nowrap">
                                     <x-badge :status="$row['status'] ?: 'In Use'" />
                                 </td>
+                                @if (auth()->user()?->isAdmin())
+                                    <td class="py-3 px-4 text-sm font-mono tabular-nums text-right whitespace-nowrap">
+                                        @if (isset($row['cost']) && $row['cost'] !== null)
+                                            <span class="text-slate-900 font-medium">₱{{ number_format((float) $row['cost'], 2) }}</span>
+                                        @else
+                                            <span class="text-xs font-sans text-slate-400">No cost entered</span>
+                                        @endif
+                                    </td>
+                                @endif
+                                <td class="py-3 px-4 text-xs text-slate-600 max-w-[200px] truncate" title="{{ $row['notes'] }}">
+                                    {{ $row['notes'] ?: 'None' }}
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="11" class="p-8 text-center text-slate-500">
+                                <td colspan="14" class="p-8 text-center text-slate-500">
                                     No data rows were found in the uploaded spreadsheet file.
                                 </td>
                             </tr>

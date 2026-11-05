@@ -25,6 +25,11 @@ class DesktopBootstrapService
                 app(DatabaseSeeder::class)->run();
             }
 
+            // Seed default categories if categories table is empty
+            if (Schema::hasTable('categories') && \App\Models\Category::count() === 0) {
+                app(\Database\Seeders\CategorySeeder::class)->run();
+            }
+
             // Run automatic startup backup if latest backup is older than 24 hours (skip during unit tests)
             if (! app()->runningUnitTests()) {
                 $this->backupService->runStartupBackupIfDue();

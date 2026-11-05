@@ -54,3 +54,28 @@ test('activity log page is accessible to admin and forbidden to staff', function
         ->assertSee('Activity Log')
         ->assertSee('Logged Microscope');
 });
+
+test('updates to asset category and financial values are logged in activity log', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'must_change_password' => false]);
+    $cat = \App\Models\Category::create(['name' => 'Defibrillators']);
+
+    $asset = Asset::create([
+        'asset_no' => 'BBH-LOG-01',
+        'asset_name' => 'AED Unit',
+        'status' => 'In Use',
+    ]);
+
+    $this->actingAs($admin)->put("/assets/{$asset->id}", [
+        'asset_no' => 'BBH-LOG-01',
+        'asset_name' => 'AED Unit',
+        'status' => 'In Use',
+        'category_id' => $cat->id,
+        'cost' => 175000.00,
+        'useful_life_years' => 8,
+        'salvage_value' => 15000.00,
+    ])->assertRedirect();
+
+    $log = \Spatie\Activitylog\Models\Activity::where('subject_id', $asset->id)->latest('id')->first();
+    expect($log)->not->toBeNull();
+    expect($log->properties['attributes'])->toHaveKeys(['category_id', 'cost', 'useful_life_years', 'salvage_value']);
+});

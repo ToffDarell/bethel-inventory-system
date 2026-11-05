@@ -37,12 +37,19 @@ Route::middleware('auth')->group(function () {
                 return response()->json([]);
             }
             $assets = \App\Models\Asset::query()
-                ->where('asset_no', 'like', "%{$q}%")
-                ->orWhere('asset_name', 'like', "%{$q}%")
-                ->orWhere('department', 'like', "%{$q}%")
-                ->orWhere('location', 'like', "%{$q}%")
+                ->where(function ($sub) use ($q) {
+                    $sub->where('asset_no', 'like', "%{$q}%")
+                        ->orWhere('asset_name', 'like', "%{$q}%")
+                        ->orWhere('brand', 'like', "%{$q}%")
+                        ->orWhere('model', 'like', "%{$q}%")
+                        ->orWhere('serial_no', 'like', "%{$q}%")
+                        ->orWhere('department', 'like', "%{$q}%")
+                        ->orWhere('section', 'like', "%{$q}%")
+                        ->orWhere('assigned_personnel', 'like', "%{$q}%")
+                        ->orWhere('location', 'like', "%{$q}%");
+                })
                 ->limit(8)
-                ->get(['id', 'asset_no', 'asset_name', 'department', 'location', 'status']);
+                ->get(['id', 'asset_no', 'asset_name', 'brand', 'model', 'department', 'section', 'assigned_personnel', 'location', 'status', 'asset_condition']);
             return response()->json($assets);
         })->name('assets.quick-search');
 
@@ -68,7 +75,9 @@ Route::middleware('auth')->group(function () {
             return response()->json($assets);
         })->name('audit.location-assets');
 
-        Route::resource('assets', AssetController::class);
+        Route::resource('assets', AssetController::class)->withTrashed(['show', 'edit']);
+        Route::post('/assets/{asset}/restore', [AssetController::class, 'restore'])->name('assets.restore')->withTrashed();
+        Route::delete('/assets/{asset}/force-delete', [AssetController::class, 'forceDelete'])->name('assets.force-delete')->middleware('admin')->withTrashed();
 
         Route::get('/tags/print', [TagController::class, 'print'])->name('tags.print');
         Route::get('/tags/pdf', [TagController::class, 'pdf'])->name('tags.pdf');
@@ -104,6 +113,8 @@ Route::middleware('auth')->group(function () {
             Route::post('/settings/restore', [SettingController::class, 'restore'])->name('settings.restore');
             Route::post('/settings/relaunch', [SettingController::class, 'relaunch'])->name('settings.relaunch');
             Route::post('/settings/users', [SettingController::class, 'storeUser'])->name('settings.users.store');
+            Route::post('/settings/users/{user}/reset-password', [SettingController::class, 'resetUserPassword'])->name('settings.users.reset-password');
+            Route::post('/settings/depreciation', [SettingController::class, 'updateDepreciation'])->name('settings.depreciation.update');
             Route::post('/settings/categories', [CategoryController::class, 'store'])->name('settings.categories.store');
             Route::put('/settings/categories/{category}', [CategoryController::class, 'update'])->name('settings.categories.update');
             Route::delete('/settings/categories/{category}', [CategoryController::class, 'destroy'])->name('settings.categories.destroy');

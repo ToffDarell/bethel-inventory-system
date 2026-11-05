@@ -48,7 +48,7 @@
                 Date Acquired
             </td>
             <td style="width: 72%; border: 1px solid #000000; padding: 2px 6px; font-size: 8pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {{ $asset->date_acquired ? $asset->date_acquired->format('Y-m-d') : 'None' }}
+                {{ $asset->date_acquired ? $asset->date_acquired->format('Y') : 'None' }}
             </td>
         </tr>
 

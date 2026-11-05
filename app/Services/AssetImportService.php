@@ -78,12 +78,18 @@ class AssetImportService
             $assetNo = trim($assoc['asset_no'] ?? '');
             $assetName = trim($assoc['asset_name'] ?? '');
             $categoryName = $this->nullableString($assoc['category'] ?? '');
+            $brand = $this->nullableString($assoc['brand'] ?? '');
             $model = $this->nullableString($assoc['model'] ?? '');
             $serialNo = $this->nullableString($assoc['serial_no'] ?? '');
-            $dateAcquired = $this->parseDate($assoc['date_acquired'] ?? '');
+            $dateData = $this->parseDateWithYearOnly($assoc['date_acquired'] ?? '');
+            $dateAcquired = $dateData[0];
+            $acquiredYearOnly = $dateData[1];
             $department = $this->nullableString($assoc['department'] ?? '');
+            $section = $this->nullableString($assoc['section'] ?? '');
             $location = $this->nullableString($assoc['location'] ?? '');
+            $assignedPersonnel = $this->nullableString($assoc['assigned_personnel'] ?? '');
             $status = $this->normalizeStatus($assoc['status'] ?? '');
+            $conditionData = $this->normalizeCondition($assoc['asset_condition'] ?? null);
             $notes = $this->nullableString($assoc['notes'] ?? '');
 
             $cost = $this->parseMoney($assoc['cost'] ?? null);
@@ -105,7 +111,7 @@ class AssetImportService
 
             if ($assetName === '') {
                 $isValid = false;
-                $statusLabel = 'Missing Asset Name (Skipped)';
+                $statusLabel = 'Missing Asset Description (Skipped)';
                 $invalidCount++;
             } elseif ($assetNo !== '') {
                 $lowerNo = strtolower($assetNo);
@@ -131,12 +137,21 @@ class AssetImportService
                 'cost' => $cost,
                 'salvage_value' => $salvageValue,
                 'useful_life_years' => $usefulLifeYears,
+                'brand' => $brand,
                 'model' => $model,
                 'serial_no' => $serialNo,
                 'date_acquired' => $dateAcquired,
+                'acquired_year_only' => $acquiredYearOnly,
                 'department' => $department,
+                'section' => $section,
                 'location' => $location,
+                'assigned_personnel' => $assignedPersonnel,
                 'status' => $status,
+                'asset_condition' => $conditionData['value'],
+                'condition_mapped' => $conditionData['mapped'],
+                'condition_original' => $conditionData['original'],
+                'is_unknown_condition' => $conditionData['is_unknown'],
+                'condition_note' => $conditionData['note'],
                 'notes' => $notes,
                 'is_duplicate' => $isDuplicate,
                 'is_valid' => $isValid,
@@ -202,16 +217,21 @@ class AssetImportService
                 $asset = Asset::create([
                     'asset_no' => $assetNo,
                     'asset_name' => $row['asset_name'],
+                    'brand' => $row['brand'] ?? null,
+                    'model' => $row['model'] ?? null,
+                    'serial_no' => $row['serial_no'] ?? null,
                     'category_id' => $categoryId,
+                    'department' => $row['department'] ?? null,
+                    'section' => $row['section'] ?? null,
+                    'location' => $row['location'] ?? null,
+                    'assigned_personnel' => $row['assigned_personnel'] ?? null,
+                    'date_acquired' => $row['date_acquired'] ?? null,
+                    'acquired_year_only' => (bool) ($row['acquired_year_only'] ?? false),
+                    'status' => $this->normalizeStatus((string) ($row['status'] ?? 'In Use')),
+                    'asset_condition' => $row['asset_condition'] ?? null,
                     'cost' => $cost,
                     'salvage_value' => $salvageValue,
                     'useful_life_years' => $usefulLifeYears,
-                    'model' => $row['model'] ?? null,
-                    'serial_no' => $row['serial_no'] ?? null,
-                    'date_acquired' => $row['date_acquired'] ?? null,
-                    'department' => $row['department'] ?? null,
-                    'location' => $row['location'] ?? null,
-                    'status' => $this->normalizeStatus((string) ($row['status'] ?? 'In Use')),
                     'notes' => $row['notes'] ?? null,
                 ]);
 
@@ -252,20 +272,89 @@ class AssetImportService
 
         return match ($clean) {
             'asset_no', 'asset_number', 'property_no', 'tag_no' => 'asset_no',
-            'asset_name', 'name', 'item_name', 'description' => 'asset_name',
+            'asset_description', 'asset_name', 'name', 'item_name', 'description' => 'asset_name',
             'category', 'category_name', 'asset_category' => 'category',
-            'model', 'brand', 'brand_model' => 'model',
+            'brand' => 'brand',
+            'model', 'brand_model' => 'model',
             'serial_no', 'serial_number', 'serial' => 'serial_no',
-            'date_acquired', 'acquired_date', 'acquisition_date', 'date' => 'date_acquired',
+            'year_bought', 'year', 'year_acquired', 'date_acquired', 'acquired_date', 'acquisition_date', 'date' => 'date_acquired',
             'department', 'dept' => 'department',
+            'section' => 'section',
+            'assigned_personnel', 'personnel', 'assigned_to', 'assigned_staff' => 'assigned_personnel',
             'location', 'room', 'station' => 'location',
-            'status', 'condition' => 'status',
+            'asset_condition', 'condition' => 'asset_condition',
+            'status' => 'status',
             'cost', 'purchase_cost', 'acquisition_cost', 'price' => 'cost',
             'useful_life_years', 'useful_life', 'life_years', 'life' => 'useful_life_years',
             'salvage_value', 'salvage', 'scrap_value', 'residual_value' => 'salvage_value',
-            'notes', 'remarks', 'note' => 'notes',
+            'remarks', 'notes', 'note' => 'notes',
             default => $clean,
         };
+    }
+
+    public function normalizeCondition(?string $raw): array
+    {
+        if ($raw === null || trim($raw) === '') {
+            return [
+                'value' => null,
+                'mapped' => false,
+                'original' => null,
+                'is_unknown' => false,
+                'note' => null,
+            ];
+        }
+
+        $trimmed = trim($raw);
+        $lower = strtolower($trimmed);
+
+        // Exact allowed values: Brand-new, Refurbish, Damage, In Good Condition
+        foreach (Asset::CONDITIONS as $allowed) {
+            if (strcasecmp($trimmed, $allowed) === 0) {
+                $mapped = ($trimmed !== $allowed);
+
+                return [
+                    'value' => $allowed,
+                    'mapped' => $mapped,
+                    'original' => $trimmed,
+                    'is_unknown' => false,
+                    'note' => $mapped ? "will be saved as {$allowed}" : null,
+                ];
+            }
+        }
+
+        // Near-match mappings
+        $nearMatches = [
+            'brand new' => 'Brand-new',
+            'brandnew' => 'Brand-new',
+            'new' => 'Brand-new',
+            'refurbished' => 'Refurbish',
+            'refurb' => 'Refurbish',
+            'damaged' => 'Damage',
+            'broken' => 'Damage',
+            'good condition' => 'In Good Condition',
+            'good' => 'In Good Condition',
+            'in good' => 'In Good Condition',
+        ];
+
+        if (isset($nearMatches[$lower])) {
+            $mappedValue = $nearMatches[$lower];
+
+            return [
+                'value' => $mappedValue,
+                'mapped' => true,
+                'original' => $trimmed,
+                'is_unknown' => false,
+                'note' => "will be saved as {$mappedValue}",
+            ];
+        }
+
+        return [
+            'value' => null,
+            'mapped' => false,
+            'original' => $trimmed,
+            'is_unknown' => true,
+            'note' => "Unknown condition '{$trimmed}' (will be saved as Not set)",
+        ];
     }
 
     protected function nullableString(string $value): ?string
@@ -322,19 +411,32 @@ class AssetImportService
 
     protected function parseDate(string $value): ?string
     {
+        return $this->parseDateWithYearOnly($value)[0];
+    }
+
+    protected function parseDateWithYearOnly(string $value): array
+    {
         $trimmed = trim($value);
         if ($trimmed === '') {
-            return null;
+            return [null, null];
+        }
+
+        // 4-digit plain year: 1950 to 2100 (e.g. 2023 -> 2023-01-01, year-only = true)
+        if (preg_match('/^\d{4}$/', $trimmed)) {
+            $year = (int) $trimmed;
+            if ($year >= 1900 && $year <= 2100) {
+                return ["{$year}-01-01", true];
+            }
         }
 
         try {
-            if (is_numeric($trimmed) && (float) $trimmed > 1000) {
-                return Carbon::instance(ExcelDate::excelToDateTimeObject((float) $trimmed))->format('Y-m-d');
+            if (is_numeric($trimmed) && (float) $trimmed > 20000) {
+                return [Carbon::instance(ExcelDate::excelToDateTimeObject((float) $trimmed))->format('Y-m-d'), false];
             }
 
-            return Carbon::parse($trimmed)->format('Y-m-d');
+            return [Carbon::parse($trimmed)->format('Y-m-d'), false];
         } catch (Throwable) {
-            return null;
+            return [null, null];
         }
     }
 }

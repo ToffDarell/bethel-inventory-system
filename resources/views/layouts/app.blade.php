@@ -135,26 +135,26 @@
                 <div class="p-3 border-t border-slate-200 bg-white">
                     <div class="flex items-center gap-2.5 mb-2.5">
                         <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-semibold text-xs flex items-center justify-center shrink-0"
-                             title="{{ auth()->user()->name }} ({{ auth()->user()->email }})">
+                             title="{{ auth()->user()->name }} ({{ auth()->user()->username }})">
                             {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                         </div>
                         <div class="sidebar-expanded-text min-w-0 flex-1">
                             <p class="text-xs font-semibold text-slate-900 truncate">{{ auth()->user()->name }}</p>
-                            <p class="text-[11px] text-slate-600 truncate">{{ ucfirst(auth()->user()->role) }}</p>
+                            <p class="text-[11px] text-slate-600 truncate">{{ '@' . auth()->user()->username }} &bull; {{ ucfirst(auth()->user()->role) }}</p>
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit"
-                                title="Sign out"
-                                class="w-full min-h-[44px] flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors cursor-pointer">
-                            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                            </svg>
-                            <span class="sidebar-expanded-text">Sign out</span>
-                        </button>
-                    </form>
+                    <button type="button"
+                            id="signout-trigger-btn"
+                            onclick="openSignOutModal()"
+                            title="Sign out of Bethel Asset Tracker"
+                            aria-haspopup="dialog"
+                            class="w-full min-h-[44px] flex items-center justify-center gap-2 px-2 py-2 rounded-lg border border-slate-200 bg-white text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:text-slate-900 hover:border-slate-300 transition-colors cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        <span class="sidebar-expanded-text">Sign out</span>
+                    </button>
                 </div>
             @endauth
         </div>
@@ -208,9 +208,39 @@
                 <span class="text-slate-600 hidden xl:inline select-none">Preach the Word, Heal the Sick</span>
 
                 <!-- Date in Normal Font (No monospace!) -->
-                <span class="text-slate-700 font-medium select-none hidden md:inline">
+                <span id="header-current-date" class="text-slate-700 font-medium select-none hidden md:inline">
                     {{ now()->format('l, F j, Y') }}
                 </span>
+                <script>
+                    (function() {
+                        try {
+                            var el = document.getElementById('header-current-date');
+                            if (el) {
+                                var now = new Date();
+                                el.textContent = now.toLocaleDateString('en-US', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                });
+                            }
+                        } catch (e) {}
+                    })();
+                </script>
+
+                @auth
+                    <!-- Top Bar User Menu -->
+                    <div class="flex items-center gap-2 pl-3 border-l border-slate-200">
+                        <div class="w-7 h-7 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0"
+                             title="{{ auth()->user()->name }} ({{ auth()->user()->username }})">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="hidden sm:block text-left">
+                            <p class="text-xs font-semibold text-slate-900 leading-tight">{{ auth()->user()->username }}</p>
+                            <p class="text-[10px] text-slate-500 capitalize leading-tight">{{ auth()->user()->role }}</p>
+                        </div>
+                    </div>
+                @endauth
             </div>
         </header>
 
@@ -239,5 +269,105 @@
             </div>
         </main>
     </div>
+
+    @auth
+        <!-- Accessible Clinical Sign Out Modal -->
+        <div id="signout-modal"
+             class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 hidden transition-opacity"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="signout-modal-title"
+             aria-describedby="signout-modal-desc"
+             onclick="closeSignOutModal()">
+            <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-150"
+                 onclick="event.stopPropagation()">
+                <div class="p-6">
+                    <!-- Modal Header with Icon and Title -->
+                    <div class="flex items-center gap-3 mb-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center shrink-0">
+                            <svg class="w-5 h-5 text-slate-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 id="signout-modal-title" class="text-base font-bold text-slate-900 leading-tight">
+                                Confirm Sign Out
+                            </h3>
+                            <p class="text-[11px] text-slate-500 mt-0.5">End your current session</p>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <p id="signout-modal-desc" class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                        Are you sure you want to end your current session? Any unsaved edits will be lost.
+                    </p>
+
+                    <!-- User Account Card (Full Width & Aligned) -->
+                    <div class="mt-3.5 p-3 rounded-xl bg-slate-50 border border-slate-200/90 flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-full bg-slate-800 text-white font-bold text-xs flex items-center justify-center shrink-0"
+                             title="{{ auth()->user()->name }}">
+                            {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                        </div>
+                        <div class="min-w-0 flex-1 text-xs">
+                            <p class="font-semibold text-slate-900 truncate">{{ auth()->user()->name }}</p>
+                            <p class="text-slate-500 text-[11px] truncate mt-0.5">{{ '@' . auth()->user()->username }} &bull; {{ ucfirst(auth()->user()->role) }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Modal Actions Footer -->
+                    <div class="mt-5 pt-4 border-t border-slate-100 flex items-center justify-end gap-2.5">
+                        <button type="button"
+                                id="signout-cancel-btn"
+                                onclick="closeSignOutModal()"
+                                class="min-h-[38px] px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg shadow-2xs hover:bg-slate-50 hover:border-slate-400 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1 transition-colors cursor-pointer">
+                            Cancel
+                        </button>
+                        <form method="POST" action="{{ route('logout') }}" class="inline">
+                            @csrf
+                            <button type="submit"
+                                    id="signout-confirm-btn"
+                                    class="min-h-[38px] inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-1 transition-colors cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                </svg>
+                                <span>Sign Out</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function openSignOutModal() {
+                const modal = document.getElementById('signout-modal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        const cancelBtn = document.getElementById('signout-cancel-btn');
+                        if (cancelBtn) cancelBtn.focus();
+                    }, 50);
+                }
+            }
+
+            function closeSignOutModal() {
+                const modal = document.getElementById('signout-modal');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    const triggerBtn = document.getElementById('signout-trigger-btn');
+                    if (triggerBtn) triggerBtn.focus();
+                }
+            }
+
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('signout-modal');
+                    if (modal && !modal.classList.contains('hidden')) {
+                        closeSignOutModal();
+                    }
+                }
+            });
+        </script>
+    @endauth
 </body>
 </html>

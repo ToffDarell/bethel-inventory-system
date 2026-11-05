@@ -115,4 +115,16 @@ test('settings page shows 7-day warning when no backup exists, updates settings,
     $this->actingAs($staff)
         ->post('/settings/restore', ['backup_filename' => 'any.sqlite'])
         ->assertForbidden();
+
+    // Active SQLite database path is visible to admin only
+    $activeDbPath = app(\App\Services\BackupService::class)->getDatabasePath();
+    $this->actingAs($admin)
+        ->get('/settings')
+        ->assertOk()
+        ->assertSee($activeDbPath);
+
+    $this->actingAs($staff)
+        ->get('/settings')
+        ->assertOk()
+        ->assertDontSee($activeDbPath);
 });

@@ -34,3 +34,6 @@ Thumbs.db
 !/public/icon.png
 /public/Downloads/
 /design-system/
+/Downloads/
+/phase-d-*.png
+/storage/framework/*.sqlite

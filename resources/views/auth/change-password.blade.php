@@ -98,7 +98,7 @@
                         Set New Password
                     </h1>
                     <p class="text-xs text-slate-600 mt-1">
-                        Replace your temporary password to continue
+                        Replace temporary password for <span class="font-semibold text-slate-900 font-mono">{{ auth()->user()?->username }}</span> to continue
                     </p>
                 </div>
 
