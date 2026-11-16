@@ -22,7 +22,7 @@ test('seeder creates default admin requiring password change and hospital settin
 
     expect(Setting::get('hospital_name'))->toBe('Bethel Baptist Hospital, Inc.')
         ->and(Setting::get('hospital_address'))->toBe('Fortich St., Sumpong, Malaybalay City, Bukidnon 8700')
-        ->and(Setting::get('asset_no_prefix'))->toBe('BBH')
+        ->and(Setting::get('asset_no_prefix'))->toBe('BBHI')
         ->and(Setting::get('tag_width_cm'))->toBe('10')
         ->and(Setting::get('tag_height_cm'))->toBe('6');
 });

@@ -105,7 +105,7 @@
         <!-- Tab Navigation Bar -->
         @php
             $currentTab = request()->query('tab', 'hospital');
-            if (! in_array($currentTab, ['hospital', 'tag', 'backup', 'categories', 'departments', 'vendors', 'asset-templates', 'depreciation', 'users'], true)) {
+            if (! in_array($currentTab, ['hospital', 'tag', 'backup', 'display', 'categories', 'departments', 'vendors', 'asset-templates', 'depreciation', 'users'], true)) {
                 $currentTab = 'hospital';
             }
         @endphp
@@ -151,6 +151,19 @@
                     @if ($backupOverdue)
                         <span class="w-2 h-2 rounded-full bg-amber-500" title="Backup overdue"></span>
                     @endif
+                </button>
+
+                <button type="button"
+                        onclick="switchTab('display')"
+                        id="tab-btn-display"
+                        role="tab"
+                        aria-controls="panel-display"
+                        aria-selected="{{ $currentTab === 'display' ? 'true' : 'false' }}"
+                        class="tab-btn whitespace-nowrap shrink-0 min-h-[44px] px-4 py-2.5 text-sm {{ $currentTab === 'display' ? 'font-semibold border-b-2 border-primary text-primary' : 'font-medium border-b-2 border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300' }} transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4 {{ $currentTab === 'display' ? 'text-primary' : 'text-slate-400' }}" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/>
+                    </svg>
+                    <span>Display Settings</span>
                 </button>
 
                 @if (auth()->user()?->isAdmin())
@@ -666,6 +679,148 @@
                     </form>
                 </div>
             @endif
+        </div>
+
+        <!-- TAB: PERSONAL DISPLAY SETTINGS (ALL AUTHENTICATED USERS) -->
+        @php
+            $prefTextSize = auth()->user()?->effectiveTextSize() ?? 'default';
+            $prefDensity = auth()->user()?->effectiveDensity() ?? 'comfortable';
+            $prefTheme = auth()->user()?->effectiveTheme() ?? 'light';
+        @endphp
+        <div id="panel-display" role="tabpanel" class="tab-panel {{ $currentTab === 'display' ? '' : 'hidden' }} space-y-6">
+            <x-card title="Personal Display Settings" subtitle="Customize text size, table density, and theme for your own account. Changes apply only to you and do not affect printed property tags or exported reports.">
+                <form method="POST" action="{{ route('preferences.display.update') }}" id="settings-tab-display-form" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    @csrf
+                    <div class="lg:col-span-6 space-y-5">
+                        <!-- 1. Text Size -->
+                        <fieldset class="space-y-2">
+                            <legend class="block text-xs font-semibold text-slate-700">Text size</legend>
+                            <div class="grid grid-cols-3 gap-2.5">
+                                @foreach (['small' => 'Small (14px)', 'default' => 'Default (16px)', 'large' => 'Large (18px)'] as $sKey => $sLabel)
+                                    <label class="cursor-pointer">
+                                        <input type="radio"
+                                               name="text_size"
+                                               value="{{ $sKey }}"
+                                               class="sr-only display-pref-radio"
+                                               onchange="previewTabDisplayPreferences()"
+                                               {{ $prefTextSize === $sKey ? 'checked' : '' }}>
+                                        <span class="display-pref-option min-h-[42px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 text-center transition-colors">
+                                            <svg class="display-pref-check w-3.5 h-3.5 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>{{ $sLabel }}</span>
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-xs text-slate-500">Scales the base on-screen text size while keeping printed property tags and Excel/PDF exports unchanged.</p>
+                        </fieldset>
+
+                        <!-- 2. Density -->
+                        <fieldset class="space-y-2 pt-2 border-t border-slate-100">
+                            <legend class="block text-xs font-semibold text-slate-700">Table &amp; card density</legend>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                @foreach (['comfortable' => 'Comfortable (Default)', 'compact' => 'Compact'] as $dKey => $dLabel)
+                                    <label class="cursor-pointer">
+                                        <input type="radio"
+                                               name="density"
+                                               value="{{ $dKey }}"
+                                               class="sr-only display-pref-radio"
+                                               onchange="previewTabDisplayPreferences()"
+                                               {{ $prefDensity === $dKey ? 'checked' : '' }}>
+                                        <span class="display-pref-option min-h-[42px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 text-center transition-colors">
+                                            <svg class="display-pref-check w-3.5 h-3.5 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>{{ $dLabel }}</span>
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-xs text-slate-500">Compact mode reduces row height and card padding so more equipment rows fit on screen at once.</p>
+                        </fieldset>
+
+                        <!-- 3. Theme -->
+                        <fieldset class="space-y-2 pt-2 border-t border-slate-100">
+                            <legend class="block text-xs font-semibold text-slate-700">Color theme</legend>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                @foreach (['light' => 'Light', 'dark' => 'Dark'] as $tKey => $tLabel)
+                                    <label class="cursor-pointer">
+                                        <input type="radio"
+                                               name="theme"
+                                               value="{{ $tKey }}"
+                                               class="sr-only display-pref-radio"
+                                               onchange="previewTabDisplayPreferences()"
+                                               {{ $prefTheme === $tKey ? 'checked' : '' }}>
+                                        <span class="display-pref-option min-h-[42px] px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 text-xs font-semibold flex items-center justify-center gap-1.5 text-center transition-colors">
+                                            <svg class="display-pref-check w-3.5 h-3.5 shrink-0 hidden" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            <span>{{ $tLabel }}</span>
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            <p class="text-xs text-slate-500">Switches between clinical Light and high-contrast Dark mode. Property tag previews remain white like physical paper.</p>
+                        </fieldset>
+
+                        <div class="pt-4 border-t border-slate-100 flex items-center justify-start gap-3">
+                            <x-button variant="primary" type="submit">
+                                Save Display Settings
+                            </x-button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Live Preview Area -->
+                    <div class="lg:col-span-6">
+                        <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-bold text-slate-900">Live Display Preview</span>
+                                <span id="settings-tab-display-summary" class="text-xs font-medium text-slate-500">
+                                    {{ ucfirst($prefTextSize) }} text &bull; {{ ucfirst($prefDensity) }} &bull; {{ ucfirst($prefTheme) }}
+                                </span>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+                                <div class="density-card-header px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+                                    <div>
+                                        <p class="text-sm font-semibold text-slate-900">Sample Equipment Card</p>
+                                        <p class="text-xs text-slate-500">Emergency Room &bull; Triage</p>
+                                    </div>
+                                    <span class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white">
+                                        Sample Action
+                                    </span>
+                                </div>
+                                <table class="w-full text-left border-collapse text-xs">
+                                    <thead class="bg-slate-50 border-b border-slate-200 text-xs font-semibold text-slate-700">
+                                        <tr>
+                                            <th class="py-2.5 px-3.5">Asset No.</th>
+                                            <th class="py-2.5 px-3.5">Description</th>
+                                            <th class="py-2.5 px-3.5 text-right">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr class="h-[48px]">
+                                            <td class="py-2.5 px-3.5 font-mono font-semibold text-slate-900">BBHI-ER-0001</td>
+                                            <td class="py-2.5 px-3.5 text-slate-800">Patient Monitor</td>
+                                            <td class="py-2.5 px-3.5 text-right">
+                                                <x-badge status="In Use" />
+                                            </td>
+                                        </tr>
+                                        <tr class="h-[48px]">
+                                            <td class="py-2.5 px-3.5 font-mono font-semibold text-slate-900">BBHI-ER-0002</td>
+                                            <td class="py-2.5 px-3.5 text-slate-800">Defibrillator</td>
+                                            <td class="py-2.5 px-3.5 text-right">
+                                                <x-badge status="Under Repair" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </x-card>
         </div>
 
         <!-- TAB: CATEGORIES (ADMIN ONLY) -->
@@ -2617,6 +2772,27 @@
             panel.classList.toggle('hidden');
         }
 
+        function previewTabDisplayPreferences() {
+            const form = document.getElementById('settings-tab-display-form');
+            if (!form) return;
+            const textSize = form.querySelector('input[name="text_size"]:checked')?.value || 'default';
+            const density = form.querySelector('input[name="density"]:checked')?.value || 'comfortable';
+            const theme = form.querySelector('input[name="theme"]:checked')?.value || 'light';
+
+            if (typeof applyDisplayPrefsToDocument === 'function') {
+                applyDisplayPrefsToDocument({
+                    text_size: textSize,
+                    density: density,
+                    theme: theme,
+                });
+            }
+            const summary = document.getElementById('settings-tab-display-summary');
+            if (summary) {
+                const cap = s => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+                summary.textContent = cap(textSize) + ' text \u2022 ' + cap(density) + ' \u2022 ' + cap(theme);
+            }
+        }
+
         // Initialize tab based on URL param or hash if provided
         document.addEventListener('DOMContentLoaded', function () {
             initTagLivePreview();
@@ -2624,7 +2800,7 @@
             const tabParam = urlParams.get('tab');
             const hash = window.location.hash.replace('#', '');
             const initialTab = tabParam || hash;
-            if (initialTab && ['hospital', 'tag', 'backup', 'categories', 'departments', 'vendors', 'asset-templates', 'depreciation', 'users'].includes(initialTab)) {
+            if (initialTab && ['hospital', 'tag', 'backup', 'display', 'categories', 'departments', 'vendors', 'asset-templates', 'depreciation', 'users'].includes(initialTab)) {
                 switchTab(initialTab);
             }
         });

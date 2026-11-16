@@ -8,7 +8,7 @@
 
 <div {{ $attributes->merge(['class' => 'bg-white border border-slate-200 rounded-xl shadow-2xs overflow-hidden transition-shadow']) }}>
     @if ($title || $header)
-        <div class="px-5 py-4 sm:px-6 border-b border-slate-100 flex items-center justify-between gap-4">
+        <div class="density-card-header px-5 py-4 sm:px-6 border-b border-slate-100 flex items-center justify-between gap-4">
             @if ($header)
                 {{ $header }}
             @else
@@ -22,7 +22,7 @@
         </div>
     @endif
 
-    <div class="{{ $padding }}">
+    <div class="density-card-body {{ $padding }}">
         {{ $slot }}
     </div>
 

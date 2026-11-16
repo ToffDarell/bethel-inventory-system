@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DisplayPreferenceController;
 use App\Http\Controllers\ImportExportController;
 use App\Http\Controllers\ScanController;
 use App\Http\Controllers\SectionController;
@@ -46,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::middleware('force.password')->group(function () {
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::post('/dashboard/dismiss-checklist', [DashboardController::class, 'dismissChecklist'])->name('dashboard.dismiss-checklist');
+        Route::post('/preferences/display', [DisplayPreferenceController::class, 'update'])->name('preferences.display.update');
 
         Route::get('/api/assets/quick-search', function (\Illuminate\Http\Request $request) {
             $q = trim((string) $request->query('q', ''));

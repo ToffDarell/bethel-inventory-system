@@ -9,12 +9,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'username', 'email', 'password', 'role', 'must_change_password', 'recovery_code_hash', 'recovery_code_generated_at'])]
+#[Fillable(['name', 'username', 'email', 'password', 'role', 'must_change_password', 'recovery_code_hash', 'recovery_code_generated_at', 'text_size', 'density', 'theme'])]
 #[Hidden(['password', 'remember_token', 'recovery_code_hash'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public const TEXT_SIZES = ['small', 'default', 'large'];
+
+    public const DENSITIES = ['comfortable', 'compact'];
+
+    public const THEMES = ['light', 'dark'];
 
     protected function casts(): array
     {
@@ -24,6 +30,42 @@ class User extends Authenticatable
             'password' => 'hashed',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    public function getTextSizeAttribute(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, self::TEXT_SIZES, true) ? $normalized : 'default';
+    }
+
+    public function getDensityAttribute(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, self::DENSITIES, true) ? $normalized : 'comfortable';
+    }
+
+    public function getThemeAttribute(?string $value): string
+    {
+        $normalized = strtolower(trim((string) $value));
+
+        return in_array($normalized, self::THEMES, true) ? $normalized : 'light';
+    }
+
+    public function effectiveTextSize(): string
+    {
+        return $this->text_size;
+    }
+
+    public function effectiveDensity(): string
+    {
+        return $this->density;
+    }
+
+    public function effectiveTheme(): string
+    {
+        return $this->theme;
     }
 
     public function isAdmin(): bool
