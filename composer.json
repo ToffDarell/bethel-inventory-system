@@ -30,6 +30,9 @@
         "pestphp/pest-plugin-laravel": "^5.0"
     },
     "autoload": {
+        "files": [
+            "app/Support/Polyfills/XmlWriterPolyfill.php"
+        ],
         "psr-4": {
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",

@@ -34,10 +34,6 @@
         @endif
     </div>
 
-    @if ($help)
-        <p id="{{ $name }}-help" class="text-xs text-slate-500 leading-relaxed">{{ $help }}</p>
-    @endif
-
     @if ($type === 'textarea')
         <textarea
             id="{{ $name }}"
@@ -76,6 +72,10 @@
             @if($help) aria-describedby="{{ $name }}-help" @endif
             class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border {{ $borderClasses }} {{ $fontClasses }} rounded-lg shadow-2xs placeholder:text-slate-400 focus:outline-none focus:ring-1 transition-colors"
         />
+    @endif
+
+    @if ($help)
+        <p id="{{ $name }}-help" class="text-xs text-slate-500 leading-relaxed">{{ $help }}</p>
     @endif
 
     @error($name)

@@ -14,7 +14,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        if (! class_exists('XMLWriter')) {
+            require_once app_path('Support/Polyfills/XmlWriterPolyfill.php');
+        }
     }
 
     /**
@@ -23,5 +25,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Event::listen(MigrationsStarted::class, BackupDatabaseBeforeMigration::class);
+
+        if (config('database.default') === 'sqlite') {
+            try {
+                \Illuminate\Support\Facades\DB::statement('PRAGMA busy_timeout = 5000;');
+                \Illuminate\Support\Facades\DB::statement('PRAGMA cache_size = -64000;');
+                \Illuminate\Support\Facades\DB::statement('PRAGMA temp_store = MEMORY;');
+            } catch (\Throwable) {
+                // Ignore in testing or unsupported drivers
+            }
+        }
     }
 }

@@ -145,9 +145,14 @@
 
                     <!-- Password Field -->
                     <div class="auth-anim-field auth-delay-4">
-                        <label for="password" class="block text-xs font-semibold text-slate-700 mb-1.5">
-                            Password <span class="text-brand-red" aria-hidden="true">*</span>
-                        </label>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <label for="password" class="block text-xs font-semibold text-slate-700">
+                                Password <span class="text-brand-red" aria-hidden="true">*</span>
+                            </label>
+                            <a href="{{ route('password.forgot') }}" class="text-xs font-semibold text-primary hover:underline">
+                                Forgot password?
+                            </a>
+                        </div>
                         <div class="relative">
                             <input id="password"
                                    name="password"

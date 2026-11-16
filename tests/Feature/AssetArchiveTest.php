@@ -52,10 +52,59 @@ test('active assets appear on default tab and soft-deleted assets appear on arch
         ->assertDontSee('BBH-000101');
 });
 
-test('staff and admin can restore an archived asset to active inventory', function () {
+test('staff cannot archive an active asset and receives 403', function () {
+    $asset = Asset::create([
+        'asset_no' => 'BBH-000200',
+        'asset_name' => 'Portable Ventilator',
+        'status' => 'In Use',
+    ]);
+
+    $response = $this->actingAs($this->staff)
+        ->delete(route('assets.destroy', $asset));
+
+    $response->assertForbidden();
+    expect(Asset::find($asset->id))->not->toBeNull();
+});
+
+test('admin can archive an active asset', function () {
     $asset = Asset::create([
         'asset_no' => 'BBH-000201',
-        'asset_name' => 'Defibrillator Unit',
+        'asset_name' => 'Portable Ventilator Admin',
+        'status' => 'In Use',
+    ]);
+
+    $response = $this->actingAs($this->admin)
+        ->delete(route('assets.destroy', $asset));
+
+    $response->assertRedirect(route('assets.index'));
+    $response->assertSessionHas('success');
+    expect(Asset::find($asset->id))->toBeNull();
+    expect(Asset::onlyTrashed()->find($asset->id))->not->toBeNull();
+
+    $latestActivity = Activity::latest('id')->first();
+    expect($latestActivity->description)->toContain('moved to archive');
+});
+
+test('staff cannot restore an archived asset and receives 403', function () {
+    $asset = Asset::create([
+        'asset_no' => 'BBH-000202',
+        'asset_name' => 'Defibrillator Unit Staff',
+        'status' => 'Stored',
+    ]);
+    $asset->delete();
+
+    $response = $this->actingAs($this->staff)
+        ->post(route('assets.restore', $asset));
+
+    $response->assertForbidden();
+    expect(Asset::find($asset->id))->toBeNull();
+    expect(Asset::onlyTrashed()->find($asset->id))->not->toBeNull();
+});
+
+test('admin can restore an archived asset to active inventory', function () {
+    $asset = Asset::create([
+        'asset_no' => 'BBH-000203',
+        'asset_name' => 'Defibrillator Unit Admin',
         'status' => 'Stored',
     ]);
     $asset->delete();
@@ -63,7 +112,7 @@ test('staff and admin can restore an archived asset to active inventory', functi
     expect(Asset::find($asset->id))->toBeNull();
     expect(Asset::onlyTrashed()->find($asset->id))->not->toBeNull();
 
-    $response = $this->actingAs($this->staff)
+    $response = $this->actingAs($this->admin)
         ->post(route('assets.restore', $asset));
 
     $response->assertRedirect(route('assets.index', ['tab' => 'archived']));
@@ -76,6 +125,46 @@ test('staff and admin can restore an archived asset to active inventory', functi
     // Confirm activity was logged
     $latestActivity = Activity::latest('id')->first();
     expect($latestActivity->description)->toContain('restored from archive');
+});
+
+test('archive and restore buttons are hidden from staff on list and detail pages', function () {
+    $activeAsset = Asset::create([
+        'asset_no' => 'BBH-000204',
+        'asset_name' => 'Staff View Test Active',
+        'status' => 'In Use',
+    ]);
+
+    $archivedAsset = Asset::create([
+        'asset_no' => 'BBH-000205',
+        'asset_name' => 'Staff View Test Archived',
+        'status' => 'Stored',
+    ]);
+    $archivedAsset->delete();
+
+    // Active inventory list: staff does not see archive modal trigger
+    $this->actingAs($this->staff)
+        ->get(route('assets.index'))
+        ->assertOk()
+        ->assertDontSee("openArchiveModal({$activeAsset->id}");
+
+    // Archived inventory list: staff does not see restore modal trigger
+    $this->actingAs($this->staff)
+        ->get(route('assets.index', ['tab' => 'archived']))
+        ->assertOk()
+        ->assertDontSee("openRestoreModal({$archivedAsset->id}");
+
+    // Detail page: staff does not see Archive button on active asset
+    $this->actingAs($this->staff)
+        ->get(route('assets.show', $activeAsset))
+        ->assertOk()
+        ->assertDontSee('openArchiveModal()');
+
+    // Detail page: staff does not see Restore button on archived asset
+    $this->actingAs($this->staff)
+        ->get(route('assets.show', $archivedAsset))
+        ->assertOk()
+        ->assertDontSee('Restore to Active')
+        ->assertDontSee('Restore Asset');
 });
 
 test('staff cannot permanently delete an archived asset', function () {

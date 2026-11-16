@@ -203,7 +203,7 @@ test('assets list shows current value column for admin and hides it from staff',
     $staffResp->assertDontSee('1,200,000');
 });
 
-test('dashboard shows total asset value and category breakdown for admin, counts only for staff', function () {
+test('dashboard shows category breakdown counts and contains no peso amounts for admin and for staff', function () {
     Asset::create([
         'asset_no' => 'BBH-DSH-01',
         'asset_name' => 'Patient Monitor Pro',
@@ -217,16 +217,27 @@ test('dashboard shows total asset value and category breakdown for admin, counts
 
     $adminResp = $this->actingAs($this->admin)->get('/dashboard');
     $adminResp->assertOk();
-    $adminResp->assertSee('Total Asset Value');
+    $adminResp->assertDontSee('Total Asset Value');
+    $adminResp->assertDontSee('View Depreciation Report');
+    $adminResp->assertDontSee('₱');
+    $adminResp->assertDontSee('100,000');
     $adminResp->assertSee('By Category');
     $adminResp->assertSee('Ultrasound Systems');
 
     $staffResp = $this->actingAs($this->staff)->get('/dashboard');
     $staffResp->assertOk();
     $staffResp->assertDontSee('Total Asset Value');
+    $staffResp->assertDontSee('View Depreciation Report');
     $staffResp->assertSee('By Category');
     $staffResp->assertSee('Ultrasound Systems');
     $staffResp->assertDontSee('₱');
+    $staffResp->assertDontSee('100,000');
+
+    // Verify Depreciation Report stays reachable from Reports page for admin
+    $reportsResp = $this->actingAs($this->admin)->get('/reports');
+    $reportsResp->assertOk();
+    $reportsResp->assertSee(route('reports.depreciation'), false);
+    $reportsResp->assertSee('View Depreciation Report');
 });
 
 test('admin can view depreciation report with totals and category summary', function () {
@@ -263,7 +274,7 @@ test('admin can view depreciation report with totals and category summary', func
     $response->assertSee('Straight-line');
     $response->assertSee('Counted from January 1 of the Year Bought');
     $response->assertSee('Useful Life');
-    $response->assertSee('Salvage');
+    $response->assertSee('Disposal Value');
     $response->assertSee('Asset Values');
     $response->assertSee('Hemodialysis Machine');
     $response->assertSee('Ancient Hospital Stretcher');
@@ -276,13 +287,19 @@ test('admin can view depreciation report with totals and category summary', func
 });
 
 test('depreciation report and export respect optional as_of date filter with a past date', function () {
-    // Machine acquired 2020-01-01 with cost 120,000, 10-year useful life, 0 salvage.
+    // Machine acquired 2020-01-01 with cost 120,000, 10-year category useful life, 0 disposal.
     // Yearly straight-line rate = 12,000 (1,000/month).
+    $zeroCategory = Category::create([
+        'name' => 'Historical Ventilators ' . uniqid(),
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 0.0,
+    ]);
+
     $asset = Asset::create([
         'asset_no' => 'BBH-HIST-01',
         'asset_name' => 'Historical Ventilator',
         'status' => 'In Use',
-        'category_id' => $this->category->id,
+        'category_id' => $zeroCategory->id,
         'cost' => 120000.00,
         'salvage_value' => null, // Missing salvage -> should show '-'
         'useful_life_years' => 10,
@@ -305,8 +322,8 @@ test('depreciation report and export respect optional as_of date filter with a p
     expect($csvContent)->toContain('120000');
     expect($csvContent)->toContain('24000');
     expect($csvContent)->toContain('96000');
-    // Verify Salvage column exists and shows '-' for missing salvage
-    expect($csvContent)->toContain('Salvage');
+    // Verify Disposal column exists and shows '-' for missing disposal
+    expect($csvContent)->toContain('Disposal');
     expect($csvContent)->toContain('"-"');
 });
 
@@ -330,7 +347,7 @@ test('assets template export includes category and financial headings', function
     expect($headings)->toContain('category');
     expect($headings)->toContain('cost');
     expect($headings)->toContain('useful_life_years');
-    expect($headings)->toContain('salvage_value');
+    expect($headings)->toContain('disposal_value');
 });
 
 test('assets export includes financial columns and totals row for admin only', function () {
@@ -366,6 +383,7 @@ test('assets export includes financial columns and totals row for admin only', f
     $staffHeadings = $staffExport->headings();
     expect($staffHeadings)->toContain('category');
     expect($staffHeadings)->not->toContain('cost');
+    expect($staffHeadings)->not->toContain('disposal_value');
     expect($staffHeadings)->not->toContain('salvage_value');
     expect($staffHeadings)->not->toContain('accumulated_depreciation');
     expect($staffHeadings)->not->toContain('current_value');

@@ -5,8 +5,8 @@
         <!-- Header with Back & Actions -->
         <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-200">
             <div>
-                <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 hover:underline mb-1.5 transition-colors">
-                    <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                <a href="{{ route('reports.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-lg shadow-2xs hover:border-slate-400 hover:text-slate-900 transition-all duration-150 mb-2.5">
+                    <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
                     </svg>
                     <span>Back to Reports &amp; Import</span>
@@ -91,6 +91,39 @@
             </div>
         @endif
 
+        @if (!empty($new_department_count) && $new_department_count > 0)
+            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-950 flex items-start gap-3 text-xs leading-relaxed">
+                <svg class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <div>
+                    <p class="font-semibold text-amber-900">New Departments Detected ({{ $new_department_count }})</p>
+                    <p class="text-amber-800 mt-0.5">
+                        Unrecognized departments will be created and flagged as needs review in Settings &gt; Departments so you can confirm their property tag code later.
+                    </p>
+                </div>
+            </div>
+        @endif
+
+        @if (!empty($unknown_vendor_count) && $unknown_vendor_count > 0)
+            <div class="p-4 rounded-xl border border-amber-200 bg-amber-50 text-amber-950 text-xs leading-relaxed">
+                <p class="font-semibold text-amber-900">Unknown vendor, will be created ({{ $unknown_vendor_count }} {{ Str::plural('row', $unknown_vendor_count) }})</p>
+                <p class="text-amber-800 mt-0.5 mb-2">
+                    These vendor names did not match any active vendor. If you commit now, they will be created with name only. Review near matches below before committing if you intended an existing vendor:
+                </p>
+                <ul class="list-disc list-inside space-y-0.5 text-amber-900">
+                    @foreach ($unknown_vendor_rows ?? [] as $uv)
+                        <li>
+                            Row {{ $uv['row_number'] }}: <strong class="font-semibold">{{ $uv['name'] }}</strong>
+                            @if (!empty($uv['near_matches']))
+                                <span class="text-amber-800">(Near {{ Str::plural('match', count($uv['near_matches'])) }}: {{ implode(', ', $uv['near_matches']) }})</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Metric Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Ready to Import -->
@@ -145,6 +178,7 @@
                             <th class="py-3 px-4">Asset No.</th>
                             <th class="py-3 px-4">Asset Description</th>
                             <th class="py-3 px-4">Brand &amp; Model</th>
+                            <th class="py-3 px-4">Vendor</th>
                             <th class="py-3 px-4">Serial Number</th>
                             <th class="py-3 px-4">Department &amp; Section</th>
                             <th class="py-3 px-4">Location &amp; Personnel</th>
@@ -202,7 +236,12 @@
                                     @endif
                                 </td>
                                 <td class="py-3 px-4 font-medium text-slate-900">
-                                    {{ $row['asset_name'] ?: 'Not specified' }}
+                                    <div>{{ $row['asset_name'] ?: 'Not specified' }}</div>
+                                    @if (!empty($row['asset_template']))
+                                        <div class="text-[11px] text-slate-500 mt-0.5">
+                                            Template: {{ $row['asset_template'] }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="py-3 px-4 text-sm text-slate-700">
                                     @if ($row['brand'] || $row['model'])
@@ -214,12 +253,34 @@
                                         <span class="text-xs text-slate-400">Not specified</span>
                                     @endif
                                 </td>
+                                <td class="py-3 px-4 text-sm">
+                                    @if (!empty($row['vendor']))
+                                        <div class="font-medium text-slate-900">{{ $row['vendor'] }}</div>
+                                        @if (!empty($row['is_unknown_vendor']))
+                                            <span class="inline-flex items-center px-1.5 py-0.5 mt-0.5 rounded bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-semibold">
+                                                Unknown vendor, will be created
+                                            </span>
+                                            @if (!empty($row['vendor_near_matches']))
+                                                <div class="text-[10px] text-amber-800 mt-0.5">
+                                                    Near match: {{ implode(', ', $row['vendor_near_matches']) }}
+                                                </div>
+                                            @endif
+                                        @endif
+                                    @else
+                                        <span class="text-xs text-slate-400">Not specified</span>
+                                    @endif
+                                </td>
                                 <td class="py-3 px-4 font-mono text-xs text-slate-600">
                                     {{ $row['serial_no'] ?: 'None' }}
                                 </td>
                                 <td class="py-3 px-4 text-sm">
                                     @if ($row['department'] || $row['section'])
-                                        <div class="font-medium text-slate-900">{{ $row['department'] ?: 'Unassigned' }}</div>
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <span class="font-medium text-slate-900">{{ $row['department'] ?: 'Unassigned' }}</span>
+                                            @if (!empty($row['is_new_department']))
+                                                <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-100 text-amber-800 font-semibold">Needs review</span>
+                                            @endif
+                                        </div>
                                         @if ($row['section'])
                                             <div class="text-xs text-slate-500 mt-0.5">{{ $row['section'] }}</div>
                                         @endif
@@ -290,7 +351,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="14" class="p-8 text-center text-slate-500">
+                                <td colspan="15" class="p-8 text-center text-slate-500">
                                     No data rows were found in the uploaded spreadsheet file.
                                 </td>
                             </tr>

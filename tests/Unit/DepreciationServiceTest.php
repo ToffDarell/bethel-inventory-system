@@ -8,6 +8,13 @@ use Carbon\Carbon;
 
 uses(Tests\TestCase::class, Illuminate\Foundation\Testing\RefreshDatabase::class);
 
+beforeEach(function () {
+    Setting::set('depreciation_start_convention', 'january_1');
+    Setting::set('depreciation_min_cost', '0');
+    Setting::set('depreciation_default_salvage_percent', '0');
+    Setting::set('depreciation_use_category_rules', '0');
+});
+
 // Case 1: Normal straight-line (120000 cost, 10000 salvage, 10 yrs life, 3 yrs elapsed = 87000.00)
 test('Case 1: calculates normal straight-line depreciation correctly using elapsed months', function () {
     $service = new DepreciationService();
@@ -120,17 +127,28 @@ test('Case 8: rounds peso decimal cents accurately and tolerates floating point 
 
 // Additional Case 9: Asset Eloquent model instance
 test('Case 9: calculates depreciation for Asset model instance', function () {
+    \App\Models\Setting::set('depreciation_use_category_rules', '1');
     $service = new DepreciationService();
+    $category = \App\Models\Category::create([
+        'name' => 'Medical Equipment ' . uniqid(),
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 10.0,
+    ]);
     $asset = new Asset([
+        'category_id' => $category->id,
         'cost' => 120000,
         'salvage_value' => 10000,
         'useful_life_years' => 10,
-        'date_acquired' => '2023-01-01',
+        'date_acquired' => '2020-01-01',
     ]);
+    $asset->setRelation('category', $category);
 
-    $result = $service->calculateForAsset($asset, Carbon::parse('2026-01-01'));
+    // 46 months elapsed gives disposal 12,000, accumulated 41,400, current value 78,600
+    $result = $service->calculateForAsset($asset, Carbon::parse('2023-11-01'));
     expect($result->isCalculable())->toBeTrue();
-    expect($result->getCurrentValue())->toEqualWithDelta(87000.00, 0.01);
+    expect($result->getDisposalValue())->toEqualWithDelta(12000.00, 0.01);
+    expect($result->getAccumulatedDepreciation())->toEqualWithDelta(41400.00, 0.01);
+    expect($result->getCurrentValue())->toEqualWithDelta(78600.00, 0.01);
 });
 
 // Client Field Specs: Year-only acquisition date stored as January 1 of that year
@@ -209,13 +227,21 @@ test('default policy behavior is unchanged with zero settings configured', funct
     expect($service->getDefaultSalvagePercent())->toBe(0.0);
     expect($service->getConventionLabel())->toContain('January 1');
 
+    $catDefault = \App\Models\Category::create([
+        'name' => 'Default Policy ' . uniqid(),
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 0.0,
+    ]);
+
     $asset = new Asset([
+        'category_id' => $catDefault->id,
         'cost' => 120000,
         'salvage_value' => 0,
         'useful_life_years' => 10,
         'date_acquired' => '2020-01-01',
         'acquired_year_only' => true,
     ]);
+    $asset->setRelation('category', $catDefault);
 
     $result = $service->calculateForAsset($asset, Carbon::parse('2022-01-01'));
     expect($result->isCalculable())->toBeTrue();
@@ -296,14 +322,22 @@ test('exact acquisition dates are never shifted by the start convention', functi
     // Setting is july_1
     Setting::set('depreciation_start_convention', 'july_1');
 
+    $catExact = \App\Models\Category::create([
+        'name' => 'Exact Date Cat ' . uniqid(),
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 0.0,
+    ]);
+
     // Asset imported with full date January 1 (acquired_year_only is false)
     $assetExact = new Asset([
+        'category_id' => $catExact->id,
         'cost' => 120000,
         'salvage_value' => 0,
         'useful_life_years' => 10,
         'date_acquired' => '2023-01-01',
         'acquired_year_only' => false,
     ]);
+    $assetExact->setRelation('category', $catExact);
 
     $result = $service->calculateForAsset($assetExact, $asOf);
     // Because it is NOT year-only, it retains 2023-01-01 (12 months), NOT shifted to July 1 (6 months)
@@ -333,13 +367,21 @@ test('minimum cost rule excludes assets below threshold with Below minimum cost 
     expect($resultLow->getCost())->toEqualWithDelta(5000.00, 0.01);
 
     // Asset with cost 15,000 (above 10,000 threshold)
+    $catHigh = \App\Models\Category::create([
+        'name' => 'High Cost Cat ' . uniqid(),
+        'default_useful_life_years' => 5,
+        'default_salvage_percent' => 0.0,
+    ]);
+
     $highCostAsset = new Asset([
+        'category_id' => $catHigh->id,
         'cost' => 15000,
         'salvage_value' => 0,
         'useful_life_years' => 5,
         'date_acquired' => '2022-01-01',
         'acquired_year_only' => true,
     ]);
+    $highCostAsset->setRelation('category', $catHigh);
 
     $resultHigh = $service->calculateForAsset($highCostAsset);
     expect($resultHigh->isCalculable())->toBeTrue();

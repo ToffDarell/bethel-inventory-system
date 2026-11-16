@@ -18,6 +18,10 @@ class AuthController extends Controller
 {
     public function showLogin(): View|RedirectResponse
     {
+        if (Schema::hasTable('users') && User::count() === 0) {
+            return redirect()->route('setup');
+        }
+
         if (Auth::check()) {
             return redirect()->route('dashboard');
         }
@@ -38,6 +42,10 @@ class AuthController extends Controller
 
     public function login(Request $request): RedirectResponse
     {
+        if (Schema::hasTable('users') && User::count() === 0) {
+            return redirect()->route('setup');
+        }
+
         $this->ensureInitialAdminSeeded();
 
         $login = trim((string) ($request->input('username') ?? $request->input('email') ?? ''));
@@ -160,18 +168,92 @@ class AuthController extends Controller
             ->with('success', 'Your password has been updated successfully.');
     }
 
+    public function showForgotPassword(): View|RedirectResponse
+    {
+        if (Schema::hasTable('users') && User::count() === 0) {
+            return redirect()->route('setup');
+        }
+
+        return view('auth.forgot-password');
+    }
+
+    public function resetWithRecoveryCode(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'username' => ['required', 'string', 'max:60'],
+            'recovery_code' => ['required', 'string', 'max:64'],
+            'password' => ['required', 'string', 'min:10', 'confirmed'],
+        ], [
+            'username.required' => 'Please enter your administrator username.',
+            'recovery_code.required' => 'Please enter your admin recovery code.',
+            'password.required' => 'Please enter a new password.',
+            'password.min' => 'Password must be at least 10 characters long.',
+            'password.confirmed' => 'The password confirmation does not match.',
+        ]);
+
+        $username = strtolower(trim($validated['username']));
+        $throttleKey = 'recovery|'.$username.'|'.$request->ip();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors([
+                    'recovery_code' => "Too many recovery attempts. Please try again in {$seconds} seconds.",
+                ]);
+        }
+
+        $user = User::whereRaw('LOWER(username) = ?', [$username])->first();
+        $normalizedCode = User::normalizeRecoveryCode($validated['recovery_code']);
+
+        if (! $user || ! $user->isAdmin() || empty($user->recovery_code_hash) || ! Hash::check($normalizedCode, $user->recovery_code_hash)) {
+            RateLimiter::hit($throttleKey, 120);
+
+            return back()
+                ->withInput($request->only('username'))
+                ->withErrors([
+                    'recovery_code' => 'The username or recovery code is invalid.',
+                ]);
+        }
+
+        RateLimiter::clear($throttleKey);
+
+        // One-time use: rotate immediately to a new recovery code and show it once after sign-in,
+        // or invalidate the consumed code (clear hash) and let dashboard checklist remind admin to regenerate.
+        $user->update([
+            'password' => $validated['password'],
+            'must_change_password' => false,
+            'recovery_code_hash' => null,
+            'recovery_code_generated_at' => null,
+        ]);
+
+        activity()
+            ->causedBy($user)
+            ->performedOn($user)
+            ->log("Administrator password reset using recovery code for {$user->username}");
+
+        return redirect()
+            ->route('login')
+            ->with('success', 'Password reset complete. Sign in with your new password and generate a new recovery code in Settings.');
+    }
+
+    protected static bool $initialSeededChecked = false;
+
     protected function ensureInitialAdminSeeded(): void
     {
-        if (app()->runningUnitTests()) {
+        if (static::$initialSeededChecked || app()->runningUnitTests()) {
             return;
         }
+
+        static::$initialSeededChecked = true;
 
         try {
             if (Schema::hasTable('users')) {
                 if (! Schema::hasColumn('users', 'username')) {
                     Artisan::call('migrate', ['--force' => true]);
                 }
-                if (User::count() === 0) {
+                if (config('app.env') === 'local' && User::count() === 0) {
                     app(DatabaseSeeder::class)->run();
                 }
             }

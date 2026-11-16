@@ -17,22 +17,53 @@
             </x-slot:actions>
         </x-page-header>
 
-        <!-- Quick Filter / Search Bar (Client-Side) -->
+        <!-- Filter Chips & Search Bar -->
         <x-card padding="p-4">
-            <div class="flex flex-wrap items-center justify-between gap-4">
-                <div class="relative flex-1 min-w-[260px] max-w-md">
-                    <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-                    </svg>
-                    <input type="text"
-                           id="activity-search"
-                           placeholder="Filter by user, action, or asset number..."
-                           oninput="filterActivities(this.value)"
-                           class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+            <div class="space-y-3.5">
+                <!-- Filter Chips -->
+                <div class="flex flex-wrap items-center gap-2">
+                    @php
+                        $chipFilters = [
+                            'all' => 'All',
+                            'archive' => 'Archived and restored',
+                            'location' => 'Location moves',
+                            'depreciation' => 'Depreciation policy changes',
+                            'backup' => 'Backups and restores',
+                            'login' => 'Logins',
+                        ];
+                    @endphp
+                    @foreach ($chipFilters as $filterKey => $filterTitle)
+                        @php
+                            $isActive = ($currentFilter ?? 'all') === $filterKey;
+                        @endphp
+                        <a href="{{ route('settings.activity-log', array_filter(['filter' => $filterKey !== 'all' ? $filterKey : null, 'search' => request('search')])) }}"
+                           class="min-h-[36px] inline-flex items-center px-3.5 py-1.5 rounded-full text-xs transition-colors cursor-pointer {{ $isActive ? 'bg-slate-900 text-white font-semibold shadow-2xs' : 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50 hover:text-slate-900 font-medium' }}">
+                            <span>{{ $filterTitle }}</span>
+                        </a>
+                    @endforeach
                 </div>
 
-                <div class="flex items-center gap-2 text-xs text-slate-500">
-                    <span>Showing {{ $activities->firstItem() ?? 0 }} to {{ $activities->lastItem() ?? 0 }} of {{ $activities->total() }} audit events</span>
+                <!-- Search Input & Results Summary -->
+                <div class="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-slate-100">
+                    <form method="GET" action="{{ route('settings.activity-log') }}" class="relative flex-1 min-w-[280px] max-w-md">
+                        @if (!empty($currentFilter) && $currentFilter !== 'all')
+                            <input type="hidden" name="filter" value="{{ $currentFilter }}">
+                        @endif
+                        <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                        </svg>
+                        <input type="text"
+                               name="search"
+                               id="activity-search"
+                               value="{{ $search ?? '' }}"
+                               placeholder="Filter by user, action, or asset number..."
+                               oninput="filterActivities(this.value)"
+                               class="w-full min-h-[44px] pl-10 pr-4 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors">
+                    </form>
+
+                    <div class="flex items-center gap-2 text-xs text-slate-500 tabular-nums">
+                        <span>Showing {{ $activities->firstItem() ?? 0 }} to {{ $activities->lastItem() ?? 0 }} of {{ $activities->total() }} audit events</span>
+                    </div>
                 </div>
             </div>
         </x-card>
@@ -46,7 +77,7 @@
                         <th class="py-3 px-4">User</th>
                         <th class="py-3 px-4">Activity Description</th>
                         <th class="py-3 px-4">Asset Reference</th>
-                        <th class="py-3 px-4">Audit Details</th>
+                        <th class="py-3 px-4">Audit Details &amp; Changes</th>
                     </tr>
                 </x-slot:header>
 
@@ -55,6 +86,7 @@
                         $subject = $activity->subject;
                         $attributes = $activity->properties['attributes'] ?? [];
                         $isAsset = $subject && isset($subject->asset_no);
+                        $changes = \App\Support\ActivityChangeFormatter::format($activity, auth()->user()?->isAdmin() ?? false);
                     @endphp
                     <tr class="activity-row hover:bg-slate-50 transition-colors">
                         <td class="py-3 px-4 whitespace-nowrap text-xs text-slate-700">
@@ -108,37 +140,24 @@
                             @endif
                         </td>
 
-                        <td class="py-3 px-4 text-xs font-mono text-slate-600">
-                            @php
-                                $allowedKeys = ['asset_no', 'asset_name', 'brand', 'section', 'assigned_personnel', 'asset_condition', 'department', 'location', 'status'];
-                                if (auth()->user()?->isAdmin()) {
-                                    $allowedKeys[] = 'cost';
-                                    $allowedKeys[] = 'salvage_value';
-                                }
-                            @endphp
-                            @if (! empty($attributes))
-                                <div class="space-y-0.5">
-                                    @foreach (collect($attributes)->only($allowedKeys)->filter() as $k => $v)
-                                        <span class="inline-block bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] mr-1 mb-1">
-                                            <strong>{{ $k }}:</strong> {{ $v }}
+                        <td class="py-3 px-4 text-xs font-sans text-slate-700">
+                            @if (!empty($changes))
+                                <div class="flex flex-wrap gap-1.5 items-center">
+                                    @foreach ($changes as $change)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs bg-slate-100 text-slate-800 border border-slate-200 shadow-2xs font-sans">
+                                            <strong class="text-slate-700 font-semibold">{{ $change['label'] }}:</strong>
+                                            @if (!empty($change['old']))
+                                                <span class="text-slate-600">{{ $change['old'] }}</span>
+                                                <span class="text-slate-400 font-medium px-0.5">to</span>
+                                                <span class="font-semibold text-slate-900">{{ $change['new'] }}</span>
+                                            @else
+                                                <span class="font-semibold text-slate-900">{{ $change['new'] }}</span>
+                                            @endif
                                         </span>
                                     @endforeach
                                 </div>
-                            @elseif ($activity->properties && $activity->properties->count() > 0)
-                                <div class="space-y-0.5">
-                                    @foreach ($activity->properties as $k => $v)
-                                        @if (! auth()->user()?->isAdmin() && in_array($k, ['cost', 'salvage_value', 'current_value'], true))
-                                            @continue
-                                        @endif
-                                        @if (is_scalar($v))
-                                            <span class="inline-block bg-slate-100 text-slate-800 px-1.5 py-0.5 rounded border border-slate-200 text-[11px] mr-1 mb-1">
-                                                <strong>{{ $k }}:</strong> {{ $v }}
-                                            </span>
-                                        @endif
-                                    @endforeach
-                                </div>
                             @else
-                                <span class="text-slate-400 text-xs">None</span>
+                                <span class="text-slate-400 text-xs font-sans">No attribute diff</span>
                             @endif
                         </td>
                     </tr>

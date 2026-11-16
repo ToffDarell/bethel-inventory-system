@@ -3,22 +3,13 @@
 @section('content')
     @php
         $totalCount = max(0, (int) ($totalAssets ?? 0));
-        $underRepairItems = \App\Models\Asset::where('status', 'Under Repair')->take(3)->get();
-        $underRepairCount = (int) ($statusCounts['Under Repair'] ?? $underRepairItems->count());
-        $unassignedLocationItems = \App\Models\Asset::query()
-            ->where(function ($q) {
-                $q->whereNull('location')->orWhere('location', '');
-            })
-            ->take(3)
-            ->get();
-        $unassignedLocationCount = \App\Models\Asset::query()
-            ->where(function ($q) {
-                $q->whereNull('location')->orWhere('location', '');
-            })
-            ->count();
-        $damagedCount = \App\Models\Asset::where('asset_condition', 'Damage')->count();
-        $backupOverdue = app(\App\Services\BackupService::class)->isBackupOverdue(7);
-        $hasAttentionItems = $underRepairCount > 0 || $backupOverdue || $unassignedLocationCount > 0 || $damagedCount > 0;
+        $hasAttentionItems = ($underRepairCount ?? 0) > 0
+            || ($damagedCount ?? 0) > 0
+            || ($unassignedLocationCount ?? 0) > 0
+            || (($reprintNeededCount ?? 0) > 0)
+            || (($noCategoryCount ?? 0) > 0)
+            || ($backupOverdue ?? false)
+            || (($belowMinCostCount ?? 0) > 0 && ($isAdmin ?? false));
     @endphp
 
     <!-- Page Header with Quick Actions -->
@@ -50,6 +41,64 @@
         </x-slot:actions>
     </x-page-header>
 
+    @if (session('admin_recovery_code_once'))
+        <div class="mb-4 p-4 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 shadow-2xs" role="region" aria-label="One-time administrator recovery code">
+            <div class="flex flex-wrap items-start justify-between gap-4">
+                <div class="space-y-1">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-600 shrink-0"></span>
+                        <h2 class="text-sm font-bold text-amber-950">Save your Administrator Recovery Code now</h2>
+                    </div>
+                    <p class="text-xs text-amber-900">
+                        This code is shown only once. If you forget your password, you can reset it offline using this code.
+                    </p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <code id="once-recovery-code" class="px-3 py-1.5 rounded-lg bg-white border border-amber-300 font-mono text-sm font-bold tracking-wider text-slate-900 select-all">{{ session('admin_recovery_code_once') }}</code>
+                    <button type="button"
+                            onclick="navigator.clipboard?.writeText('{{ session('admin_recovery_code_once') }}'); this.textContent='Copied';"
+                            class="px-3 py-1.5 rounded-lg bg-amber-900 hover:bg-amber-950 text-white text-xs font-semibold cursor-pointer">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    @if (($isAdmin ?? false) && ! ($checklistDismissed ?? false) && ! empty($firstRunChecklist))
+        <section class="mb-4 p-4 rounded-xl bg-white border border-slate-200 shadow-2xs" aria-label="Initial Setup Checklist">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2.5">
+                    <h2 class="text-sm font-bold text-slate-900">Initial Setup Checklist</h2>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200 tabular-nums">
+                        {{ $checklistCompleted }} of {{ count($firstRunChecklist) }} completed
+                    </span>
+                </div>
+                <form method="POST" action="{{ route('dashboard.dismiss-checklist') }}">
+                    @csrf
+                    <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-slate-800 underline cursor-pointer">
+                        Dismiss checklist
+                    </button>
+                </form>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                @foreach ($firstRunChecklist as $step)
+                    <a href="{{ $step['url'] }}"
+                       class="flex items-center gap-2.5 px-3 py-2 rounded-lg border text-xs font-medium transition-colors {{ $step['done'] ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300 hover:bg-slate-100/70' }}">
+                        @if ($step['done'])
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" stroke-width="2.25" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                            </svg>
+                        @else
+                            <span class="w-4 h-4 rounded-full border-2 border-slate-300 shrink-0"></span>
+                        @endif
+                        <span class="{{ $step['done'] ? 'line-through text-emerald-800/80' : '' }}">{{ $step['label'] }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <!-- Needs Attention Compact Clinical Strip -->
     @if ($hasAttentionItems)
         <div class="p-4 rounded-xl bg-status-warning-bg border border-status-warning-border text-status-warning-text flex flex-wrap items-center justify-between gap-3 shadow-2xs" role="region" aria-label="Items needing attention">
@@ -60,47 +109,80 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                @foreach ($underRepairItems as $item)
-                    <a href="{{ route('assets.show', $item) }}"
-                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
-                       title="{{ $item->asset_name }} ({{ $item->location ?: 'No location' }})">
-                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
-                        <span>{{ $item->asset_no }}: {{ Str::limit($item->asset_name, 18) }} &bull; Under Repair</span>
-                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
-                    </a>
-                @endforeach
-                @if ($underRepairCount > $underRepairItems->count())
+                {{-- 1. Under Repair Link --}}
+                @if (($underRepairCount ?? 0) > 0)
                     <a href="{{ route('assets.index', ['status' => 'Under Repair']) }}"
-                       class="text-xs font-semibold text-status-warning-text hover:underline px-1">
-                        +{{ $underRepairCount - $underRepairItems->count() }} more under repair &rarr;
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
+                       title="View {{ $underRepairCount }} {{ \Illuminate\Support\Str::plural('asset', $underRepairCount) }} under repair in assets list">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
+                        <span>{{ $underRepairCount }} {{ \Illuminate\Support\Str::plural('asset', $underRepairCount) }} under repair</span>
+                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
                     </a>
                 @endif
 
-                @foreach ($unassignedLocationItems as $item)
-                    <a href="{{ route('assets.edit', $item) }}"
-                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
-                       title="{{ $item->asset_name }}">
-                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
-                        <span>{{ $item->asset_no }}: Missing Location</span>
-                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
-                    </a>
-                @endforeach
-
-                @if ($damagedCount > 0)
+                {{-- 2. Damage Condition Link --}}
+                @if (($damagedCount ?? 0) > 0)
                     <a href="{{ route('assets.index', ['condition' => 'Damage']) }}"
-                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-50 shadow-2xs transition-colors">
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-rose-200 text-xs font-semibold text-rose-700 hover:bg-rose-50 shadow-2xs transition-colors"
+                       title="View {{ $damagedCount }} {{ \Illuminate\Support\Str::plural('asset', $damagedCount) }} in Damage condition in assets list">
                         <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-                        <span>{{ $damagedCount }} {{ Str::plural('asset', $damagedCount) }} in Damage condition</span>
+                        <span>{{ $damagedCount }} {{ \Illuminate\Support\Str::plural('asset', $damagedCount) }} in Damage condition</span>
                         <span class="text-rose-500 font-mono text-[11px]">&rarr;</span>
                     </a>
                 @endif
 
-                @if ($backupOverdue)
-                    <a href="{{ route('settings.index', ['tab' => 'backup']) }}"
-                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors">
+                {{-- 3. No Location Link --}}
+                @if (($unassignedLocationCount ?? 0) > 0)
+                    <a href="{{ route('assets.index', ['location' => 'unassigned']) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
+                       title="View {{ $unassignedLocationCount }} {{ \Illuminate\Support\Str::plural('asset', $unassignedLocationCount) }} without recorded location in assets list">
                         <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
-                        <span>Database Backup Overdue (&gt;7 days)</span>
+                        <span>{{ $unassignedLocationCount }} {{ \Illuminate\Support\Str::plural('asset', $unassignedLocationCount) }} without location</span>
                         <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endif
+
+                {{-- Tags Need Reprinting Link --}}
+                @if (($reprintNeededCount ?? 0) > 0)
+                    <a href="{{ route('assets.index', ['needs_reprint' => 1]) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-sky-300 text-xs font-semibold text-primary hover:bg-sky-50 shadow-2xs transition-colors"
+                       title="View {{ $reprintNeededCount }} {{ \Illuminate\Support\Str::plural('tag', $reprintNeededCount) }} needing reprinting">
+                        <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                        <span>{{ $reprintNeededCount }} {{ \Illuminate\Support\Str::plural('tag', $reprintNeededCount) }} {{ (int) $reprintNeededCount === 1 ? 'needs' : 'need' }} reprinting</span>
+                        <span class="text-primary font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endif
+
+                {{-- 4. Database Backup Overdue Link --}}
+                @if ($backupOverdue ?? false)
+                    <a href="{{ route('settings.index', ['tab' => 'backup']) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-status-warning-border text-xs font-semibold text-status-warning-text hover:bg-status-warning-bg/60 shadow-2xs transition-colors"
+                       title="Review and create database backups">
+                        <span class="w-1.5 h-1.5 rounded-full bg-status-warning-dot"></span>
+                        <span>Database backup overdue (&gt;7 days)</span>
+                        <span class="text-status-warning-dot font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endif
+
+                {{-- 5. Below Minimum Cost Link (Admin only) --}}
+                @if (($isAdmin ?? false) && ($belowMinCostCount ?? 0) > 0)
+                    <a href="{{ route('assets.index', ['below_min_cost' => 1]) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-900 hover:bg-amber-100/70 shadow-2xs transition-colors"
+                       title="View {{ $belowMinCostCount }} {{ \Illuminate\Support\Str::plural('asset', $belowMinCostCount) }} below minimum depreciation threshold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span>{{ $belowMinCostCount }} {{ \Illuminate\Support\Str::plural('asset', $belowMinCostCount) }} below minimum cost</span>
+                        <span class="text-amber-700 font-mono text-[11px]">&rarr;</span>
+                    </a>
+                @endif
+
+                {{-- 6. Assets without a category Link --}}
+                @if (($noCategoryCount ?? 0) > 0)
+                    <a href="{{ route('assets.index', ['category' => 'none']) }}"
+                       class="min-h-[32px] inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-white border border-amber-300 text-xs font-semibold text-amber-900 hover:bg-amber-100/70 shadow-2xs transition-colors"
+                       title="View {{ $noCategoryCount }} {{ \Illuminate\Support\Str::plural('asset', $noCategoryCount) }} without a category">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                        <span>{{ $noCategoryCount }} {{ \Illuminate\Support\Str::plural('asset', $noCategoryCount) }} without a category</span>
+                        <span class="text-amber-700 font-mono text-[11px]">&rarr;</span>
                     </a>
                 @endif
             </div>
@@ -110,25 +192,6 @@
             <div class="flex items-center gap-2.5 text-xs">
                 <span class="w-2 h-2 rounded-full bg-status-success-dot shrink-0"></span>
                 <span><strong class="font-semibold text-status-success-text">All records current:</strong> No assets under repair, all locations assigned, database backup verified.</span>
-            </div>
-        </div>
-    @endif
-
-    @if ($isAdmin)
-        <!-- Total Asset Value Banner (Admin Only) -->
-        <div class="p-5 rounded-xl bg-slate-900 text-white border border-slate-800 shadow-sm flex flex-wrap items-center justify-between gap-4">
-            <div>
-                <span class="text-xs uppercase font-semibold tracking-wider text-slate-400 block">Total Asset Value</span>
-                <div class="text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight mt-1 text-white">
-                    ₱{{ number_format($totalAssetValue, 2) }}
-                </div>
-                <span class="text-xs text-slate-400 mt-0.5 block">Current estimated worth of all active hospital equipment</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('reports.depreciation') }}" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 transition-colors">
-                    <span>View Depreciation Report</span>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </a>
             </div>
         </div>
     @endif
@@ -389,7 +452,7 @@
                 <div class="flex items-center justify-between w-full">
                     <div>
                         <h3 class="text-base font-semibold text-slate-900">By Category</h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Equipment count and value by category</p>
+                        <p class="text-xs text-slate-500 mt-0.5">Equipment count in each category</p>
                     </div>
                     <a href="{{ route('assets.index') }}" class="text-xs font-medium text-slate-600 hover:text-primary hover:underline">
                         Filter &rarr;
@@ -403,9 +466,6 @@
                        class="py-2.5 px-2 flex items-center justify-between hover:bg-slate-50 transition-colors group rounded-md">
                         <div>
                             <span class="text-xs font-semibold text-slate-800 group-hover:text-primary block">{{ $catItem['name'] }}</span>
-                            @if ($isAdmin && $catItem['value'] > 0)
-                                <span class="text-[11px] font-mono text-slate-500">₱{{ number_format($catItem['value'], 2) }}</span>
-                            @endif
                         </div>
                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700">
                             {{ $catItem['count'] }}

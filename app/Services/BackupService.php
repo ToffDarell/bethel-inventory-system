@@ -130,6 +130,7 @@ class BackupService
 
         File::copy($sourceDb, $destination);
         touch($destination, time());
+        Setting::set('last_backup_timestamp', (string) time());
 
         $this->pruneOldBackups(30);
 

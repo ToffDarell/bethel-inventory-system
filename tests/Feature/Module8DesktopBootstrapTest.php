@@ -5,6 +5,7 @@ use App\Models\User;
 use App\Services\DesktopBootstrapService;
 
 test('desktop bootstrap seeds default admin and settings when database is empty and configures update-safe nativephp settings', function () {
+    config(['app.env' => 'local']);
     expect(User::count())->toBe(0);
 
     app(DesktopBootstrapService::class)->boot();

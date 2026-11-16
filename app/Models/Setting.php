@@ -18,19 +18,47 @@ class Setting extends Model
         'value',
     ];
 
+    /** @var array<string, mixed>|null */
+    protected static ?array $runtimeCache = null;
+
+    protected static ?bool $hasSettingsTable = null;
+
+    public static function loadAll(): array
+    {
+        if (static::$runtimeCache !== null) {
+            return static::$runtimeCache;
+        }
+
+        if (static::$hasSettingsTable === null) {
+            static::$hasSettingsTable = Schema::hasTable('settings');
+        }
+
+        if (! static::$hasSettingsTable) {
+            static::$runtimeCache = [];
+
+            return static::$runtimeCache;
+        }
+
+        static::$runtimeCache = static::query()->pluck('value', 'key')->all();
+
+        return static::$runtimeCache;
+    }
+
+    public static function clearRuntimeCache(): void
+    {
+        static::$runtimeCache = null;
+        static::$hasSettingsTable = null;
+    }
+
     public static function get(string $key, mixed $default = null): mixed
     {
-        if (! Schema::hasTable('settings')) {
+        $all = static::loadAll();
+
+        if (! array_key_exists($key, $all) || $all[$key] === null || $all[$key] === '') {
             return $default;
         }
 
-        $record = static::query()->find($key);
-
-        if ($record === null || $record->value === null || $record->value === '') {
-            return $default;
-        }
-
-        return $record->value;
+        return $all[$key];
     }
 
     public static function set(string $key, mixed $value): void
@@ -39,6 +67,19 @@ class Setting extends Model
             ['key' => $key],
             ['value' => $value !== null ? (string) $value : null]
         );
+
+        if (static::$runtimeCache !== null) {
+            static::$runtimeCache[$key] = $value !== null ? (string) $value : null;
+        }
+    }
+
+    public static function forget(string $key): void
+    {
+        static::query()->where('key', $key)->delete();
+
+        if (static::$runtimeCache !== null) {
+            unset(static::$runtimeCache[$key]);
+        }
     }
 
     public static function defaultBackupFolder(): string

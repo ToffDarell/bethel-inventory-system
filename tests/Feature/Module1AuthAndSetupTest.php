@@ -6,6 +6,10 @@ use App\Models\User;
 use Database\Seeders\DatabaseSeeder;
 use Illuminate\Support\Facades\Hash;
 
+beforeEach(function () {
+    config(['app.env' => 'local']);
+});
+
 test('seeder creates default admin requiring password change and hospital settings', function () {
     $this->seed(DatabaseSeeder::class);
 

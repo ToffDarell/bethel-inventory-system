@@ -97,6 +97,8 @@ class DepreciationService
             ? $asOfDate->copy()
             : ($asOfDate ? Carbon::parse($asOfDate) : Carbon::now());
 
+        $endDate = $acquired->copy()->addMonths($totalMonths);
+
         // Future acquisition date: no depreciation yet
         if ($acquired->greaterThan($asOf)) {
             return new DepreciationResult(
@@ -111,6 +113,8 @@ class DepreciationService
                 accumulatedDepreciation: 0.00,
                 currentValue: $costFloat,
                 usagePercentage: 0.0,
+                startDate: $acquired,
+                endDate: $endDate,
             );
         }
 
@@ -141,22 +145,171 @@ class DepreciationService
             accumulatedDepreciation: $accumulated,
             currentValue: $currentValue,
             usagePercentage: $usagePercentage,
+            startDate: $acquired,
+            endDate: $endDate,
         );
     }
 
     /**
      * Calculate depreciation for an Asset model instance.
+     * Useful life is derived strictly from the asset's category.
+     * Disposal value is calculated as cost x category disposal percent (fallback: global policy percent, then 0).
+     * Per-asset salvage and useful life columns are ignored.
      */
     public function calculateForAsset(Asset $asset, mixed $asOfDate = null): DepreciationResult
     {
+        if ($asset->cost === null || $asset->cost === '') {
+            return new DepreciationResult(
+                calculable: false,
+                missingReason: 'Select a category and enter a cost to calculate',
+                cost: null,
+                usefulLifeYears: $asset->category?->default_useful_life_years ? (int) $asset->category->default_useful_life_years : null,
+            );
+        }
+
+        $costFloat = round((float) $asset->cost, 2);
+
+        $minCost = $this->getMinCost();
+        if ($minCost > 0 && $costFloat < $minCost) {
+            return new DepreciationResult(
+                calculable: false,
+                missingReason: 'Below minimum cost',
+                cost: $costFloat,
+                usefulLifeYears: $asset->category?->default_useful_life_years ? (int) $asset->category->default_useful_life_years : null,
+            );
+        }
+
+        $isCategoryMode = $this->isCategoryRuleMode();
+
+        $category = $asset->relationLoaded('category')
+            ? $asset->category
+            : ($asset->category_id ? $asset->category()->first() : null);
+
+        if ($isCategoryMode) {
+            if (! $category) {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Select a category and enter a cost to calculate',
+                    cost: $costFloat,
+                );
+            }
+
+            if (strtolower(trim((string) $category->name)) === 'uncategorized') {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Select a category to calculate',
+                    cost: $costFloat,
+                );
+            }
+
+            $usefulLife = $category->default_useful_life_years ? (int) $category->default_useful_life_years : null;
+            if (! $usefulLife || $usefulLife <= 0) {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Useful life not set',
+                    cost: $costFloat,
+                    usefulLifeYears: null,
+                );
+            }
+
+            if ($category->default_salvage_percent === null) {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Category rule incomplete',
+                    cost: $costFloat,
+                    usefulLifeYears: $usefulLife,
+                );
+            }
+
+            $disposalPercent = (float) $category->default_salvage_percent;
+            $disposalValue = round($costFloat * ($disposalPercent / 100), 2);
+        } else {
+            // Legacy per-asset rule: use asset salvage_value and useful_life_years if set
+            if ($asset->useful_life_years !== null && (int) $asset->useful_life_years > 0) {
+                $usefulLife = (int) $asset->useful_life_years;
+                $disposalValue = $asset->salvage_value !== null
+                    ? (float) $asset->salvage_value
+                    : round($costFloat * ($this->resolveDefaultDisposalPercent($category) / 100), 2);
+            } elseif ($category && strtolower(trim((string) $category->name)) !== 'uncategorized' && $category->default_useful_life_years && (int) $category->default_useful_life_years > 0) {
+                // Asset created on new form (no useful_life_years stored, but category assigned)
+                if ($category->default_salvage_percent === null && $asset->salvage_value === null) {
+                    return new DepreciationResult(
+                        calculable: false,
+                        missingReason: 'Category rule incomplete',
+                        cost: $costFloat,
+                        usefulLifeYears: (int) $category->default_useful_life_years,
+                    );
+                }
+                $usefulLife = (int) $category->default_useful_life_years;
+                $disposalValue = $asset->salvage_value !== null
+                    ? (float) $asset->salvage_value
+                    : round($costFloat * ($this->resolveDefaultDisposalPercent($category) / 100), 2);
+            } elseif ($category && (strtolower(trim((string) $category->name)) === 'other' || empty($category->default_useful_life_years))) {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Useful life not set',
+                    cost: $costFloat,
+                    usefulLifeYears: null,
+                );
+            } elseif (strtolower(trim((string) $category?->name)) === 'uncategorized') {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Select a category to calculate',
+                    cost: $costFloat,
+                    usefulLifeYears: null,
+                );
+            } elseif (! $category) {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Select a category and enter a cost to calculate',
+                    cost: $costFloat,
+                    usefulLifeYears: null,
+                );
+            } else {
+                return new DepreciationResult(
+                    calculable: false,
+                    missingReason: 'Select a category and enter a cost to calculate',
+                    cost: $costFloat,
+                    usefulLifeYears: null,
+                );
+            }
+        }
+
         return $this->calculate(
-            $asset->cost,
-            $asset->salvage_value,
-            $asset->useful_life_years,
+            $costFloat,
+            $disposalValue,
+            $usefulLife,
             $asset->date_acquired,
             $asOfDate,
             $asset->acquired_year_only
         );
+    }
+
+    /**
+     * Determine whether category-driven depreciation rules are enabled.
+     * Default ON for fresh installs (0 assets).
+     * Default OFF for databases with existing assets until approved by administrator.
+     */
+    public function isCategoryRuleMode(): bool
+    {
+        $val = Setting::get('depreciation_use_category_rules', null);
+        if ($val !== null) {
+            return (bool) $val;
+        }
+
+        $default = true;
+        try {
+            if (\Illuminate\Support\Facades\Schema::hasTable('assets') && Asset::count() > 0) {
+                $default = false;
+            }
+            if (\Illuminate\Support\Facades\Schema::hasTable('settings')) {
+                Setting::set('depreciation_use_category_rules', $default ? '1' : '0');
+            }
+        } catch (\Throwable) {
+            return $default;
+        }
+
+        return $default;
     }
 
     /**
@@ -172,9 +325,14 @@ class DepreciationService
         return (float) Setting::get('depreciation_min_cost', 0);
     }
 
-    public function getDefaultSalvagePercent(): float
+    public function getDefaultDisposalPercent(): float
     {
         return (float) Setting::get('depreciation_default_salvage_percent', 0);
+    }
+
+    public function getDefaultSalvagePercent(): float
+    {
+        return $this->getDefaultDisposalPercent();
     }
 
     public function getCustomMonth(): int
@@ -204,18 +362,23 @@ class DepreciationService
         };
     }
 
-    public function resolveDefaultSalvagePercent(?Category $category): float
+    public function resolveDefaultDisposalPercent(?Category $category): float
     {
         if ($category && $category->default_salvage_percent !== null && (float) $category->default_salvage_percent > 0) {
             return (float) $category->default_salvage_percent;
         }
 
-        $global = $this->getDefaultSalvagePercent();
+        $global = $this->getDefaultDisposalPercent();
         if ($global > 0) {
             return $global;
         }
 
         return 0.0;
+    }
+
+    public function resolveDefaultSalvagePercent(?Category $category): float
+    {
+        return $this->resolveDefaultDisposalPercent($category);
     }
 
     /**

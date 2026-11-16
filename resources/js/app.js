@@ -1,60 +1,8 @@
 // Bethel Hospital Asset Tracker - Global UI Enhancements
 
 document.addEventListener('DOMContentLoaded', () => {
-    initSidebarToggle();
     initGlobalSearch();
 });
-
-/**
- * Collapsible Sidebar (248px expanded <-> 72px collapsed)
- * Remembers state in localStorage across page reloads.
- */
-function initSidebarToggle() {
-    const sidebar = document.getElementById('app-sidebar');
-    const toggleBtn = document.getElementById('sidebar-toggle-btn');
-    const collapseText = document.querySelectorAll('.sidebar-expanded-text');
-    const compactIcons = document.querySelectorAll('.sidebar-compact-icon');
-    
-    if (!sidebar || !toggleBtn) return;
-
-    function applyState(collapsed) {
-        const navLinks = sidebar.querySelectorAll('nav a[data-nav-label]');
-        if (collapsed) {
-            sidebar.classList.remove('w-[248px]');
-            sidebar.classList.add('w-[72px]');
-            sidebar.setAttribute('data-collapsed', 'true');
-            collapseText.forEach(el => el.classList.add('hidden'));
-            compactIcons.forEach(el => el.classList.remove('hidden'));
-            toggleBtn.setAttribute('title', 'Expand sidebar');
-            toggleBtn.setAttribute('aria-label', 'Expand sidebar');
-            navLinks.forEach(link => {
-                link.setAttribute('title', link.getAttribute('data-nav-label') || '');
-            });
-        } else {
-            sidebar.classList.remove('w-[72px]');
-            sidebar.classList.add('w-[248px]');
-            sidebar.setAttribute('data-collapsed', 'false');
-            collapseText.forEach(el => el.classList.remove('hidden'));
-            compactIcons.forEach(el => el.classList.add('hidden'));
-            toggleBtn.setAttribute('title', 'Collapse sidebar');
-            toggleBtn.setAttribute('aria-label', 'Collapse sidebar');
-            navLinks.forEach(link => {
-                link.removeAttribute('title');
-            });
-        }
-    }
-
-    // Read stored preference
-    const isStoredCollapsed = localStorage.getItem('bethel_sidebar_collapsed') === 'true';
-    applyState(isStoredCollapsed);
-
-    toggleBtn.addEventListener('click', () => {
-        const currentlyCollapsed = sidebar.getAttribute('data-collapsed') === 'true';
-        const nextState = !currentlyCollapsed;
-        localStorage.setItem('bethel_sidebar_collapsed', String(nextState));
-        applyState(nextState);
-    });
-}
 
 /**
  * Global Asset Search with Ctrl+K / / shortcut and instant live dropdown

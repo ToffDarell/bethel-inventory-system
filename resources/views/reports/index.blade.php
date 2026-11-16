@@ -5,7 +5,18 @@
         <x-page-header
             title="Reports & Excel Import / Export"
             subtitle="View equipment values, depreciation loss, and download or upload Excel files"
-        />
+        >
+            @if ($isAdmin)
+                <x-slot:actions>
+                    <x-button variant="primary" :href="route('reports.depreciation')">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span>View Depreciation Report</span>
+                    </x-button>
+                </x-slot:actions>
+            @endif
+        </x-page-header>
 
         @if ($errors->any())
             <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-950" role="alert" tabindex="-1">
@@ -17,6 +28,85 @@
                 </ul>
             </div>
         @endif
+
+        <!-- Printable Inventory Reports Hub (5 Reports matching Bethel Baptist Hospital standard sheets) -->
+        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h2 class="text-sm font-bold text-slate-900">Printable Inventory Reports</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Open a grouped hospital report sheet with live filters and a Print Report button
+                    </p>
+                </div>
+                <span class="text-xs font-semibold text-slate-500 tabular-nums">
+                    {{ number_format($totalAssets) }} total {{ \Illuminate\Support\Str::plural('asset', $totalAssets) }}
+                </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-{{ $isAdmin ? '5' : '4' }} gap-3">
+                <!-- 1. Asset by Category -->
+                <a href="{{ route('reports.print', ['type' => 'category']) }}"
+                   class="group p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-primary hover:shadow-xs transition-all flex flex-col justify-between gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-primary">Asset by Category</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659"/>
+                        </svg>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-snug">Grouped by category and department sub-totals</p>
+                </a>
+
+                <!-- 2. Asset by Date Acquired -->
+                <a href="{{ route('reports.print', ['type' => 'date_acquired']) }}"
+                   class="group p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-primary hover:shadow-xs transition-all flex flex-col justify-between gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-primary">Asset by Date Acquired</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-snug">Grouped by acquisition year and department</p>
+                </a>
+
+                <!-- 3. Asset by Department -->
+                <a href="{{ route('reports.print', ['type' => 'department']) }}"
+                   class="group p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-primary hover:shadow-xs transition-all flex flex-col justify-between gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-primary">Asset by Department</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                        </svg>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-snug">Room and department inventory sign-off sheets</p>
+                </a>
+
+                <!-- 4. Asset by Vendor -->
+                <a href="{{ route('reports.print', ['type' => 'vendor']) }}"
+                   class="group p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-primary hover:shadow-xs transition-all flex flex-col justify-between gap-2">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-slate-900 group-hover:text-primary">Asset by Vendor</span>
+                        <svg class="w-4 h-4 text-slate-400 group-hover:text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12"/>
+                        </svg>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-snug">Grouped by supplier or donation source</p>
+                </a>
+
+                <!-- 5. Depreciation Summary (Admin only) -->
+                @if ($isAdmin)
+                    <a href="{{ route('reports.depreciation') }}"
+                       class="group p-3.5 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-primary hover:shadow-xs transition-all flex flex-col justify-between gap-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-xs font-bold text-slate-900 group-hover:text-primary">Depreciation Summary</span>
+                            <svg class="w-4 h-4 text-emerald-600 group-hover:text-primary shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-snug">Valuation, accumulated loss, and net book value</p>
+                    </a>
+                @endif
+            </div>
+        </div>
 
         @if ($isAdmin)
             <!-- Role-Aware Report Navigation Tabs -->
@@ -208,7 +298,7 @@
                                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                 </svg>
-                                <span>Export to CSV (.csv)</span>
+                                <span>Raw data (CSV)</span>
                             </button>
                             <button type="submit"
                                     name="format"
@@ -218,6 +308,16 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                                 </svg>
                                 <span>Export to Excel (.xlsx)</span>
+                            </button>
+                            <button type="submit"
+                                    formaction="{{ route('reports.print') }}"
+                                    name="type"
+                                    value="department"
+                                    class="flex-1 min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 font-medium text-sm shadow-2xs transition-colors cursor-pointer">
+                                <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659"/>
+                                </svg>
+                                <span>Print Report</span>
                             </button>
                         </div>
                     </form>

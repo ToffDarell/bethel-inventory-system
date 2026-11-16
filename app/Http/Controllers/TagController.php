@@ -24,6 +24,8 @@ class TagController extends Controller
                 ->withErrors(['ids' => 'Please select at least one asset to print property tags.']);
         }
 
+        Asset::whereIn('id', $assets->pluck('id'))->where('needs_tag_reprint', true)->update(['needs_tag_reprint' => false]);
+
         return view('tags.print', $this->buildViewData($assets, false));
     }
 
@@ -36,6 +38,8 @@ class TagController extends Controller
                 ->route('assets.index')
                 ->withErrors(['ids' => 'Please select at least one asset to download PDF tags.']);
         }
+
+        Asset::whereIn('id', $assets->pluck('id'))->where('needs_tag_reprint', true)->update(['needs_tag_reprint' => false]);
 
         $pdf = Pdf::loadView('tags.pdf', $this->buildViewData($assets, true))
             ->setPaper('a4', 'portrait');

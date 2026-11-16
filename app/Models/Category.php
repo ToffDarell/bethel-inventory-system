@@ -14,6 +14,7 @@ class Category extends Model
         'name',
         'default_useful_life_years',
         'default_salvage_percent',
+        'disposal_reviewed',
     ];
 
     protected function casts(): array
@@ -21,6 +22,7 @@ class Category extends Model
         return [
             'default_useful_life_years' => 'integer',
             'default_salvage_percent' => 'decimal:2',
+            'disposal_reviewed' => 'boolean',
         ];
     }
 

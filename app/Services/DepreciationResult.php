@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use Carbon\CarbonInterface;
+
 class DepreciationResult
 {
     public function __construct(
@@ -16,6 +18,8 @@ class DepreciationResult
         protected ?float $accumulatedDepreciation = null,
         protected ?float $currentValue = null,
         protected float $usagePercentage = 0.0,
+        protected ?CarbonInterface $startDate = null,
+        protected ?CarbonInterface $endDate = null,
     ) {}
 
     public function isCalculable(): bool
@@ -38,9 +42,29 @@ class DepreciationResult
         return $this->salvageValue;
     }
 
+    public function getDisposalValue(): ?float
+    {
+        return $this->salvageValue;
+    }
+
     public function getUsefulLifeYears(): ?int
     {
         return $this->usefulLifeYears;
+    }
+
+    public function getTotalMonths(): int
+    {
+        return ($this->usefulLifeYears ?? 0) * 12;
+    }
+
+    public function getStartDate(): ?CarbonInterface
+    {
+        return $this->startDate;
+    }
+
+    public function getEndDate(): ?CarbonInterface
+    {
+        return $this->endDate;
     }
 
     public function getYearlyDepreciation(): ?float

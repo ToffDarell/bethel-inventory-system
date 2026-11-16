@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="max-w-2xl">
+    <div class="max-w-2xl mx-auto">
         <x-page-header
             title="Move Asset"
             :subtitle="'Update the room or department of ' . $asset->asset_name . ' (' . $asset->asset_no . ') and log the transfer'"
@@ -20,8 +20,9 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('assets.move.store', $asset) }}" class="space-y-6">
+        <form id="move-asset-form" method="POST" action="{{ route('assets.move.store', $asset) }}" class="space-y-6">
             @csrf
+            <input type="hidden" name="department_number_action" id="department_number_action" value="">
 
             <x-card title="Transfer Details" subtitle="Record where this equipment is being stationed">
                 <div class="space-y-5">
@@ -61,20 +62,45 @@
                     />
 
                     <div>
-                        <x-form-field
-                            label="Department"
-                            name="department"
-                            list="move-department-options"
-                            :value="$asset->department"
-                            placeholder="Nursing Station 3, ER, ICU, Pharmacy"
-                            help="Update the responsible hospital unit if the asset changed departments"
-                        />
-                        <datalist id="move-department-options">
-                            @foreach ($departments ?? [] as $dept)
-                                <option value="{{ $dept }}"></option>
+                        <label for="move_department_id" class="block text-xs font-semibold text-slate-700 mb-1.5">
+                            Department
+                        </label>
+                        <select id="move_department_id"
+                                name="department_id"
+                                class="w-full min-h-[44px] px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-lg shadow-2xs focus:outline-none focus:border-slate-900 transition-colors">
+                            <option value="">-- Select Department --</option>
+                            @foreach ($departments ?? [] as $d)
+                                @php
+                                    $dId = is_object($d) ? $d->id : null;
+                                    $dName = is_object($d) ? $d->name : $d;
+                                    $dCode = is_object($d) ? $d->code : '';
+                                    $selected = (isset($asset) && $asset->department_id == $dId)
+                                        || (isset($asset) && !empty($asset->department) && $asset->department === $dName);
+                                @endphp
+                                <option value="{{ $dId }}" {{ $selected ? 'selected' : '' }}>
+                                    {{ $dName }} ({{ $dCode }})
+                                </option>
                             @endforeach
-                        </datalist>
+                        </select>
+                        <p class="text-xs text-slate-500 mt-1">If the department is changed, the asset number will automatically renumber and prompt tag reprint.</p>
                     </div>
+
+                    @if (!app(\App\Services\AssetNumberService::class)->matchesPattern($asset->asset_no, $asset->departmentRelation) && auth()->user()?->isAdmin())
+                        <div class="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-2">
+                            <div class="font-semibold text-slate-800">Legacy / Paper Tag Number Detected</div>
+                            <p class="text-slate-600">This asset currently uses a legacy paper tag number (<strong class="font-mono">{{ $asset->asset_no }}</strong>). If moving to a different department:</p>
+                            <div class="flex items-center gap-4 pt-1">
+                                <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                                    <input type="radio" name="paper_tag_number_action" value="keep" checked class="text-primary focus:ring-primary">
+                                    Keep current number (default)
+                                </label>
+                                <label class="inline-flex items-center gap-2 cursor-pointer font-medium text-slate-700">
+                                    <input type="radio" name="paper_tag_number_action" value="assign_new" class="text-primary focus:ring-primary">
+                                    Assign new department number
+                                </label>
+                            </div>
+                        </div>
+                    @endif
 
                     <x-form-field
                         label="Reason / Notes"
@@ -104,5 +130,91 @@
                 </div>
             </div>
         </form>
+
+        @include('assets.partials.department-change-modal', ['asset' => $asset])
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const form = document.getElementById('move-asset-form');
+                const select = document.getElementById('move_department_id');
+                const modal = document.getElementById('dept-change-confirm-modal');
+                const oldNoSpan = document.getElementById('dept-modal-old-no');
+                const newNoSpan = document.getElementById('dept-modal-new-no');
+                const staffNote = document.getElementById('dept-staff-paper-warning');
+                const btnCancel = document.getElementById('dept-modal-btn-cancel');
+                const btnKeep = document.getElementById('dept-modal-btn-keep');
+                const btnAssign = document.getElementById('dept-modal-btn-assign');
+                const actionInput = document.getElementById('department_number_action');
+
+                const originalDeptId = '{{ $asset->department_id ?? "" }}';
+                const originalAssetNo = '{{ addslashes($asset->asset_no) }}';
+                const isAdmin = {{ auth()->user()?->isAdmin() ? 'true' : 'false' }};
+                const isPatterned = {{ app(\App\Services\AssetNumberService::class)->matchesPattern($asset->asset_no, $asset->departmentRelation) ? 'true' : 'false' }};
+                const reassignEnabled = {{ \App\Models\Setting::get('reassign_number_on_dept_change', '1') === '1' ? 'true' : 'false' }};
+
+                if (!form || !select || !modal) return;
+
+                btnCancel.addEventListener('click', function () {
+                    modal.classList.add('hidden');
+                });
+
+                btnKeep.addEventListener('click', function () {
+                    actionInput.value = 'keep';
+                    modal.classList.add('hidden');
+                    form.submit();
+                });
+
+                btnAssign.addEventListener('click', function () {
+                    actionInput.value = 'assign_new';
+                    modal.classList.add('hidden');
+                    form.submit();
+                });
+
+                form.addEventListener('submit', function (e) {
+                    if (actionInput.value) {
+                        return;
+                    }
+
+                    const currentDeptId = select.value ? String(select.value) : '';
+                    const origDeptId = originalDeptId ? String(originalDeptId) : '';
+
+                    const isDeptChanged = (currentDeptId !== origDeptId) && currentDeptId !== '';
+
+                    if (!reassignEnabled || !isDeptChanged) {
+                        return;
+                    }
+
+                    e.preventDefault();
+
+                    const sectionParam = '?section_id=' + encodeURIComponent('{{ $asset->section_id ?? '' }}') + '&section=' + encodeURIComponent('{{ addslashes($asset->section ?? '') }}');
+
+                    fetch('/departments/' + currentDeptId + '/preview-next-number' + sectionParam, {
+                        headers: { 'Accept': 'application/json' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        const nextNo = data.next_number || '(Next available)';
+                        if (oldNoSpan) oldNoSpan.textContent = originalAssetNo;
+                        if (newNoSpan) newNoSpan.textContent = nextNo;
+
+                        if (!isAdmin && !isPatterned) {
+                            if (staffNote) staffNote.classList.remove('hidden');
+                            if (btnAssign) btnAssign.classList.add('hidden');
+                        } else {
+                            if (staffNote) staffNote.classList.add('hidden');
+                            if (btnAssign) btnAssign.classList.remove('hidden');
+                        }
+
+                        modal.classList.remove('hidden');
+                    })
+                    .catch(err => {
+                        console.error('Failed to preview next department number:', err);
+                        if (oldNoSpan) oldNoSpan.textContent = originalAssetNo;
+                        if (newNoSpan) newNoSpan.textContent = '(Next available)';
+                        modal.classList.remove('hidden');
+                    });
+                });
+            });
+        </script>
     </div>
 @endsection

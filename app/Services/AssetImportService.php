@@ -3,9 +3,13 @@
 namespace App\Services;
 
 use App\Models\Asset;
+use App\Models\AssetNumberHistory;
+use App\Models\AssetTemplate;
 use App\Models\Category;
+use App\Models\Department;
 use App\Models\Transfer;
 use App\Models\User;
+use App\Models\Vendor;
 use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -47,6 +51,8 @@ class AssetImportService
 
         $existingNumbers = Asset::withTrashed()
             ->pluck('asset_no')
+            ->merge(AssetNumberHistory::pluck('old_no'))
+            ->merge(AssetNumberHistory::pluck('new_no'))
             ->mapWithKeys(fn ($no) => [strtolower(trim((string) $no)) => true])
             ->all();
 
@@ -54,8 +60,22 @@ class AssetImportService
             ->mapWithKeys(fn ($name) => [strtolower(trim((string) $name)) => $name])
             ->all();
 
+        $existingDepartments = Department::all()
+            ->mapWithKeys(fn (Department $dept) => [strtolower(trim((string) preg_replace('/\s+/', ' ', $dept->name))) => $dept]);
+
+        $allVendors = Vendor::orderBy('name')->get();
+        $activeVendorsByKey = [];
+        foreach ($allVendors as $v) {
+            if ($v->active) {
+                $activeVendorsByKey[Vendor::normalizedKey($v->name)] = $v;
+            }
+        }
+        $activeTemplates = AssetTemplate::with('category:id,name')->where('active', true)->orderBy('name')->get();
+
         $seenInSheet = [];
         $unknownCategories = [];
+        $newDepartments = [];
+        $unknownVendorRows = [];
         $parsedRows = [];
         $validCount = 0;
         $duplicateCount = 0;
@@ -76,10 +96,22 @@ class AssetImportService
             }
 
             $assetNo = trim($assoc['asset_no'] ?? '');
+            $templateRaw = $this->nullableString($assoc['asset_template'] ?? '');
+            $matchedTemplate = $templateRaw !== null ? AssetTemplate::findForImport($templateRaw, $activeTemplates) : null;
+            $assetTemplateId = $matchedTemplate?->id;
+
             $assetName = trim($assoc['asset_name'] ?? '');
+            if ($assetName === '' && $matchedTemplate) {
+                $assetName = $matchedTemplate->name;
+            }
+
             $categoryName = $this->nullableString($assoc['category'] ?? '');
-            $brand = $this->nullableString($assoc['brand'] ?? '');
-            $model = $this->nullableString($assoc['model'] ?? '');
+            if ($categoryName === null && $matchedTemplate?->category) {
+                $categoryName = $matchedTemplate->category->name;
+            }
+
+            $brand = $this->nullableString($assoc['brand'] ?? '') ?? $matchedTemplate?->brand;
+            $model = $this->nullableString($assoc['model'] ?? '') ?? $matchedTemplate?->model;
             $serialNo = $this->nullableString($assoc['serial_no'] ?? '');
             $dateData = $this->parseDateWithYearOnly($assoc['date_acquired'] ?? '');
             $dateAcquired = $dateData[0];
@@ -90,10 +122,11 @@ class AssetImportService
             $assignedPersonnel = $this->nullableString($assoc['assigned_personnel'] ?? '');
             $status = $this->normalizeStatus($assoc['status'] ?? '');
             $conditionData = $this->normalizeCondition($assoc['asset_condition'] ?? null);
-            $notes = $this->nullableString($assoc['notes'] ?? '');
+            $notes = $this->nullableString($assoc['notes'] ?? '') ?? $matchedTemplate?->default_remarks;
+            $vendorRaw = $this->nullableString($assoc['vendor'] ?? '');
 
             $cost = $this->parseMoney($assoc['cost'] ?? null);
-            $salvageValue = $this->parseMoney($assoc['salvage_value'] ?? null);
+            $salvageValue = $this->parseMoney($assoc['salvage_value'] ?? $assoc['disposal_value'] ?? null);
             $usefulLifeYears = $this->parseInteger($assoc['useful_life_years'] ?? null);
 
             $isUnknownCategory = false;
@@ -102,6 +135,40 @@ class AssetImportService
                 if (! isset($existingCategories[$lowerCat])) {
                     $isUnknownCategory = true;
                     $unknownCategories[$lowerCat] = $categoryName;
+                }
+            }
+
+            $isNewDepartment = false;
+            if ($department !== null) {
+                $normDept = strtolower(trim((string) preg_replace('/\s+/', ' ', $department)));
+                if (! $existingDepartments->has($normDept)) {
+                    $isNewDepartment = true;
+                    $newDepartments[$normDept] = $department;
+                } else {
+                    $department = $existingDepartments->get($normDept)->name;
+                }
+            }
+
+            $vendorId = null;
+            $vendorDisplay = null;
+            $isUnknownVendor = false;
+            $vendorNearMatches = [];
+            if ($vendorRaw !== null) {
+                $vendorNorm = Vendor::normalizeName($vendorRaw);
+                $vendorKey = Vendor::normalizedKey($vendorNorm);
+                if (isset($activeVendorsByKey[$vendorKey])) {
+                    $matchedVendor = $activeVendorsByKey[$vendorKey];
+                    $vendorId = $matchedVendor->id;
+                    $vendorDisplay = $matchedVendor->name;
+                } else {
+                    $isUnknownVendor = true;
+                    $vendorDisplay = $vendorNorm;
+                    $vendorNearMatches = Vendor::findNearMatches($vendorNorm, $allVendors);
+                    $unknownVendorRows[] = [
+                        'row_number' => $index + 2,
+                        'name' => $vendorNorm,
+                        'near_matches' => array_column($vendorNearMatches, 'name'),
+                    ];
                 }
             }
 
@@ -153,6 +220,13 @@ class AssetImportService
                 'is_unknown_condition' => $conditionData['is_unknown'],
                 'condition_note' => $conditionData['note'],
                 'notes' => $notes,
+                'is_new_department' => $isNewDepartment,
+                'vendor_id' => $vendorId,
+                'vendor' => $vendorDisplay,
+                'asset_template_id' => $assetTemplateId,
+                'asset_template' => $matchedTemplate?->name ?? $templateRaw,
+                'is_unknown_vendor' => $isUnknownVendor,
+                'vendor_near_matches' => array_column($vendorNearMatches, 'name'),
                 'is_duplicate' => $isDuplicate,
                 'is_valid' => $isValid,
                 'status_label' => $statusLabel,
@@ -165,6 +239,9 @@ class AssetImportService
             'duplicate_count' => $duplicateCount,
             'invalid_count' => $invalidCount,
             'unknown_category_count' => count($unknownCategories),
+            'new_department_count' => count($newDepartments),
+            'unknown_vendor_count' => count($unknownVendorRows),
+            'unknown_vendor_rows' => $unknownVendorRows,
         ];
     }
 
@@ -191,6 +268,9 @@ class AssetImportService
                 if ($assetNo !== '') {
                     $alreadyExists = Asset::withTrashed()
                         ->whereRaw('LOWER(asset_no) = LOWER(?)', [$assetNo])
+                        ->exists()
+                        || AssetNumberHistory::whereRaw('LOWER(old_no) = LOWER(?)', [$assetNo])
+                        ->orWhereRaw('LOWER(new_no) = LOWER(?)', [$assetNo])
                         ->exists();
 
                     if ($alreadyExists) {
@@ -201,11 +281,58 @@ class AssetImportService
                     $assetNo = $this->generator->generate();
                 }
 
+                $departmentId = null;
+                $departmentName = null;
+                if (! empty($row['department'])) {
+                    $cleanDept = trim((string) preg_replace('/\s+/', ' ', (string) $row['department']));
+                    $normDept = strtolower($cleanDept);
+                    $dept = Department::all()->first(
+                        fn (Department $d) => strtolower(trim((string) preg_replace('/\s+/', ' ', $d->name))) === $normDept
+                    );
+                    if (! $dept) {
+                        $suggestedCode = app(DepartmentBackfillService::class)->suggestCode($cleanDept);
+                        $dept = Department::create([
+                            'name' => $cleanDept,
+                            'code' => $suggestedCode,
+                            'next_number' => 1,
+                            'active' => true,
+                            'code_confirmed' => false,
+                        ]);
+                        activity()
+                            ->causedBy($user)
+                            ->performedOn($dept)
+                            ->log("Department '{$dept->name}' ({$dept->code}) auto-created during import (needs review)");
+                    }
+                    $departmentId = $dept->id;
+                    $departmentName = $dept->name;
+                }
+
+                $vendorId = null;
+                if (! empty($row['vendor'])) {
+                    $cleanVendor = Vendor::normalizeName((string) $row['vendor']);
+                    if ($cleanVendor !== '') {
+                        $vendor = Vendor::findByNormalizedName($cleanVendor, activeOnly: true)
+                            ?? Vendor::findByNormalizedName($cleanVendor, activeOnly: false);
+                        if (! $vendor) {
+                            $vendor = Vendor::create([
+                                'name' => $cleanVendor,
+                                'active' => true,
+                                'is_donation' => false,
+                            ]);
+                            activity()
+                                ->causedBy($user)
+                                ->performedOn($vendor)
+                                ->log("Vendor '{$vendor->name}' created during Excel import");
+                        }
+                        $vendorId = $vendor->id;
+                    }
+                }
+
                 $categoryId = null;
                 if (! empty($row['category'])) {
                     $category = Category::firstOrCreate(
                         ['name' => trim((string) $row['category'])],
-                        ['default_salvage_percent' => 0]
+                        ['default_salvage_percent' => null, 'disposal_reviewed' => false]
                     );
                     $categoryId = $category->id;
                 }
@@ -219,9 +346,12 @@ class AssetImportService
                     'asset_name' => $row['asset_name'],
                     'brand' => $row['brand'] ?? null,
                     'model' => $row['model'] ?? null,
+                    'vendor_id' => $vendorId,
+                    'asset_template_id' => ! empty($row['asset_template_id']) ? (int) $row['asset_template_id'] : null,
                     'serial_no' => $row['serial_no'] ?? null,
                     'category_id' => $categoryId,
-                    'department' => $row['department'] ?? null,
+                    'department_id' => $departmentId,
+                    'department' => $departmentName ?? ($row['department'] ?? null),
                     'section' => $row['section'] ?? null,
                     'location' => $row['location'] ?? null,
                     'assigned_personnel' => $row['assigned_personnel'] ?? null,
@@ -266,7 +396,7 @@ class AssetImportService
         ];
     }
 
-    protected function normalizeHeaderKey(string $raw): string
+    public function normalizeHeaderKey(string $raw): string
     {
         $clean = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '_', $raw), '_'));
 
@@ -286,8 +416,10 @@ class AssetImportService
             'status' => 'status',
             'cost', 'purchase_cost', 'acquisition_cost', 'price' => 'cost',
             'useful_life_years', 'useful_life', 'life_years', 'life' => 'useful_life_years',
-            'salvage_value', 'salvage', 'scrap_value', 'residual_value' => 'salvage_value',
+            'disposal_value', 'disposal', 'disposal_val', 'salvage_value', 'salvage', 'scrap_value', 'residual_value' => 'salvage_value',
             'remarks', 'notes', 'note' => 'notes',
+            'vendor', 'vendor_name', 'supplier', 'supplier_name' => 'vendor',
+            'asset_template', 'template', 'masterlist', 'equipment_template' => 'asset_template',
             default => $clean,
         };
     }

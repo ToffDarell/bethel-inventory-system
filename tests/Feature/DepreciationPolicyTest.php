@@ -33,6 +33,12 @@ beforeEach(function () {
     Setting::set('depreciation_start_convention', 'january_1');
     Setting::set('depreciation_default_salvage_percent', '0');
     Setting::set('depreciation_min_cost', '0.00');
+
+    $this->category = Category::create([
+        'name' => 'General Medical Equipment ' . uniqid(),
+        'default_useful_life_years' => 10,
+        'default_salvage_percent' => 0.0,
+    ]);
 });
 
 test('migration adds acquired_year_only and backfills January 1 dates as true on a copy of existing database', function () {
@@ -130,6 +136,7 @@ test('import with full January 1 date stores acquired_year_only false and is not
         [
             'asset_no' => 'BBH-EXACT-01',
             'asset_name' => 'Exact Date Ultrasound',
+            'category' => $this->category->name,
             'cost' => 120000,
             'useful_life_years' => 10,
             'salvage_value' => 0,
@@ -141,6 +148,7 @@ test('import with full January 1 date stores acquired_year_only false and is not
         [
             'asset_no' => 'BBH-YEAR-01',
             'asset_name' => 'Year Only Monitor',
+            'category' => $this->category->name,
             'cost' => 120000,
             'useful_life_years' => 10,
             'salvage_value' => 0,
@@ -198,7 +206,7 @@ test('admin can update depreciation policy and changes are logged in activity lo
 
     $joined = implode(' | ', $activities);
     expect($joined)->toContain('Depreciation start convention changed from');
-    expect($joined)->toContain('Default salvage percent changed from');
+    expect($joined)->toContain('Default disposal percent changed from');
     expect($joined)->toContain('Minimum cost to depreciate changed from');
 });
 
@@ -285,6 +293,7 @@ test('depreciation report shows disclaimer, active policy in method note, and ha
     $assetA = Asset::create([
         'asset_no' => 'BBH-LOW-01',
         'asset_name' => 'Digital Thermometer',
+        'category_id' => $this->category->id,
         'cost' => 5000.00,
         'useful_life_years' => 3,
         'salvage_value' => 0,
@@ -297,6 +306,7 @@ test('depreciation report shows disclaimer, active policy in method note, and ha
     $assetB = Asset::create([
         'asset_no' => 'BBH-HIGH-01',
         'asset_name' => 'Infusion Pump',
+        'category_id' => $this->category->id,
         'cost' => 20000.00,
         'useful_life_years' => 5,
         'salvage_value' => 0,
@@ -335,6 +345,7 @@ test('depreciation excel and csv exports include disclaimer, active policy, and 
     Asset::create([
         'asset_no' => 'BBH-LOW-02',
         'asset_name' => 'Pulse Oximeter',
+        'category_id' => $this->category->id,
         'cost' => 4500.00,
         'useful_life_years' => 3,
         'salvage_value' => 0,
@@ -346,6 +357,7 @@ test('depreciation excel and csv exports include disclaimer, active policy, and 
     Asset::create([
         'asset_no' => 'BBH-HIGH-02',
         'asset_name' => 'Hospital Bed Electric',
+        'category_id' => $this->category->id,
         'cost' => 50000.00,
         'useful_life_years' => 10,
         'salvage_value' => 5000,

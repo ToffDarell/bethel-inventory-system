@@ -43,10 +43,15 @@ class Asset extends Model
         'asset_condition',
         'notes',
         'category_id',
+        'department_id',
+        'section_id',
+        'vendor_id',
+        'asset_template_id',
         'cost',
         'useful_life_years',
         'salvage_value',
         'acquired_year_only',
+        'needs_tag_reprint',
     ];
 
     protected function casts(): array
@@ -57,12 +62,48 @@ class Asset extends Model
             'salvage_value' => 'decimal:2',
             'useful_life_years' => 'integer',
             'acquired_year_only' => 'boolean',
+            'needs_tag_reprint' => 'boolean',
+            'department_id' => 'integer',
+            'section_id' => 'integer',
+            'category_id' => 'integer',
+            'vendor_id' => 'integer',
+            'asset_template_id' => 'integer',
         ];
     }
 
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(Vendor::class);
+    }
+
+    public function assetTemplate(): BelongsTo
+    {
+        return $this->belongsTo(AssetTemplate::class);
+    }
+
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function departmentRelation(): BelongsTo
+    {
+        return $this->belongsTo(Department::class, 'department_id');
+    }
+
+    public function sectionRelation(): BelongsTo
+    {
+        return $this->belongsTo(Section::class, 'section_id');
+    }
+
+    public function numberHistories(): HasMany
+    {
+        return $this->hasMany(AssetNumberHistory::class)->latest('changed_at')->latest('id');
     }
 
     public function transfers(): HasMany

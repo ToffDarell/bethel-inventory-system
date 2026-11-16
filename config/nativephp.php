@@ -8,7 +8,7 @@ return [
      * It is used to determine if the app needs to be updated.
      * Increment this value every time you release a new version of your app.
      */
-    'version' => env('NATIVEPHP_APP_VERSION', '1.2.0'),
+    'version' => env('NATIVEPHP_APP_VERSION', '1.3.6'),
 
     /**
      * The ID of your application. This should be a unique identifier
@@ -87,13 +87,29 @@ return [
         'temp',
         'content',
         'node_modules',
+        'tests',
+        'tests/*',
         '*/tests',
+        'phpunit.xml',
+        '.pest*',
+        '*.sqlite',
+        '*.sqlite-shm',
+        '*.sqlite-wal',
+        '*.sqlite-journal',
         'database/*.sqlite',
-        'database/*.sqlite-shm',
-        'database/*.sqlite-wal',
+        'database/*.sqlite*',
+        'Downloads',
+        'Downloads/*',
+        'public/Downloads',
+        'public/Downloads/*',
+        'scratch',
+        'scratch/*',
         '.superpowers',
         'nativephp',
         'public/screenshots',
+        'storage/framework/testing/*',
+        'storage/framework/cache/laravel-excel/*',
+        'storage/framework/*.sqlite*',
     ],
 
     /**

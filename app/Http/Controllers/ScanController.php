@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\AssetNumberHistory;
 use Illuminate\Http\Request;
 
 class ScanController extends Controller
@@ -32,6 +33,17 @@ class ScanController extends Controller
                 ->with('success', "Asset \"{$asset->asset_no}\" ({$asset->asset_name}) opened.");
         }
 
+        // Check for historical asset number match
+        $historyMatch = AssetNumberHistory::whereRaw('LOWER(old_no) = LOWER(?)', [$code])
+            ->orWhereRaw('LOWER(new_no) = LOWER(?)', [$code])
+            ->first();
+
+        if ($historyMatch && $historyMatch->asset) {
+            return redirect()
+                ->route('assets.show', $historyMatch->asset)
+                ->with('info', "Asset \"{$historyMatch->asset->asset_no}\" ({$historyMatch->asset->asset_name}) opened via former number \"{$historyMatch->old_no}\" (Old number).");
+        }
+
         // Check for exact name match
         $nameMatch = Asset::whereRaw('LOWER(asset_name) = LOWER(?)', [$code])->first();
         if ($nameMatch) {
@@ -48,6 +60,7 @@ class ScanController extends Controller
             ->orWhere('serial_no', 'like', "%{$code}%")
             ->orWhere('section', 'like', "%{$code}%")
             ->orWhere('assigned_personnel', 'like', "%{$code}%")
+            ->orWhereHas('vendor', fn ($vq) => $vq->where('name', 'like', "%{$code}%"))
             ->get();
 
         if ($partialMatches->count() === 1) {

@@ -107,6 +107,7 @@ test('wrong password or unknown username returns exact error message', function 
 });
 
 test('forced password change applies on first login by username', function () {
+    config(['app.env' => 'local']);
     $this->seed(DatabaseSeeder::class);
 
     $this->post('/login', [

@@ -1,7 +1,83 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="space-y-6">
+    <style>
+        .dep-print-sheet {
+            display: none;
+        }
+        .dep-print-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+            font-size: 10.5px;
+            line-height: 1.3;
+            color: #0f172a;
+        }
+        .dep-print-table th {
+            background-color: #dbeafe;
+            border-top: 1.5px solid #0f172a;
+            border-bottom: 1.5px solid #0f172a;
+            padding: 4px 5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            text-align: left;
+            color: #0f172a;
+            font-size: 10px;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        .dep-print-table td {
+            padding: 2.5px 5px;
+            vertical-align: top;
+            overflow-wrap: break-word;
+            border-bottom: 0.5px solid #e2e8f0;
+        }
+        .dep-print-num {
+            text-align: right !important;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .dep-print-center {
+            text-align: center !important;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 10mm 10mm 12mm 10mm;
+            }
+            body {
+                background: #ffffff !important;
+                color: #0f172a !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            header,
+            nav,
+            footer,
+            .no-print,
+            .dep-screen-only {
+                display: none !important;
+            }
+            main {
+                padding: 0 !important;
+                margin: 0 !important;
+                max-width: 100% !important;
+            }
+            .dep-print-sheet {
+                display: block !important;
+                width: 100% !important;
+            }
+            tr {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+        }
+    </style>
+
+    <div class="dep-screen-only space-y-6">
         <!-- Page Header -->
         <x-page-header
             title="Depreciation Report"
@@ -16,7 +92,7 @@
                         <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
-                        <span>Export CSV</span>
+                        <span>Raw data (CSV)</span>
                     </a>
                     <a href="{{ route('reports.depreciation.export', array_merge(request()->query(), ['format' => 'xlsx'])) }}"
                        class="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-semibold text-xs shadow-2xs transition-colors">
@@ -24,6 +100,21 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                         </svg>
                         <span>Export Excel (.xlsx)</span>
+                    </a>
+                    <button type="button"
+                            onclick="window.print()"
+                            class="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs transition-colors cursor-pointer">
+                        <svg class="w-4 h-4 text-primary" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659"/>
+                        </svg>
+                        <span>Print Report</span>
+                    </button>
+                    <a href="{{ route('reports.depreciation.export-pdf', request()->query()) }}"
+                       class="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-2xs transition-colors">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+                        </svg>
+                        <span>Export PDF</span>
                     </a>
                 </div>
             </x-slot:actions>
@@ -206,7 +297,7 @@
                         <th class="py-3 px-3.5 text-center whitespace-nowrap">Year Bought</th>
                         <th class="py-3 px-3.5 text-center whitespace-nowrap" title="Expected lifespan in years">Useful Life</th>
                         <th class="py-3 px-3.5 text-right whitespace-nowrap" title="What the hospital paid">Cost</th>
-                        <th class="py-3 px-3.5 text-right whitespace-nowrap" title="Expected value at the end of its useful life">Salvage</th>
+                        <th class="py-3 px-3.5 text-right whitespace-nowrap" title="Expected residual value at the end of its useful life">Disposal Value</th>
                         <th class="py-3 px-3.5 text-right whitespace-nowrap" title="Total value lost so far">Accumulated</th>
                         <th class="py-3 px-3.5 text-right whitespace-nowrap" title="Estimated worth today">Current Value</th>
                     </tr>
@@ -232,14 +323,14 @@
                             {{ $asset->date_acquired ? $asset->date_acquired->format('Y') : 'Not recorded' }}
                         </td>
                         <td class="py-3 px-3.5 text-center text-xs text-slate-700 whitespace-nowrap tabular-nums">
-                            {{ $asset->useful_life_years ? $asset->useful_life_years . ' yrs' : '-' }}
+                            {{ $dep->isCalculable() ? $dep->getUsefulLifeYears() . ' yrs' : ($asset->category?->default_useful_life_years ? $asset->category->default_useful_life_years . ' yrs' : '-') }}
                         </td>
                         @if ($asset->cost !== null)
                             <td class="py-3 px-3.5 text-right text-xs text-slate-800 whitespace-nowrap tabular-nums">
                                 ₱{{ number_format($asset->cost, 2) }}
                             </td>
                             <td class="py-3 px-3.5 text-right text-xs text-slate-700 whitespace-nowrap tabular-nums">
-                                {{ $asset->salvage_value !== null ? '₱' . number_format($asset->salvage_value, 2) : '-' }}
+                                {{ $dep->isCalculable() && $dep->getDisposalValue() !== null ? '₱' . number_format($dep->getDisposalValue(), 2) : '-' }}
                             </td>
                             @if ($dep->getMissingReason() === 'Below minimum cost')
                                 <td class="py-3 px-3.5 text-right whitespace-nowrap">
@@ -249,6 +340,24 @@
                                 </td>
                                 <td class="py-3 px-3.5 text-right whitespace-nowrap">
                                     <span class="text-xs text-slate-400">Below minimum cost</span>
+                                </td>
+                            @elseif ($dep->getMissingReason() === 'Select a category to calculate')
+                                <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                        Select a category to calculate
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                    <span class="text-xs text-slate-500 font-mono">₱{{ number_format($asset->cost, 2) }}</span>
+                                </td>
+                            @elseif ($dep->getMissingReason() === 'Useful life not set')
+                                <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                                        Useful life not set
+                                    </span>
+                                </td>
+                                <td class="py-3 px-3.5 text-right whitespace-nowrap">
+                                    <span class="text-xs text-slate-500 font-mono">₱{{ number_format($asset->cost, 2) }}</span>
                                 </td>
                             @else
                                 <td class="py-3 px-3.5 text-right text-xs text-amber-800 whitespace-nowrap tabular-nums">
@@ -271,7 +380,7 @@
                                 </a>
                             </td>
                             <td class="py-3 px-3.5 text-right text-xs text-slate-400 whitespace-nowrap tabular-nums">
-                                {{ $asset->salvage_value !== null ? '₱' . number_format($asset->salvage_value, 2) : '-' }}
+                                -
                             </td>
                             <td class="py-3 px-3.5 text-right text-xs text-slate-400 whitespace-nowrap tabular-nums">
                                 -
@@ -332,5 +441,143 @@
                 {{ $assets->links() }}
             </div>
         </x-card>
+    </div>
+
+    <!-- Clean Print Layout for Depreciation Summary (Shown only when printing via window.print()) -->
+    <div class="dep-print-sheet">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding-bottom: 10px;">
+            <div style="display: flex; align-items: flex-start; gap: 12px;">
+                @if (! empty($logoDataUri))
+                    <img src="{{ $logoDataUri }}" alt="Hospital Logo" style="height: 48px; width: auto; object-fit: contain;">
+                @endif
+                <div>
+                    <div style="font-size: 14px; font-weight: 800; text-transform: uppercase; color: #0f172a; line-height: 1.2;">
+                        {{ $hospitalName ?? 'BETHEL BAPTIST HOSPITAL, INC.' }}
+                    </div>
+                    <div style="font-size: 11px; color: #334155; line-height: 1.35;">{{ $hospitalAddress ?? '' }}</div>
+                    <div style="font-size: 11px; color: #334155; line-height: 1.35;">Tel. No. : (088) 813-2229 / (088) 813-2708</div>
+                </div>
+            </div>
+
+            <div style="text-align: right; font-size: 11px; color: #334155; line-height: 1.4;">
+                <div>As of Date : <strong style="color: #0f172a;">{{ $asOfDate->format('M d, Y') }}</strong></div>
+                <div>Date Printed : {{ now()->format('n/j/Y g:i:s A') }}</div>
+            </div>
+        </div>
+
+        <div style="margin-top: 4px; margin-bottom: 10px;">
+            <span style="font-size: 12px; font-weight: 800; text-transform: uppercase; color: #1e3a8a; text-decoration: underline;">
+                DEPRECIATION SUMMARY REPORT
+            </span>
+        </div>
+
+        <!-- Category Valuation Summary Table -->
+        <div style="margin-bottom: 14px;">
+            <div style="margin-bottom: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #dc2626;">
+                CATEGORY VALUATION SUMMARY
+            </div>
+            <table class="dep-print-table">
+                <colgroup>
+                    <col style="width: 34%;">
+                    <col style="width: 14%;">
+                    <col style="width: 18%;">
+                    <col style="width: 17%;">
+                    <col style="width: 17%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>CATEGORY</th>
+                        <th class="dep-print-center">ACTIVE ASSETS</th>
+                        <th class="dep-print-num">TOTAL COST</th>
+                        <th class="dep-print-num">ACCUMULATED</th>
+                        <th class="dep-print-num">CURRENT VALUE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($categorySummary as $summary)
+                        <tr>
+                            <td style="font-weight: 700;">{{ $summary['name'] }}</td>
+                            <td class="dep-print-center">{{ $summary['cost_count'] }}</td>
+                            <td class="dep-print-num">{{ number_format($summary['cost'], 2) }}</td>
+                            <td class="dep-print-num">{{ number_format($summary['accumulated'], 2) }}</td>
+                            <td class="dep-print-num" style="font-weight: 700;">{{ number_format($summary['current_value'], 2) }}</td>
+                        </tr>
+                    @endforeach
+                    <tr style="border-top: 1.5px solid #0f172a; border-bottom: 1.5px solid #0f172a; font-weight: 800; background-color: #f8fafc;">
+                        <td colspan="2">TOTAL VALUATION SUMMARY</td>
+                        <td class="dep-print-num">{{ number_format($totalCost, 2) }}</td>
+                        <td class="dep-print-num">{{ number_format($totalAccumulated, 2) }}</td>
+                        <td class="dep-print-num">{{ number_format($totalCurrentValue, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Detailed Asset Depreciation Schedule -->
+        <div>
+            <div style="margin-bottom: 4px; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #065f46; font-style: italic;">
+                DETAILED ASSET DEPRECIATION SCHEDULE
+            </div>
+            <table class="dep-print-table">
+                <colgroup>
+                    <col style="width: 13%;">
+                    <col style="width: 25%;">
+                    <col style="width: 15%;">
+                    <col style="width: 7%;">
+                    <col style="width: 7%;">
+                    <col style="width: 11%;">
+                    <col style="width: 11%;">
+                    <col style="width: 11%;">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>BAR CODE</th>
+                        <th>ASSET NAME</th>
+                        <th>CATEGORY</th>
+                        <th class="dep-print-center">YEAR</th>
+                        <th class="dep-print-center">LIFE</th>
+                        <th class="dep-print-num">PURCHASE</th>
+                        <th class="dep-print-num">ACCUMULATED</th>
+                        <th class="dep-print-num">CURRENT</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (($allFilteredAssets ?? $assets) as $asset)
+                        @php
+                            $dep = $depreciationService->calculateForAsset($asset, $asOfDate);
+                            $costVal = $asset->cost !== null ? (float) $asset->cost : null;
+                        @endphp
+                        <tr>
+                            <td style="font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;">{{ $asset->asset_no }}</td>
+                            <td>{{ $asset->asset_name }}</td>
+                            <td>{{ $asset->category?->name ?? 'Uncategorized' }}</td>
+                            <td class="dep-print-center">{{ $asset->date_acquired ? $asset->date_acquired->format('Y') : '-' }}</td>
+                            <td class="dep-print-center">{{ $dep->isCalculable() ? $dep->getUsefulLifeYears() . 'y' : '-' }}</td>
+                            <td class="dep-print-num">{{ $costVal !== null ? number_format($costVal, 2) : '-' }}</td>
+                            <td class="dep-print-num">{{ $dep->isCalculable() ? number_format($dep->getAccumulatedDepreciation(), 2) : '0.00' }}</td>
+                            <td class="dep-print-num" style="font-weight: 700;">
+                                {{ $dep->isCalculable() ? number_format($dep->getCurrentValue(), 2) : ($costVal !== null ? number_format($costVal, 2) : '-') }}
+                            </td>
+                        </tr>
+                    @endforeach
+                    <tr style="border-top: 1.5px solid #0f172a; border-bottom: 1.5px solid #0f172a; font-weight: 800; color: #065f46;">
+                        <td colspan="5">Asset Count : {{ number_format(($allFilteredAssets ?? $assets)->count()) }} &nbsp;&nbsp;&nbsp; GRAND TOTAL</td>
+                        <td class="dep-print-num">{{ number_format($totalCost, 2) }}</td>
+                        <td class="dep-print-num">{{ number_format($totalAccumulated, 2) }}</td>
+                        <td class="dep-print-num">{{ number_format($totalCurrentValue, 2) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 14px; padding-top: 6px; border-top: 1px solid #0f172a; display: flex; justify-content: space-between; align-items: flex-start; font-size: 10.5px; color: #0f172a; line-height: 1.4;">
+            <div>
+                <div>Page No : &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1</div>
+                <div>Date Printed : {{ now()->format('n/j/Y g:i:s A') }}</div>
+            </div>
+            <div style="text-align: right;">
+                <div>Prepared By : {{ auth()->user()?->name ?? auth()->user()?->username }}</div>
+            </div>
+        </div>
     </div>
 @endsection

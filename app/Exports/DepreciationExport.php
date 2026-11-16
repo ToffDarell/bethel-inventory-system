@@ -2,98 +2,57 @@
 
 namespace App\Exports;
 
-use App\Models\Asset;
-use App\Services\DepreciationService;
+use App\Exports\Sheets\DepreciationCategorySheet;
+use App\Exports\Sheets\DepreciationMainSheet;
+use App\Exports\Sheets\DepreciationRawCsvSheet;
+use App\Models\User;
 use Illuminate\Support\Collection;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\Export;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class DepreciationExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize
+class DepreciationExport implements WithMultipleSheets, Export
 {
-    protected DepreciationService $depreciationService;
-
     public function __construct(
         protected ?string $categoryId = null,
         protected ?string $department = null,
         protected mixed $asOfDate = null,
+        protected string $format = 'xlsx',
+        protected ?User $user = null,
     ) {
-        $this->depreciationService = app(DepreciationService::class);
+        if (! $this->user && auth()->check()) {
+            $this->user = auth()->user();
+        }
     }
 
-    public function collection(): Collection
+    public function sheets(): array
     {
-        $query = Asset::query()
-            ->with('category')
-            ->where('status', '!=', 'Disposed')
-            ->orderBy('asset_no');
-
-        if ($this->categoryId !== null && $this->categoryId !== '') {
-            $query->where('category_id', $this->categoryId);
+        if ($this->format === 'csv') {
+            return [
+                new DepreciationRawCsvSheet($this->categoryId, $this->department, $this->asOfDate),
+            ];
         }
-
-        if ($this->department !== null && $this->department !== '') {
-            $query->where('department', $this->department);
-        }
-
-        return $query->get();
-    }
-
-    public function headings(): array
-    {
-        $conventionLabel = $this->depreciationService->getConventionLabel();
-        $minCost = $this->depreciationService->getMinCost();
-        $minCostText = $minCost > 0 ? 'PHP ' . number_format($minCost, 2) : 'None (all assets)';
 
         return [
-            ['DISCLAIMER: Estimated values for tracking, not an official accounting record'],
-            ['POLICY: ' . $conventionLabel . ' | Minimum Cost to Depreciate: ' . $minCostText],
-            [],
-            [
-                'Asset No.',
-                'Asset Description',
-                'Category',
-                'Year Bought',
-                'Useful Life (Years)',
-                'Cost (PHP)',
-                'Salvage (PHP)',
-                'Accumulated Depreciation (PHP)',
-                'Current Value (PHP)',
-            ],
+            new DepreciationMainSheet($this->categoryId, $this->department, $this->asOfDate, $this->user),
+            new DepreciationCategorySheet($this->asOfDate, $this->user),
         ];
     }
 
     /**
-     * @param  Asset  $asset
+     * Backward-compatible delegation for tests or direct calls
      */
+    public function collection(): Collection
+    {
+        return (new DepreciationRawCsvSheet($this->categoryId, $this->department, $this->asOfDate))->collection();
+    }
+
+    public function headings(): array
+    {
+        return (new DepreciationRawCsvSheet($this->categoryId, $this->department, $this->asOfDate))->headings();
+    }
+
     public function map($asset): array
     {
-        $dep = $this->depreciationService->calculateForAsset($asset, $this->asOfDate);
-
-        $accumulated = '';
-        $currentValue = '';
-
-        if ($dep->isCalculable()) {
-            $accumulated = number_format((float) $dep->getAccumulatedDepreciation(), 2, '.', '');
-            $currentValue = number_format((float) $dep->getCurrentValue(), 2, '.', '');
-        } elseif ($dep->getMissingReason() === 'Below minimum cost') {
-            $accumulated = 'Below minimum cost';
-            $currentValue = 'Below minimum cost';
-        } elseif ($asset->cost !== null) {
-            $currentValue = number_format((float) $asset->cost, 2, '.', '');
-        }
-
-        return [
-            $asset->asset_no,
-            $asset->asset_name,
-            $asset->category?->name ?? 'Uncategorized',
-            $asset->date_acquired ? $asset->date_acquired->format('Y') : '',
-            $asset->useful_life_years ?? '',
-            $asset->cost !== null ? number_format((float) $asset->cost, 2, '.', '') : '',
-            $asset->salvage_value !== null ? number_format((float) $asset->salvage_value, 2, '.', '') : '-',
-            $accumulated,
-            $currentValue,
-        ];
+        return (new DepreciationRawCsvSheet($this->categoryId, $this->department, $this->asOfDate))->map($asset);
     }
 }

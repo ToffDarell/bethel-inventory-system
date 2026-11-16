@@ -2,72 +2,41 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
+use App\Exports\Sheets\TemplateDataSheet;
+use App\Exports\Sheets\TemplateReadMeSheet;
+use Maatwebsite\Excel\Concerns\Export;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class AssetsTemplateExport implements FromArray, WithHeadings
+class AssetsTemplateExport implements WithMultipleSheets, Export
 {
+    public function __construct(
+        protected string $format = 'xlsx',
+    ) {}
+
+    public function sheets(): array
+    {
+        if ($this->format === 'csv') {
+            return [
+                new TemplateDataSheet(),
+            ];
+        }
+
+        return [
+            new TemplateReadMeSheet(),
+            new TemplateDataSheet(),
+        ];
+    }
+
+    /**
+     * Backward-compatible delegation for tests or direct calls
+     */
     public function headings(): array
     {
-        return [
-            'asset_no',
-            'asset_description',
-            'brand',
-            'model',
-            'serial_number',
-            'department',
-            'section',
-            'assigned_personnel',
-            'category',
-            'year_bought',
-            'asset_condition',
-            'status',
-            'cost',
-            'useful_life_years',
-            'salvage_value',
-            'remarks',
-        ];
+        return (new TemplateDataSheet())->headings();
     }
 
     public function array(): array
     {
-        return [
-            [
-                'BBHIND-S300002315',
-                'Patient Monitor',
-                'Mindray',
-                'uMEC10',
-                'SN-123456',
-                'Nursing',
-                'Station 3',
-                'Nurse Joy',
-                'Medical Equipment',
-                '2023',
-                'In Good Condition',
-                'In Use',
-                '120000.00',
-                '10',
-                '10000.00',
-                'Existing paper tag item',
-            ],
-            [
-                '',
-                'Wheelchair',
-                'Drive Medical',
-                'Standard Folding',
-                '',
-                'Emergency Room',
-                'Triage',
-                '',
-                'Furniture',
-                '2024',
-                'Brand-new',
-                'In Use',
-                '',
-                '',
-                '',
-                'Leave asset_no blank to auto-generate',
-            ],
-        ];
+        return (new TemplateDataSheet())->array();
     }
 }

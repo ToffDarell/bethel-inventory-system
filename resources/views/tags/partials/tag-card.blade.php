@@ -11,7 +11,9 @@
     $forPdf = $forPdf ?? false;
 
     $nameLen = mb_strlen($asset->asset_name);
-    $nameFontSize = $nameLen > 34 ? '6.8pt' : ($nameLen > 22 ? '7.3pt' : '8pt');
+    $nameFontSize = $nameLen > 65 ? '5.8pt' : ($nameLen > 45 ? '6.3pt' : ($nameLen > 30 ? '7pt' : '8pt'));
+    $noLen = mb_strlen($asset->asset_no);
+    $noFontSize = $noLen > 24 ? '7.5pt' : ($noLen > 18 ? '9pt' : '10.5pt');
 @endphp
 
 <div class="property-tag-card" style="width: {{ $tagWidthCm }}cm; height: {{ $tagHeightCm }}cm; box-sizing: border-box; background: #ffffff; color: #000000; page-break-inside: avoid; break-inside: avoid; overflow: hidden; font-family: Arial, Helvetica, sans-serif;">
@@ -57,7 +59,7 @@
             <td style="border: 1px solid #000000; padding: 2px 6px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset Name
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 6px; font-size: {{ $nameFontSize }}; font-weight: 700; line-height: 1.18; word-break: break-word; white-space: normal;">
+            <td class="preview-asset-name-cell" style="border: 1px solid #000000; padding: 2px 6px; font-size: {{ $nameFontSize }}; font-weight: 700; line-height: 1.18; word-break: break-word; overflow-wrap: anywhere; white-space: normal;">
                 {{ $asset->asset_name }}
             </td>
         </tr>
@@ -82,13 +84,28 @@
             </td>
         </tr>
 
-        <!-- Row 5: Location -->
+        <!-- Row 5: Department / Section -->
+        @php
+            $deptParts = array_values(array_filter([
+                trim((string) ($asset->department ?? '')),
+                trim((string) ($asset->section ?? '')),
+            ]));
+            $deptSectionText = ! empty($deptParts)
+                ? implode(' / ', $deptParts)
+                : (trim((string) ($asset->location ?? '')) ?: 'None');
+            $locTrimmed = trim((string) ($asset->location ?? ''));
+            if (! empty($deptParts) && $locTrimmed !== '' && ! in_array($locTrimmed, $deptParts, true)) {
+                $deptSectionText .= ' (' . $locTrimmed . ')';
+            }
+            $deptLen = mb_strlen($deptSectionText);
+            $deptFontSize = $deptLen > 60 ? '5.8pt' : ($deptLen > 42 ? '6.5pt' : '7.5pt');
+        @endphp
         <tr>
             <td style="border: 1px solid #000000; padding: 2px 6px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
-                Location
+                Dept. / Section
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 6px; font-size: 8pt; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-                {{ $asset->location ?: ($asset->department ?: 'None') }}
+            <td style="border: 1px solid #000000; padding: 2px 6px; font-size: {{ $deptFontSize }}; font-weight: 600; line-height: 1.15; word-break: break-word; overflow-wrap: anywhere; white-space: normal;">
+                {{ $deptSectionText }}
             </td>
         </tr>
 
@@ -97,7 +114,7 @@
             <td style="border: 1px solid #000000; padding: 2px 6px; font-size: 7.5pt; font-weight: 700; background-color: #fafafa; white-space: nowrap;">
                 Asset No.
             </td>
-            <td style="border: 1px solid #000000; padding: 2px 6px; font-size: 10.5pt; font-weight: 800; font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.03em; color: #000000; white-space: nowrap;">
+            <td class="preview-asset-no-cell" style="border: 1px solid #000000; padding: 2px 6px; font-size: {{ $noFontSize }}; font-weight: 800; font-family: Consolas, 'Courier New', monospace; letter-spacing: 0.02em; color: #000000; word-break: break-all; overflow-wrap: anywhere; white-space: normal; line-height: 1.15;">
                 {{ $asset->asset_no }}
             </td>
         </tr>
@@ -109,9 +126,7 @@
                     <div style="height: 13mm; max-height: 48px; display: block; margin: 0 auto; overflow: hidden;">
                         {!! $tagAssetService->barcodeSvg($asset->asset_no, 1.25, 42) !!}
                     </div>
-                    <div style="font-family: Consolas, 'Courier New', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; color: #000000; margin-top: 1px; text-align: center;">
-                        *{{ $asset->asset_no }}*
-                    </div>
+                    <div class="preview-barcode-text" style="font-family: Consolas, 'Courier New', monospace; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em; color: #000000; margin-top: 1px; text-align: center;">*{{ $asset->asset_no }}*</div>
                 </td>
             </tr>
         @endif

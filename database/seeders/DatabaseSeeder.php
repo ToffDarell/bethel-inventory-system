@@ -13,25 +13,28 @@ class DatabaseSeeder extends Seeder
 
     public function run(): void
     {
-        $admin = User::where('username', 'admin')->orWhere('email', 'admin@hospital.local')->first();
-        if (! $admin) {
-            User::create([
-                'name' => 'Hospital Administrator',
-                'username' => 'admin',
-                'email' => 'admin@hospital.local',
-                'password' => 'password123',
-                'role' => 'admin',
-                'must_change_password' => true,
-            ]);
-        } elseif (empty($admin->username)) {
-            $admin->update(['username' => 'admin']);
+        if (config('app.env') === 'local') {
+            $admin = User::where('username', 'admin')->orWhere('email', 'admin@hospital.local')->first();
+            if (! $admin) {
+                User::create([
+                    'name' => 'Hospital Administrator',
+                    'username' => 'admin',
+                    'email' => 'admin@hospital.local',
+                    'password' => 'password123',
+                    'role' => 'admin',
+                    'must_change_password' => true,
+                ]);
+            } elseif (empty($admin->username)) {
+                $admin->update(['username' => 'admin']);
+            }
         }
 
         $defaults = [
             'hospital_name' => 'Bethel Baptist Hospital, Inc.',
+            'hospital_short_name' => 'BBH',
             'hospital_address' => 'Fortich St., Sumpong, Malaybalay City, Bukidnon 8700',
             'logo_path' => 'images/bethel-logo.png',
-            'asset_no_prefix' => 'BBH',
+            'asset_no_prefix' => 'BBHI',
             'tag_width_cm' => '10',
             'tag_height_cm' => '6',
             'show_barcode' => '0',
@@ -46,5 +49,7 @@ class DatabaseSeeder extends Seeder
         }
 
         $this->call(CategorySeeder::class);
+        $this->call(VendorSeeder::class);
+        $this->call(AssetTemplateSeeder::class);
     }
 }
